@@ -8,10 +8,11 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
-    tsConfigPaths({
-      projects: ['./tsconfig.json'],
+    tsConfigPaths(),
+    tanstackStart({
+      target: "vercel",
+      customViteReactPlugin: true,
     }),
-    tanstackStart({ customViteReactPlugin: true }),
     viteReact(),
   ],
 })
