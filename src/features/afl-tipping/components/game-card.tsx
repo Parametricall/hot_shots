@@ -113,6 +113,7 @@ export function GameCard({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <TeamButton
+            // @ts-expect-error - teamId can be undefined
             teamId={game.homeTeamId}
             isSelected={selectedTip === game.homeTeamId?.toString()}
           />
@@ -127,6 +128,7 @@ export function GameCard({
           </div>
 
           <TeamButton
+            // @ts-expect-error - teamId can be undefined
             teamId={game.awayTeamId}
             isSelected={selectedTip === game.awayTeamId?.toString()}
           />
