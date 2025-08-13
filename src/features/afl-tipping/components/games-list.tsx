@@ -3,7 +3,7 @@
 import { GameCard } from "./game-card";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Game } from "~/features/afl-tipping/afl-data";
-import { AflTeam } from "~/features/afl-tipping/api";
+import { AflTeam } from "~/features/afl-tipping/types";
 
 interface GamesListProps {
   games: Game[];

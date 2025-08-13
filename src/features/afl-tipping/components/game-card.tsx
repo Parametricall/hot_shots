@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Calendar, Clock, MapPin, X } from "lucide-react";
 import { Game, Team } from "~/features/afl-tipping/afl-data";
-import { AflTeam } from "~/features/afl-tipping/api";
+import { AflTeam } from "~/features/afl-tipping/types";
 
 interface GameCardProps {
   game: Game;

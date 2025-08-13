@@ -10,16 +10,12 @@ import { Button } from "~/components/ui/button";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 import { TipSummary } from "~/features/afl-tipping/components/tip-summary";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
-import { fetchAllCurrentTeams } from "~/features/afl-tipping/api";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
 
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {
-    const teams = await queryClient.ensureQueryData({
-      queryKey: ["afl", "teams"],
-      queryFn: fetchAllCurrentTeams,
-      staleTime: Infinity,
-    });
+    const teams = await queryClient.ensureQueryData(aflQueries.teams());
 
     return { teams: teams.teams };
   },

@@ -1,21 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  fetchAllCurrentTeams,
-  fetchStandings,
-} from "~/features/afl-tipping/api";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
+
 export const Route = createFileRoute("/")({
   component: Home,
   loader: async ({ context: { queryClient } }) => {
-    const teams = queryClient.ensureQueryData({
-      queryKey: ["afl", "teams"],
-      queryFn: fetchAllCurrentTeams,
-      staleTime: Infinity,
-    });
-    const standings = queryClient.ensureQueryData({
-      queryKey: ["afl", "standings"],
-      queryFn: fetchStandings,
-      staleTime: Infinity,
-    });
+    const teams = queryClient.ensureQueryData(aflQueries.teams());
+    const standings = queryClient.ensureQueryData(aflQueries.standings());
 
     const [teamsData, standingsData] = await Promise.all([teams, standings]);
     return { teams: teamsData.teams, standings: standingsData.standings };
