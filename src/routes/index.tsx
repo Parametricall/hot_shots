@@ -1,33 +1,45 @@
-import { createFileRoute } from '@tanstack/react-router'
-export const Route = createFileRoute('/')({
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  fetchAllCurrentTeams,
+  fetchStandings,
+} from "~/features/afl-tipping/api";
+export const Route = createFileRoute("/")({
   component: Home,
-    loader: async () => {
-      const response = await fetch('https://api.squiggle.com.au/?q=standings', {
-          headers: new Headers({
-              'User-Agent': "Alex's Tipping App - parametricall@users.noreply.github.com",
-          })
-      })
-        const standings = await response.json();
-
-      return {
-          standings: standings.standings,
-      }
-    }
-})
+  loader: async () => {
+    const allTeams = await fetchAllCurrentTeams();
+    const currentStandings = await fetchStandings();
+    return {
+      teams: allTeams.teams,
+      standings: currentStandings.standings,
+    };
+  },
+});
 
 function Home() {
-    const { standings } = Route.useLoaderData()
+  const { teams, standings } = Route.useLoaderData();
+
   return (
     <div className="p-2">
       <h3>Welcome Home!!!</h3>
-        <br />
-        <h4>Standings:</h4>
-        {standings.map((item) => (
-            <div key={item.id} className="p-2 border-b">
-                <h5>{item.name}</h5>
-                <p>Points: {item.wins}</p>
-            </div>
-        ))}
+      <br />
+      <h4>Standing:</h4>
+      {standings?.map((item) => {
+        const team = teams.find((t) => t.id === item.id);
+        if (!team) {
+          return null; // Skip if team not found
+        }
+        return (
+          <div key={item.id} className="p-2 border-b flex flex-row gap-3">
+            {item.rank}
+            <h5>{team.name}</h5>
+            <img
+              src={team.logo}
+              alt={`${item.name} logo`}
+              className="h-8 w-8"
+            />
+          </div>
+        );
+      })}
     </div>
-  )
+  );
 }
