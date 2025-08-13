@@ -6,7 +6,9 @@ import {
 import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 
 function squiggleFetch(searchParams: URLSearchParams) {
-  const url = new URL(`${SQUIGGLE_API_HOST}/?${searchParams.toString()}`);
+  const url = new URL(
+    `${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`,
+  );
   return fetch(url, {
     headers: new Headers({
       "User-Agent":
@@ -24,10 +26,10 @@ type SquiggleSearchParams = {
 function buildSearchParams(params: SquiggleSearchParams): URLSearchParams {
   const searchParams = new URLSearchParams();
   searchParams.set("q", params.q);
-  if (params.year) {
+  if (params.year != undefined) {
     searchParams.set("year", params.year.toString());
   }
-  if (params.round) {
+  if (params.round != undefined) {
     searchParams.set("round", params.round.toString());
   }
   return searchParams;

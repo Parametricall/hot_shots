@@ -11,6 +11,7 @@ import { RoundNavigation } from "~/features/afl-tipping/components/round-navigat
 import { TipSummary } from "~/features/afl-tipping/components/tip-summary";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
@@ -27,6 +28,9 @@ function RouteComponent() {
   const [tips, setTips] = useLocalStorage<
     Record<string, Record<string, string>>
   >("afl-tips-2024", {});
+
+  const { data } = useQuery(aflQueries.games(currentRound));
+  const games = data?.games || [];
 
   const rounds = generateSampleFixtures();
   const roundNames = generateRoundNames();
@@ -109,9 +113,9 @@ function RouteComponent() {
           />
         )}
 
-        {currentRoundData && (
+        {currentRoundData && games && (
           <GamesList
-            games={currentRoundData.games}
+            games={games}
             roundName={roundNames[currentRound]}
             tips={currentRoundTips}
             onTipSelect={handleTipSelect}

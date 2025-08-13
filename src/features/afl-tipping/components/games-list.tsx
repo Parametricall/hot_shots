@@ -2,16 +2,31 @@
 
 import { GameCard } from "./game-card";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Game } from "~/features/afl-tipping/afl-data";
-import { AflTeam } from "~/features/afl-tipping/types";
+import { AflGame, AflTeam } from "~/features/afl-tipping/types";
 
 interface GamesListProps {
-  games: Game[];
+  games: AflGame[];
   roundName: string;
   tips: Record<string, string>;
   onTipSelect: (gameId: string, teamId: string) => void;
   teams: AflTeam[];
 }
+
+const groupedByDate = (games: AflGame[]) =>
+  games.reduce(
+    (acc, item) => {
+      // Convert Date to an ISO string without time
+      const key = item.date.toISOString().split("T")[0];
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+
+      return acc;
+    },
+    {} as Record<string, AflGame[]>,
+  );
 
 export function GamesList({
   games,
@@ -21,17 +36,7 @@ export function GamesList({
   teams,
 }: GamesListProps) {
   // Group games by date
-  const gamesByDate = games.reduce(
-    (acc, game) => {
-      const date = game.date;
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(game);
-      return acc;
-    },
-    {} as Record<string, Game[]>,
-  );
+  const gamesByDate = groupedByDate(games);
 
   const formatDateHeader = (dateString: string) => {
     const date = new Date(dateString);
@@ -76,7 +81,7 @@ export function GamesList({
             </h3>
             <div className="space-y-2 sm:space-y-3">
               {dateGames
-                .sort((a, b) => a.time.localeCompare(b.time))
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
                 .map((game) => (
                   <GameCard
                     key={game.id}

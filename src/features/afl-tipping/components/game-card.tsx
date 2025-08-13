@@ -4,10 +4,10 @@ import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Calendar, Clock, MapPin, X } from "lucide-react";
 import { Game, Team } from "~/features/afl-tipping/afl-data";
-import { AflTeam } from "~/features/afl-tipping/types";
+import { AflGame, AflTeam } from "~/features/afl-tipping/types";
 
 interface GameCardProps {
-  game: Game;
+  game: AflGame;
   selectedTip?: string;
   onTipSelect: (gameId: string, teamId: string) => void;
   teams: AflTeam[];
@@ -19,8 +19,7 @@ export function GameCard({
   onTipSelect,
   teams,
 }: GameCardProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-AU", {
       weekday: "short",
       day: "numeric",
@@ -28,25 +27,25 @@ export function GameCard({
     });
   };
 
-  const formatTime = (timeString: string) => {
-    return timeString;
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString();
   };
 
   // Added function to clear tip for this game
   const handleClearTip = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Clear tip by setting empty string - parent component will handle removal
-    onTipSelect(game.id, "");
+    onTipSelect(game.id.toString(), "");
   };
 
   const TeamButton = ({
-    team,
+    teamId,
     isSelected,
   }: {
-    team: Team;
+    teamId: AflTeam["id"];
     isSelected: boolean;
   }) => {
-    const aflTeam = teams.find((t) => t.name === team.shortName);
+    const aflTeam = teams.find((t) => t.id === teamId);
     return (
       <Button
         variant={isSelected ? "default" : "outline"}
@@ -55,7 +54,7 @@ export function GameCard({
             ? "ring-2 ring-primary ring-offset-2 bg-primary text-primary-foreground"
             : "hover:bg-accent"
         }`}
-        onClick={() => onTipSelect(game.id, team.id)}
+        onClick={() => onTipSelect(game.id.toString(), teamId.toString())}
       >
         <div
           className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold ${
@@ -70,7 +69,7 @@ export function GameCard({
           />
         </div>
         <span className="text-xs sm:text-sm font-medium text-center leading-tight px-1">
-          {team.shortName}
+          {aflTeam?.name}
         </span>
       </Button>
     );
@@ -89,7 +88,7 @@ export function GameCard({
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>{formatTime(game.time)}</span>
+              <span>{formatTime(game.date)}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
@@ -114,22 +113,22 @@ export function GameCard({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <TeamButton
-            team={game.homeTeam}
-            isSelected={selectedTip === game.homeTeam.id}
+            teamId={game.homeTeamId}
+            isSelected={selectedTip === game.homeTeamId?.toString()}
           />
 
           <div className="flex flex-col items-center px-1 sm:px-2 min-w-[40px]">
             <span className="text-xs text-muted-foreground mb-1">VS</span>
             {selectedTip && (
               <Badge variant="secondary" className="text-xs px-1 py-0">
-                {selectedTip === game.homeTeam.id ? "HOME" : "AWAY"}
+                {selectedTip === game.homeTeamId?.toString() ? "HOME" : "AWAY"}
               </Badge>
             )}
           </div>
 
           <TeamButton
-            team={game.awayTeam}
-            isSelected={selectedTip === game.awayTeam.id}
+            teamId={game.awayTeamId}
+            isSelected={selectedTip === game.awayTeamId?.toString()}
           />
         </div>
       </CardContent>
