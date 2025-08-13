@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import {
   fetchAllCurrentTeams,
+  fetchGames,
   fetchStandings,
 } from "~/features/afl-tipping/api/squiggle/api";
 
@@ -19,5 +20,13 @@ export const aflQueries = {
       queryKey: aflQueries.allStandings(),
       queryFn: fetchStandings,
       staleTime: 1000 * 60 * 60, // Cache standings for 1 hour
+    }),
+  allGames: (round?: number) =>
+    [...aflQueries.all(), "games", { round }] as const,
+  games: (round?: number) =>
+    queryOptions({
+      queryKey: aflQueries.allGames(round),
+      queryFn: () => fetchGames(round),
+      staleTime: 1000 * 60 * 5, // Cache games for 5 minutes
     }),
 };

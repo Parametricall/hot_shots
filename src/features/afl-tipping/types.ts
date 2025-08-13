@@ -1,4 +1,26 @@
-// Type definitions for the AFL tipping app
+export type AflTeam = {
+  abbrev: string;
+  logo: string;
+  name: string;
+  id: number;
+  debut: number;
+};
+
+export type AflStanding = {
+  id: number;
+  name: string;
+  rank: number;
+};
+
+export type AflGame = {
+  id: number;
+  round: number;
+  roundName: string;
+  venue: string;
+  date: Date;
+  homeTeamId: number | null;
+  awayTeamId: number | null;
+};
 
 export interface Tip {
   gameId: string;
@@ -15,17 +37,3 @@ export interface TippingState {
   currentRound: number;
   userTips: UserTips[];
 }
-
-export type AflTeam = {
-  abbrev: string;
-  logo: string;
-  name: string;
-  id: number;
-  debut: number;
-};
-
-export type AflStanding = {
-  id: number;
-  name: string;
-  rank: number;
-};

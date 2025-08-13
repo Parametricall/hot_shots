@@ -1,4 +1,5 @@
 import {
+  squiggleGamesDtoToDomain,
   squiggleStandingsDtoToDomain,
   squiggleTeamsDtoToDomain,
 } from "~/features/afl-tipping/api/squiggle/schemas";
@@ -50,4 +51,19 @@ export async function fetchStandings() {
   }
   const dto = await response.json();
   return squiggleStandingsDtoToDomain.parse(dto);
+}
+
+export async function fetchGames(round?: number) {
+  const params: SquiggleSearchParams = {
+    q: "games",
+    year: new Date().getFullYear(),
+    round,
+  };
+
+  const response = await squiggleFetch(buildSearchParams(params));
+  if (!response.ok) {
+    throw new Error("Failed to fetch games");
+  }
+  const dto = await response.json();
+  return squiggleGamesDtoToDomain.parse(dto);
 }
