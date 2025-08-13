@@ -19,7 +19,7 @@ type SquiggleSearchParams = {
   round?: number;
 };
 
-type AflTeam = {
+export type AflTeam = {
   abbrev: string;
   logo: string;
   name: string;

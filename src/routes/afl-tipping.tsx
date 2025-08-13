@@ -10,12 +10,23 @@ import { Button } from "~/components/ui/button";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 import { TipSummary } from "~/features/afl-tipping/components/tip-summary";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
+import { fetchAllCurrentTeams } from "~/features/afl-tipping/api";
 
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
+  loader: async ({ context: { queryClient } }) => {
+    const teams = await queryClient.ensureQueryData({
+      queryKey: ["afl", "teams"],
+      queryFn: fetchAllCurrentTeams,
+      staleTime: Infinity,
+    });
+
+    return { teams: teams.teams };
+  },
 });
 
 function RouteComponent() {
+  const { teams } = Route.useLoaderData();
   const [currentRound, setCurrentRound] = useState(0);
   const [tips, setTips] = useLocalStorage<
     Record<string, Record<string, string>>
@@ -108,6 +119,7 @@ function RouteComponent() {
             roundName={roundNames[currentRound]}
             tips={currentRoundTips}
             onTipSelect={handleTipSelect}
+            teams={teams}
           />
         )}
       </div>

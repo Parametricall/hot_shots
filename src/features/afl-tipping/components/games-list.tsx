@@ -3,12 +3,14 @@
 import { GameCard } from "./game-card";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Game } from "~/features/afl-tipping/afl-data";
+import { AflTeam } from "~/features/afl-tipping/api";
 
 interface GamesListProps {
   games: Game[];
   roundName: string;
   tips: Record<string, string>;
   onTipSelect: (gameId: string, teamId: string) => void;
+  teams: AflTeam[];
 }
 
 export function GamesList({
@@ -16,6 +18,7 @@ export function GamesList({
   roundName,
   tips,
   onTipSelect,
+  teams,
 }: GamesListProps) {
   // Group games by date
   const gamesByDate = games.reduce(
@@ -80,6 +83,7 @@ export function GamesList({
                     game={game}
                     selectedTip={tips[game.id]}
                     onTipSelect={onTipSelect}
+                    teams={teams}
                   />
                 ))}
             </div>

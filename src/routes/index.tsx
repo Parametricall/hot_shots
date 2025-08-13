@@ -5,13 +5,20 @@ import {
 } from "~/features/afl-tipping/api";
 export const Route = createFileRoute("/")({
   component: Home,
-  loader: async () => {
-    const allTeams = await fetchAllCurrentTeams();
-    const currentStandings = await fetchStandings();
-    return {
-      teams: allTeams.teams,
-      standings: currentStandings.standings,
-    };
+  loader: async ({ context: { queryClient } }) => {
+    const teams = queryClient.ensureQueryData({
+      queryKey: ["afl", "teams"],
+      queryFn: fetchAllCurrentTeams,
+      staleTime: Infinity,
+    });
+    const standings = queryClient.ensureQueryData({
+      queryKey: ["afl", "standings"],
+      queryFn: fetchStandings,
+      staleTime: Infinity,
+    });
+
+    const [teamsData, standingsData] = await Promise.all([teams, standings]);
+    return { teams: teamsData.teams, standings: standingsData.standings };
   },
 });
 
