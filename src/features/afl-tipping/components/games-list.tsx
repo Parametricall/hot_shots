@@ -7,8 +7,8 @@ import { AflGame, AflTeam } from "~/features/afl-tipping/types";
 interface GamesListProps {
   games: AflGame[];
   roundName: string;
-  tips: Record<string, string>;
-  onTipSelect: (gameId: string, teamId: string) => void;
+  tips: Record<number, number>;
+  onTipSelect: (gameId: number, teamId: number) => void;
   teams: AflTeam[];
 }
 

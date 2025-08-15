@@ -9,7 +9,7 @@ import { AflGame } from "~/features/afl-tipping/types";
 
 interface TipSummaryProps {
   games: AflGame[];
-  tips: Record<string, string>;
+  tips: Record<number, number>;
   roundName: string;
   onClearTips: () => void;
 }

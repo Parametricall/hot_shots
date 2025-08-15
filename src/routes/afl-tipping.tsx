@@ -41,7 +41,7 @@ function RouteComponent() {
     return incompleteGames[0].round;
   });
   const [tips, setTips] = useLocalStorage<
-    Record<string, Record<string, string>>
+    Record<string, Record<number, number>>
   >("afl-tips-2024", {});
 
   const { data: rounds } = useQuery({
@@ -54,25 +54,25 @@ function RouteComponent() {
 
   const currentRoundData = rounds[currentRound];
 
-  const handleTipSelect = (gameId: string, teamId: string) => {
+  const handleTipSelect = (gameId: number, teamId: number) => {
     setTips((prev) => {
       const newTips = { ...prev };
 
       // Handle clearing tips when empty string is passed
-      if (teamId === "") {
-        if (newTips[currentRound]) {
-          delete newTips[currentRound][gameId];
-          // Remove round entry if no tips left
-          if (Object.keys(newTips[currentRound]).length === 0) {
-            delete newTips[currentRound];
-          }
-        }
-      } else {
-        newTips[currentRound] = {
-          ...newTips[currentRound],
-          [gameId]: teamId,
-        };
-      }
+      // if (teamId === "") {
+      //   if (newTips[currentRound]) {
+      //     delete newTips[currentRound][gameId];
+      //     // Remove round entry if no tips left
+      //     if (Object.keys(newTips[currentRound]).length === 0) {
+      //       delete newTips[currentRound];
+      //     }
+      //   }
+      // } else {
+      newTips[currentRound] = {
+        ...newTips[currentRound],
+        [gameId]: teamId,
+      };
+      // }
 
       return newTips;
     });
