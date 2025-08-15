@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Progress } from "~/components/ui/progress";
-import { Trash2, CheckCircle } from "lucide-react";
-import { Game } from "~/features/afl-tipping/afl-data";
+import { CheckCircle, Trash2 } from "lucide-react";
+import { AflGame } from "~/features/afl-tipping/types";
 
 interface TipSummaryProps {
-  games: Game[];
+  games: AflGame[];
   tips: Record<string, string>;
   roundName: string;
   onClearTips: () => void;

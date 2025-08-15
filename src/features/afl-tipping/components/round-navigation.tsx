@@ -3,7 +3,9 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { generateRoundNames } from "~/features/afl-tipping/afl-data";
+import { useQuery } from "@tanstack/react-query";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { aflGamesToRounds } from "~/features/afl-tipping/utils";
 
 interface RoundNavigationProps {
   currentRound: number;
@@ -14,7 +16,11 @@ export function RoundNavigation({
   currentRound,
   onRoundChange,
 }: RoundNavigationProps) {
-  const roundNames = generateRoundNames();
+  const { data: rounds } = useQuery({
+    ...aflQueries.allGames(),
+    select: aflGamesToRounds,
+    initialData: [], // This should already be in the cache
+  });
 
   const handlePrevious = () => {
     if (currentRound > 0) {
@@ -23,7 +29,7 @@ export function RoundNavigation({
   };
 
   const handleNext = () => {
-    if (currentRound < roundNames.length - 1) {
+    if (currentRound < rounds.length - 1) {
       onRoundChange(currentRound + 1);
     }
   };
@@ -45,10 +51,10 @@ export function RoundNavigation({
 
           <div className="text-center flex-1 px-2">
             <h2 className="font-semibold text-base sm:text-lg">
-              {roundNames[currentRound]}
+              {rounds[currentRound].name}
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              {currentRound + 1} of {roundNames.length}
+              {currentRound + 1} of {rounds.length}
             </p>
           </div>
 
@@ -56,7 +62,7 @@ export function RoundNavigation({
             variant="outline"
             size="sm"
             onClick={handleNext}
-            disabled={currentRound === roundNames.length - 1}
+            disabled={currentRound === rounds.length - 1}
             className="flex items-center gap-1 bg-transparent min-w-[70px] h-9"
           >
             Next
@@ -81,7 +87,7 @@ export function RoundNavigation({
                 variant="outline"
                 size="sm"
                 onClick={handleNext}
-                disabled={currentRound === roundNames.length - 1}
+                disabled={currentRound === rounds.length - 1}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -89,7 +95,7 @@ export function RoundNavigation({
           </div>
 
           <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-            {roundNames.map((roundName, index) => {
+            {rounds.map((round, index) => {
               const isActive = index === currentRound;
               const isFinal = index >= 25;
 
@@ -109,7 +115,7 @@ export function RoundNavigation({
                     ? "Opening"
                     : index <= 24
                       ? `R${index}`
-                      : roundName.split(" ")[0]}
+                      : round.name.split(" ")[0]}
                 </Button>
               );
             })}

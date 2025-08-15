@@ -43,7 +43,7 @@ export async function fetchAllCurrentTeams() {
     throw new Error("Failed to fetch teams");
   }
   const dto = await response.json();
-  return squiggleTeamsDtoToDomain.parse(dto);
+  return squiggleTeamsDtoToDomain.parse(dto).teams;
 }
 
 export async function fetchStandings() {
@@ -54,7 +54,7 @@ export async function fetchStandings() {
     throw new Error("Failed to fetch standings");
   }
   const dto = await response.json();
-  return squiggleStandingsDtoToDomain.parse(dto);
+  return squiggleStandingsDtoToDomain.parse(dto).standings;
 }
 
 export async function fetchGames(round?: number) {
@@ -69,7 +69,7 @@ export async function fetchGames(round?: number) {
     throw new Error("Failed to fetch games");
   }
   const dto = await response.json();
-  return squiggleGamesDtoToDomain.parse(dto);
+  return squiggleGamesDtoToDomain.parse(dto).games;
 }
 
 export async function fetchIncompleteGames() {
@@ -83,5 +83,7 @@ export async function fetchIncompleteGames() {
     throw new Error("Failed to fetch incomplete games");
   }
   const dto = await response.json();
-  return squiggleGamesDtoToDomain.parse(dto);
+  return squiggleGamesDtoToDomain.parse(dto).games.toSorted((a, b) => {
+    return a.unixTime - b.unixTime;
+  });
 }

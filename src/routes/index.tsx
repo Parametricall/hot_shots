@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
     const standings = queryClient.ensureQueryData(aflQueries.standings());
 
     const [teamsData, standingsData] = await Promise.all([teams, standings]);
-    return { teams: teamsData.teams, standings: standingsData.standings };
+    return { teams: teamsData, standings: standingsData };
   },
 });
 

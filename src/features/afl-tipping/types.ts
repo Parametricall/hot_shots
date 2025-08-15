@@ -23,10 +23,17 @@ export type AflGame = {
   round: number;
   roundName: string;
   venue: Venue;
+  unixTime: number;
   date: Date;
   homeTeamId: number | null;
   awayTeamId: number | null;
 };
+
+export interface AflRound {
+  id: number;
+  name: string;
+  games: AflGame[];
+}
 
 export interface Tip {
   gameId: string;

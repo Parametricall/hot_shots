@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useLocalStorage } from "~/hooks/use-local-storage";
-import {
-  generateRoundNames,
-  generateSampleFixtures,
-} from "~/features/afl-tipping/afl-data";
 import { RotateCcw } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
@@ -12,23 +8,27 @@ import { TipSummary } from "~/features/afl-tipping/components/tip-summary";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useQuery } from "@tanstack/react-query";
+import { aflGamesToRounds } from "~/features/afl-tipping/utils";
 
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {
     const teams = queryClient.ensureQueryData(aflQueries.teams());
+    const allGames = queryClient.ensureQueryData(aflQueries.allGames());
     const incompleteGames = queryClient.ensureQueryData(
       aflQueries.incompleteGames(),
     );
 
-    const [teamsData, incompleteGamesData] = await Promise.all([
+    const [teamsData, allGamesData, incompleteGamesData] = await Promise.all([
       teams,
+      allGames,
       incompleteGames,
     ]);
 
     return {
-      teams: teamsData.teams,
-      incompleteGames: incompleteGamesData.games,
+      teams: teamsData,
+      allGames: allGamesData,
+      incompleteGames: incompleteGamesData,
     };
   },
 });
@@ -44,11 +44,14 @@ function RouteComponent() {
     Record<string, Record<string, string>>
   >("afl-tips-2024", {});
 
-  const { data } = useQuery(aflQueries.games(currentRound));
-  const games = data?.games || [];
+  const { data: rounds } = useQuery({
+    ...aflQueries.allGames(),
+    select: aflGamesToRounds,
+    initialData: [], // This should already be in the cache
+  });
 
-  const rounds = generateSampleFixtures();
-  const roundNames = generateRoundNames();
+  const { data: games } = useQuery(aflQueries.games(currentRound));
+
   const currentRoundData = rounds[currentRound];
 
   const handleTipSelect = (gameId: string, teamId: string) => {
@@ -123,7 +126,7 @@ function RouteComponent() {
           <TipSummary
             games={currentRoundData.games}
             tips={currentRoundTips}
-            roundName={roundNames[currentRound]}
+            roundName={rounds[currentRound].name}
             onClearTips={handleClearRoundTips}
           />
         )}
@@ -131,7 +134,7 @@ function RouteComponent() {
         {currentRoundData && games && (
           <GamesList
             games={games}
-            roundName={roundNames[currentRound]}
+            roundName={rounds[currentRound].name}
             tips={currentRoundTips}
             onTipSelect={handleTipSelect}
             teams={teams}

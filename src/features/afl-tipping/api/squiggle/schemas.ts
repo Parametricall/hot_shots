@@ -115,6 +115,7 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
     round: dto.round,
     roundName: dto.roundname,
     venue: squiggleVenueDomainMap[dto.venue] ?? { name: dto.venue },
+    unixTime: dto.unixtime,
     date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
     homeTeamId: dto.hteamid,
     awayTeamId: dto.ateamid,
