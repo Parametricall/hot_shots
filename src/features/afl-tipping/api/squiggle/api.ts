@@ -21,17 +21,19 @@ type SquiggleSearchParams = {
   q: "teams" | "games" | "sources" | "tips" | "standings" | "ladder" | "power";
   year?: number;
   round?: number;
+  complete?: number | `!${number}`; // Use `!` prefix for incomplete games
 };
 
 function buildSearchParams(params: SquiggleSearchParams): URLSearchParams {
   const searchParams = new URLSearchParams();
   searchParams.set("q", params.q);
-  if (params.year != undefined) {
-    searchParams.set("year", params.year.toString());
-  }
-  if (params.round != undefined) {
-    searchParams.set("round", params.round.toString());
-  }
+  Object.entries(params).forEach(([key, value]) => {
+    if (key === "q") {
+      searchParams.set("q", value as SquiggleSearchParams["q"]);
+    } else if (value !== undefined) {
+      searchParams.set(key, value.toString());
+    }
+  });
   return searchParams;
 }
 
@@ -65,6 +67,20 @@ export async function fetchGames(round?: number) {
   const response = await squiggleFetch(buildSearchParams(params));
   if (!response.ok) {
     throw new Error("Failed to fetch games");
+  }
+  const dto = await response.json();
+  return squiggleGamesDtoToDomain.parse(dto);
+}
+
+export async function fetchIncompleteGames() {
+  const params: SquiggleSearchParams = {
+    q: "games",
+    complete: "!100",
+  };
+
+  const response = await squiggleFetch(buildSearchParams(params));
+  if (!response.ok) {
+    throw new Error("Failed to fetch incomplete games");
   }
   const dto = await response.json();
   return squiggleGamesDtoToDomain.parse(dto);

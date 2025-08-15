@@ -16,15 +16,30 @@ import { useQuery } from "@tanstack/react-query";
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {
-    const teams = await queryClient.ensureQueryData(aflQueries.teams());
+    const teams = queryClient.ensureQueryData(aflQueries.teams());
+    const incompleteGames = queryClient.ensureQueryData(
+      aflQueries.incompleteGames(),
+    );
 
-    return { teams: teams.teams };
+    const [teamsData, incompleteGamesData] = await Promise.all([
+      teams,
+      incompleteGames,
+    ]);
+
+    return {
+      teams: teamsData.teams,
+      incompleteGames: incompleteGamesData.games,
+    };
   },
 });
 
 function RouteComponent() {
-  const { teams } = Route.useLoaderData();
-  const [currentRound, setCurrentRound] = useState(0);
+  const { teams, incompleteGames } = Route.useLoaderData();
+  const [currentRound, setCurrentRound] = useState(() => {
+    if (incompleteGames.length === 0) return 0;
+    // Find the earliest round with incomplete games
+    return incompleteGames[0].round;
+  });
   const [tips, setTips] = useLocalStorage<
     Record<string, Record<string, string>>
   >("afl-tips-2024", {});
