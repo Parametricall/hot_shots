@@ -1,6 +1,12 @@
 import * as z from "zod";
-import { AflGame, AflStanding, AflTeam } from "~/features/afl-tipping/types";
+import {
+  AflGame,
+  AflStanding,
+  AflTeam,
+  Venue,
+} from "~/features/afl-tipping/types";
 import { SQUIGGLE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
+import { VENUES } from "~/features/afl-tipping/constants";
 
 const squiggleTeamSchema = z.object({
   id: z.number().positive(), // Team id
@@ -82,12 +88,33 @@ const squiggleGameSchema = z.object({
   abehinds: z.number().nullable(),
 });
 
+const squiggleVenueDomainMap: Record<string, Venue> = {
+  "Adelaide Oval": VENUES.adelaideOval,
+  "Barossa Park": VENUES.barossaPark,
+  "Sydney Showground": VENUES.engieStadium,
+  Gabba: VENUES.gabba,
+  "Kardinia Park": VENUES.gmhbaStadium,
+  "Hands Oval": VENUES.handsOval,
+  "Manuka Oval": VENUES.corroboreeGroupOvalManuka,
+  "Eureka Stadium": VENUES.marsStadium,
+  Docklands: VENUES.marvelStadium,
+  "M.C.G.": VENUES.mcg,
+  "Bellerive Oval": VENUES.ninjaStadium,
+  "Norwood Oval": VENUES.norwoodOval,
+  "Perth Stadium": VENUES.optusStadium,
+  Carrara: VENUES.peopleFirstStadium,
+  "S.C.G.": VENUES.scg,
+  "Marrara Oval": VENUES.tioStadium,
+  "Traeger Park": VENUES.tioTraegerPark,
+  "York Park": VENUES.utasStadium,
+};
+
 const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
   (dto) => ({
     id: dto.id,
     round: dto.round,
     roundName: dto.roundname,
-    venue: dto.venue,
+    venue: squiggleVenueDomainMap[dto.venue] ?? { name: dto.venue },
     date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
     homeTeamId: dto.hteamid,
     awayTeamId: dto.ateamid,

@@ -1,3 +1,9 @@
+export type Venue = {
+  name: string;
+  city?: string;
+  state?: string;
+};
+
 export type AflTeam = {
   abbrev: string;
   logo: string;
@@ -16,7 +22,7 @@ export type AflGame = {
   id: number;
   round: number;
   roundName: string;
-  venue: string;
+  venue: Venue;
   date: Date;
   homeTeamId: number | null;
   awayTeamId: number | null;
