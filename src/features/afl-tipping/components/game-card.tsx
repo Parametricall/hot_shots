@@ -51,11 +51,8 @@ export function GameCard({
       <Button
         // variant={isSelected ? "default" : "outline"}
         className={cn(
-          `flex-1 text-black h-auto p-3 sm:p-4 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent`,
+          `flex-1 text-black h-auto p-3 sm:p-4 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-blue-200 hover:cursor-pointer`,
           isAwayTeam && "flex-row-reverse",
-          // isSelected
-          //   ? "ring-2 ring-primary ring-offset-2 bg-primary text-primary-foreground"
-          //   : "hover:bg-accent",
         )}
         onClick={() => onTipSelect(game.id, teamId)}
       >
@@ -88,9 +85,7 @@ export function GameCard({
   };
 
   return (
-    <Card
-      className={`p-0 transition-all overflow-hidden rounded-lg ${selectedTip ? "ring-4 ring-primary/20 shadow-md" : "shadow-none hover:shadow-md"}`}
-    >
+    <Card className={cn(`p-0 transition-all overflow-hidden rounded-lg`)}>
       <CardContent className="p-0 bg-gray-100">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between text-xs text-gray-600">
