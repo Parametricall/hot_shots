@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import pluginStorybook from "eslint-plugin-storybook";
+
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -25,6 +28,7 @@ export default defineConfig([
       "react/react-in-jsx-scope": "off", // Not needed with React 17+
     },
   },
+  pluginStorybook.configs["flat/recommended"],
   {
     files: ["**/*.json"],
     plugins: { json },

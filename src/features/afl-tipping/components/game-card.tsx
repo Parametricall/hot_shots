@@ -108,7 +108,7 @@ export function GameCard({
 
         <div
           className={cn(
-            " from-blue-500 via-50% via-transparent bg-no-repeat rounded-b-lg",
+            " from-blue-300 via-50% via-transparent bg-no-repeat rounded-b-lg",
             selectedTip === game.homeTeamId && "bg-gradient-to-r",
             selectedTip === game.awayTeamId && "bg-gradient-to-l",
           )}
