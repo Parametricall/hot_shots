@@ -30,6 +30,13 @@ export default defineConfig([
   },
   pluginStorybook.configs["flat/recommended"],
   {
+    files: ["*.stories.tsx", "*.stories.ts"], // adjust as needed
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
     files: ["**/*.json"],
     plugins: { json },
     language: "json/json",

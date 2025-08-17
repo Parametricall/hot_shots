@@ -25,6 +25,7 @@ export type AflGame = {
   venue: Venue;
   unixTime: number;
   date: Date;
+  timeStr: string;
   homeTeamId: number | null;
   awayTeamId: number | null;
 };

@@ -1,4 +1,21 @@
-import { AflGame, AflRound } from "~/features/afl-tipping/types";
+import { AflGame, AflRound, AflTeam } from "~/features/afl-tipping/types";
+
+export function findAflTeamById(
+  teams: AflTeam[],
+  teamId: number,
+): AflTeam | undefined {
+  return teams.find((team) => team.id === teamId);
+}
+
+export function createUnknownAflTeam(id: AflTeam["id"]): AflTeam {
+  return {
+    id,
+    name: "Unknown Team",
+    abbrev: "UNK",
+    logo: "/dummy-footy-logo.png",
+    debut: 0,
+  };
+}
 
 export function aflGamesToRounds(games: AflGame[]): AflRound[] {
   const rounds: Record<number, AflRound> = {};

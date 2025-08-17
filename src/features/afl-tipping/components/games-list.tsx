@@ -3,6 +3,10 @@
 import { GameCard } from "./game-card";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { AflGame, AflTeam } from "~/features/afl-tipping/types";
+import {
+  createUnknownAflTeam,
+  findAflTeamById,
+} from "~/features/afl-tipping/utils";
 
 interface GamesListProps {
   games: AflGame[];
@@ -82,15 +86,35 @@ export function GamesList({
             <div className="space-y-2 sm:space-y-3">
               {dateGames
                 .sort((a, b) => a.date.getTime() - b.date.getTime())
-                .map((game) => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    selectedTip={tips[game.id]}
-                    onTipSelect={onTipSelect}
-                    teams={teams}
-                  />
-                ))}
+                .map((game) => {
+                  if (!game.homeTeamId || !game.awayTeamId) {
+                    return (
+                      <div
+                        key={game.id}
+                        className="text-red-500 text-sm sm:text-base"
+                      >
+                        Game {game.id} is missing team IDs.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <GameCard
+                      key={game.id}
+                      game={game}
+                      homeTeam={
+                        findAflTeamById(teams, game.homeTeamId) ??
+                        createUnknownAflTeam(game.homeTeamId)
+                      }
+                      awayTeam={
+                        findAflTeamById(teams, game.awayTeamId) ??
+                        createUnknownAflTeam(game.awayTeamId)
+                      }
+                      selectedTip={tips[game.id]}
+                      onTipSelect={onTipSelect}
+                    />
+                  );
+                })}
             </div>
           </div>
         ))}
