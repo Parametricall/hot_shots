@@ -2,7 +2,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import type React from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Clock, MapPin } from "lucide-react";
-import { AflGame, AflTeam, Venue } from "~/features/afl-tipping/types";
+import { AflGame, AflTeam } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import {
   Accordion,
@@ -54,22 +54,22 @@ export function GameCard({
       <Button
         // variant={isSelected ? "default" : "outline"}
         className={cn(
-          `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-blue-200 hover:cursor-pointer`,
+          `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-blue-200 hover:cursor-pointer shadow-none`,
           isAwayTeam && "flex-row-reverse",
         )}
         onClick={() => onTipSelect(game.id, team.id)}
       >
         <div
-          className={`flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center ${
+          className={`aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center ${
             isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
           }`}
         >
           {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
         </div>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-2">
           <div
             className={cn(
-              `w-12 h-12 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold`,
+              `w-10 h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold`,
             )}
           >
             <img src={team.logo} alt={`${team.name} logo`} />
@@ -124,7 +124,7 @@ export function GameCard({
                   team={homeTeam}
                   isSelected={selectedTip === game.homeTeamId}
                 />
-                <div className="flex flex-col items-center justify-between gap-2 p-2">
+                <div className="flex flex-col items-center justify-between gap-2 p-2 sm:px-4">
                   <div className="text-xs">{game.timeStr}</div>
                   <AccordionTrigger className="flex flex-col items-center justify-center gap-0 p-0 text-[10px] uppercase hover:no-underline cursor-pointer text-wrap">
                     Game Info
