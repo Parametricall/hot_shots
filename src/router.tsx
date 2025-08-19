@@ -9,7 +9,9 @@ import { QueryClient } from "@tanstack/react-query";
 // https://tanstack.com/start/latest/docs/framework/react/examples/start-basic-react-query?path=examples%2Freact%2Fstart-basic-react-query%2Fsrc%2Frouter.tsx
 
 export function createRouter() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 60 * 1000 } }, // 1 minute
+  });
   return routerWithQueryClient(
     createTanStackRouter({
       routeTree,
@@ -18,6 +20,7 @@ export function createRouter() {
       defaultErrorComponent: DefaultCatchBoundary,
       defaultNotFoundComponent: () => <NotFound />,
       scrollRestoration: true,
+      defaultSsr: false,
     }),
     queryClient,
   );
