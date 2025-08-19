@@ -1,7 +1,7 @@
 import { Card, CardContent } from "~/components/ui/card";
 import type React from "react";
 import { Button } from "~/components/ui/button";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
 import { AflGame, AflTeam } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import {
@@ -113,7 +113,7 @@ export function GameCard({
 
             <div
               className={cn(
-                "from-blue-300 via-50% via-transparent bg-no-repeat rounded-b-lg",
+                "from-blue-300 via-50% via-transparent bg-no-repeat",
                 selectedTip === game.homeTeamId && "bg-gradient-to-r",
                 selectedTip === game.awayTeamId && "bg-gradient-to-l",
               )}
@@ -137,7 +137,63 @@ export function GameCard({
                 />
               </div>
             </div>
-            <AccordionContent>hello world</AccordionContent>
+            <AccordionContent className="p-2 bg-gray-50 border-t">
+              <div className="text-sm ">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-row justify-around gap-2 items-center sm:hidden">
+                    <div className="text-sm font-semibold">{homeTeam.name}</div>
+                    <div className="font-medium">VS</div>
+                    <div className="text-sm font-semibold">{awayTeam.name}</div>
+                  </div>
+                  <div className="flex flex-row justify-around gap-2 items-center">
+                    <div className="text-xs flex flex-row items-center gap-1">
+                      <div className="flex items-center justify-center w-4 h-4 bg-green-500 rounded">
+                        <Check
+                          size={12}
+                          className="text-white"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <div className="flex items-center justify-center w-4 h-4 bg-green-500 rounded">
+                        <Check
+                          size={12}
+                          className="text-white"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <div className="flex items-center justify-center w-4 h-4 bg-green-500 rounded">
+                        <Check
+                          size={12}
+                          className="text-white"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <div className="flex items-center justify-center w-4 h-4 bg-green-500 rounded">
+                        <Check
+                          size={12}
+                          className="text-white"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <div className="flex items-center justify-center w-4 h-4 bg-red-500 rounded">
+                        <X size={12} className="text-white" strokeWidth={2} />
+                      </div>
+                    </div>
+
+                    <div className="font-medium">Last 5 Games</div>
+                    <div className="text-xs">L-W-W-L-W</div>
+                  </div>
+                  <div className="flex flex-row justify-around gap-2 items-center">
+                    <div className="text-xs">W</div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="font-medium">H2H</div>
+                      <div className="text-xs">{homeTeam.name} won by 12</div>
+                    </div>
+                    <div className="text-xs">L</div>
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
           </AccordionItem>
         </Accordion>
       </CardContent>
