@@ -52,9 +52,8 @@ export function GameCard({
   }) => {
     return (
       <Button
-        // variant={isSelected ? "default" : "outline"}
         className={cn(
-          `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-blue-200 hover:cursor-pointer shadow-none`,
+          `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-inherit sm:hover:bg-blue-200 hover:cursor-pointer shadow-none`,
           isAwayTeam && "flex-row-reverse",
         )}
         onClick={() => onTipSelect(game.id, team.id)}
@@ -114,7 +113,7 @@ export function GameCard({
 
             <div
               className={cn(
-                " from-blue-300 via-50% via-transparent bg-no-repeat rounded-b-lg",
+                "from-blue-300 via-50% via-transparent bg-no-repeat rounded-b-lg",
                 selectedTip === game.homeTeamId && "bg-gradient-to-r",
                 selectedTip === game.awayTeamId && "bg-gradient-to-l",
               )}
