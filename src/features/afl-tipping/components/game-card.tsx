@@ -60,7 +60,7 @@ export function GameCard({
         onClick={() => onTipSelect(game.id, team.id)}
       >
         <div
-          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+          className={`flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center ${
             isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
           }`}
         >
@@ -69,20 +69,16 @@ export function GameCard({
         <div className="flex flex-col items-center">
           <div
             className={cn(
-              `w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold`,
+              `w-12 h-12 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold`,
             )}
           >
-            <img
-              src={team.logo}
-              alt={`${team.name} logo`}
-              // className="h-8 w-8"
-            />
+            <img src={team.logo} alt={`${team.name} logo`} />
           </div>
-          <span className="text-xs sm:text-sm font-medium text-center leading-tight px-1 text-wrap">
+          <span className="hidden sm:inline-block text-xs sm:text-sm font-medium text-center leading-tight px-1 text-wrap">
             {team.name}
           </span>
         </div>
-        <div>50%</div>
+        <div className="font-semibold text-lg">50%</div>
       </Button>
     );
   };
@@ -130,8 +126,8 @@ export function GameCard({
                 />
                 <div className="flex flex-col items-center justify-between gap-2 p-2">
                   <div className="text-xs">{game.timeStr}</div>
-                  <AccordionTrigger className="flex flex-col items-center justify-center gap-0 p-0 text-[10px] uppercase hover:no-underline cursor-pointer">
-                    GAME INFO
+                  <AccordionTrigger className="flex flex-col items-center justify-center gap-0 p-0 text-[10px] uppercase hover:no-underline cursor-pointer text-wrap">
+                    Game Info
                   </AccordionTrigger>
                 </div>
 
