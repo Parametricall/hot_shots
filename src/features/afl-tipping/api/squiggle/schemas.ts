@@ -3,6 +3,7 @@ import {
   AflGame,
   AflStanding,
   AflTeam,
+  AflTips,
   Venue,
 } from "~/features/afl-tipping/types";
 import { SQUIGGLE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
@@ -119,10 +120,54 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
     date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
     timeStr: dto.timestr ?? "Not Started",
     homeTeamId: dto.hteamid,
+    hScore: dto.hscore,
     awayTeamId: dto.ateamid,
+    aScore: dto.ascore,
+    winnerTeamId: dto.winnerteamid,
   }),
 );
 
 export const squiggleGamesDtoToDomain = z.object({
   games: z.array(squiggleGameDtoToDomain),
+});
+
+const squiggleTipsSchema = z.object({
+  ateam: z.string().nullable(),
+  ateamid: z.number().nullable(),
+  bits: z.number().nullable(),
+  confidence: z.string().nullable(),
+  correct: z.number().nullable(),
+  date: z.string(),
+  err: z.string().nullable(),
+  gameid: z.number().nullable(),
+  hconfidence: z.string().nullable(),
+  hmargin: z.string().nullable(),
+  hteam: z.string().nullable(),
+  hteamid: z.number().nullable(),
+  margin: z.string().nullable(),
+  round: z.number(),
+  source: z.string(),
+  sourceid: z.number().nullable(),
+  tip: z.string().nullable(),
+  tipteamid: z.number().nullable(),
+  updated: z.string(),
+  venue: z.string().nullable(),
+  year: z.number(),
+});
+
+const squiggleTipsDtoToDomain = squiggleTipsSchema.transform<AflTips>(
+  (dto) => ({
+    awayTeamId: dto.ateamid,
+    homeTeamId: dto.hteamid,
+    confidence: dto.confidence ? parseFloat(dto.confidence) : null,
+    gameId: dto.gameid,
+    homeConfidence: dto.hconfidence ? parseFloat(dto.hconfidence) : null,
+    awayConfidence: dto.hconfidence ? 100 - parseFloat(dto.hconfidence) : null,
+    round: dto.round,
+    tip: dto.tip,
+  }),
+);
+
+export const squiggleTipsListDtoToDomain = z.object({
+  tips: z.array(squiggleTipsDtoToDomain),
 });

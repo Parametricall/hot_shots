@@ -1,3 +1,5 @@
+import { number } from "zod";
+
 export type Venue = {
   name: string;
   city?: string;
@@ -27,7 +29,10 @@ export type AflGame = {
   date: Date;
   timeStr: string;
   homeTeamId: number | null;
+  hScore: number | null;
   awayTeamId: number | null;
+  aScore: number | null;
+  winnerTeamId: number | null;
 };
 
 export interface AflRound {
@@ -36,18 +41,13 @@ export interface AflRound {
   games: AflGame[];
 }
 
-export interface Tip {
-  gameId: string;
-  selectedTeamId: string;
-  confidence?: number;
-}
-
-export interface UserTips {
-  roundId: string;
-  tips: Tip[];
-}
-
-export interface TippingState {
-  currentRound: number;
-  userTips: UserTips[];
-}
+export type AflTips = {
+  awayTeamId: number | null;
+  homeTeamId: number | null;
+  confidence: number | null;
+  gameId: number | null;
+  homeConfidence: number | null;
+  awayConfidence: number | null;
+  round: number;
+  tip: string | null;
+};

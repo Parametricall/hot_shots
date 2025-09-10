@@ -2,7 +2,7 @@
 
 import { GameCard } from "./game-card";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { AflGame, AflTeam } from "~/features/afl-tipping/types";
+import { AflGame, AflTeam, AflTips } from "~/features/afl-tipping/types";
 import {
   createUnknownAflTeam,
   findAflTeamById,
@@ -11,8 +11,9 @@ import {
 interface GamesListProps {
   games: AflGame[];
   roundName: string;
-  tips: Record<number, number>;
-  onTipSelect: (gameId: number, teamId: number) => void;
+  tips?: AflTips[];
+  // tips: Record<number, number>;
+  // onTipSelect: (gameId: number, teamId: number) => void;
   teams: AflTeam[];
 }
 
@@ -36,7 +37,7 @@ export function GamesList({
   games,
   roundName,
   tips,
-  onTipSelect,
+  // onTipSelect,
   teams,
 }: GamesListProps) {
   // Group games by date
@@ -72,7 +73,7 @@ export function GamesList({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <h2 className="text-xl sm:text-2xl font-bold">{roundName}</h2>
         <div className="text-xs sm:text-sm text-muted-foreground">
-          {Object.keys(tips).length} of {games.length} tips made
+          {/*{Object.keys(tips).length} of {games.length} tips made*/}
         </div>
       </div>
 
@@ -110,8 +111,11 @@ export function GamesList({
                         findAflTeamById(teams, game.awayTeamId) ??
                         createUnknownAflTeam(game.awayTeamId)
                       }
-                      selectedTip={tips[game.id]}
-                      onTipSelect={onTipSelect}
+                      tips={
+                        tips?.find((t) => t.gameId === game.id) || undefined
+                      }
+                      // selectedTip={tips[game.id]}
+                      // onTipSelect={onTipSelect}
                     />
                   );
                 })}

@@ -2,6 +2,7 @@ import {
   squiggleGamesDtoToDomain,
   squiggleStandingsDtoToDomain,
   squiggleTeamsDtoToDomain,
+  squiggleTipsListDtoToDomain,
 } from "~/features/afl-tipping/api/squiggle/schemas";
 import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 
@@ -22,6 +23,7 @@ type SquiggleSearchParams = {
   year?: number;
   round?: number;
   complete?: number | `!${number}`; // Use `!` prefix for incomplete games
+  source?: number; // Source ID for tips
 };
 
 function buildSearchParams(params: SquiggleSearchParams): URLSearchParams {
@@ -86,4 +88,20 @@ export async function fetchIncompleteGames() {
   return squiggleGamesDtoToDomain.parse(dto).games.toSorted((a, b) => {
     return a.unixTime - b.unixTime;
   });
+}
+
+export async function fetchTips(round: number) {
+  const response = await squiggleFetch(
+    buildSearchParams({
+      q: "tips",
+      year: new Date().getFullYear(),
+      round,
+      source: 1, // Source ID 1 corresponds to Squiggle's tipping model
+    }),
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch tips");
+  }
+  const dto = await response.json();
+  return squiggleTipsListDtoToDomain.parse(dto).tips;
 }

@@ -33,6 +33,9 @@ export function createAflGame(overrides: Partial<AflGame> = {}) {
     homeTeamId: 1,
     awayTeamId: 2,
     timeStr: "Q4  4:16",
+    hScore: null,
+    aScore: null,
+    winnerTeamId: null,
     ...overrides,
   };
 }

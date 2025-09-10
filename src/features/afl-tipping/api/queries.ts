@@ -4,6 +4,7 @@ import {
   fetchGames,
   fetchIncompleteGames,
   fetchStandings,
+  fetchTips,
 } from "~/features/afl-tipping/api/squiggle/api";
 
 export const aflQueries = {
@@ -42,5 +43,12 @@ export const aflQueries = {
       queryKey: [...aflQueries.allIncompleteGamesKey()],
       queryFn: () => fetchIncompleteGames(),
       staleTime: 1000 * 60, // Cache incomplete games for 1 hour
+    }),
+  allTipsKey: () => [...aflQueries.aflKey(), "tips"],
+  tips: (round: number) =>
+    queryOptions({
+      queryKey: [...aflQueries.allTipsKey(), { round }],
+      queryFn: () => fetchTips(round),
+      staleTime: 1000 * 60 * 60, // Cache tips for 1 hour
     }),
 };

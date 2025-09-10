@@ -2,7 +2,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import type React from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
-import { AflGame, AflTeam } from "~/features/afl-tipping/types";
+import { AflGame, AflTeam, AflTips } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import {
   Accordion,
@@ -15,16 +15,18 @@ interface GameCardProps {
   game: AflGame;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
-  selectedTip?: number;
-  onTipSelect: (gameId: number, teamId: number) => void;
+  tips?: AflTips;
+  // selectedTip?: number;
+  // onTipSelect: (gameId: number, teamId: number) => void;
 }
 
 export function GameCard({
   game,
   homeTeam,
   awayTeam,
-  selectedTip,
-  onTipSelect,
+  tips,
+  // selectedTip,
+  // onTipSelect,
 }: GameCardProps) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-AU", {
@@ -43,11 +45,11 @@ export function GameCard({
 
   const TeamButton = ({
     team,
-    isSelected,
+    // isSelected,
     isAwayTeam = false,
   }: {
     team: AflTeam;
-    isSelected: boolean;
+    // isSelected: boolean;
     isAwayTeam?: boolean;
   }) => {
     return (
@@ -56,14 +58,17 @@ export function GameCard({
           `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-inherit sm:hover:bg-blue-200 hover:cursor-pointer shadow-none`,
           isAwayTeam && "flex-row-reverse",
         )}
-        onClick={() => onTipSelect(game.id, team.id)}
+        // onClick={() => onTipSelect(game.id, team.id)}
       >
         <div
-          className={`aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center ${
-            isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
-          }`}
+          className={
+            `aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center`
+            // ${
+            // isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
+            // }
+          }
         >
-          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+          {/*{isSelected && <div className="w-2 h-2 bg-white rounded-full" />}*/}
         </div>
         <div className="flex flex-col items-center gap-2">
           <div
@@ -77,7 +82,24 @@ export function GameCard({
             {team.name}
           </span>
         </div>
-        <div className="font-semibold text-lg">50%</div>
+        <div className="sm:hidden font-semibold text-lg">
+          {Date.now() < game.unixTime
+            ? isAwayTeam
+              ? `${Math.round(tips?.awayConfidence ?? 0)}%`
+              : `${Math.round(tips?.homeConfidence ?? 0)}%`
+            : isAwayTeam
+              ? game.aScore
+              : game.hScore}
+        </div>
+        <div className="hidden sm:inline font-semibold text-lg">
+          {Date.now() < game.unixTime
+            ? isAwayTeam
+              ? `${tips?.awayConfidence ?? 0}%`
+              : `${tips?.homeConfidence ?? 0}%`
+            : isAwayTeam
+              ? game.aScore
+              : game.hScore}
+        </div>
       </Button>
     );
   };
@@ -114,14 +136,14 @@ export function GameCard({
             <div
               className={cn(
                 "from-blue-300 via-50% via-transparent bg-no-repeat",
-                selectedTip === game.homeTeamId && "bg-gradient-to-r",
-                selectedTip === game.awayTeamId && "bg-gradient-to-l",
+                // selectedTip === game.homeTeamId && "bg-gradient-to-r",
+                // selectedTip === game.awayTeamId && "bg-gradient-to-l",
               )}
             >
               <div className="flex">
                 <TeamButton
                   team={homeTeam}
-                  isSelected={selectedTip === game.homeTeamId}
+                  // isSelected={selectedTip === game.homeTeamId}
                 />
                 <div className="flex flex-col items-center justify-between gap-2 p-2 sm:px-4">
                   <div className="text-xs">{game.timeStr}</div>
@@ -132,7 +154,7 @@ export function GameCard({
 
                 <TeamButton
                   team={awayTeam}
-                  isSelected={selectedTip === game.awayTeamId}
+                  // isSelected={selectedTip === game.awayTeamId}
                   isAwayTeam
                 />
               </div>

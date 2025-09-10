@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useLocalStorage } from "~/hooks/use-local-storage";
 import { RotateCcw } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
-import { TipSummary } from "~/features/afl-tipping/components/tip-summary";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useQuery } from "@tanstack/react-query";
@@ -40,9 +38,9 @@ function RouteComponent() {
     // Find the earliest round with incomplete games
     return incompleteGames[0].round;
   });
-  const [tips, setTips] = useLocalStorage<
-    Record<string, Record<number, number>>
-  >("afl-tips-2024", {});
+  // const [tips, setTips] = useLocalStorage<
+  //   Record<string, Record<number, number>>
+  // >("afl-tips-2024", {});
 
   const { data: rounds } = useQuery({
     ...aflQueries.allGames(),
@@ -51,46 +49,47 @@ function RouteComponent() {
   });
 
   const { data: games } = useQuery(aflQueries.games(currentRound));
+  const { data: tips } = useQuery(aflQueries.tips(currentRound));
 
   const currentRoundData = rounds[currentRound];
 
-  const handleTipSelect = (gameId: number, teamId: number) => {
-    setTips((prev) => {
-      const newTips = { ...prev };
+  // const handleTipSelect = (gameId: number, teamId: number) => {
+  //   setTips((prev) => {
+  //     const newTips = { ...prev };
+  //
+  //     // Handle clearing tips when empty string is passed
+  //     // if (teamId === "") {
+  //     //   if (newTips[currentRound]) {
+  //     //     delete newTips[currentRound][gameId];
+  //     //     // Remove round entry if no tips left
+  //     //     if (Object.keys(newTips[currentRound]).length === 0) {
+  //     //       delete newTips[currentRound];
+  //     //     }
+  //     //   }
+  //     // } else {
+  //     newTips[currentRound] = {
+  //       ...newTips[currentRound],
+  //       [gameId]: teamId,
+  //     };
+  //     // }
+  //
+  //     return newTips;
+  //   });
+  // };
 
-      // Handle clearing tips when empty string is passed
-      // if (teamId === "") {
-      //   if (newTips[currentRound]) {
-      //     delete newTips[currentRound][gameId];
-      //     // Remove round entry if no tips left
-      //     if (Object.keys(newTips[currentRound]).length === 0) {
-      //       delete newTips[currentRound];
-      //     }
-      //   }
-      // } else {
-      newTips[currentRound] = {
-        ...newTips[currentRound],
-        [gameId]: teamId,
-      };
-      // }
+  // const handleClearRoundTips = () => {
+  //   setTips((prev) => {
+  //     const newTips = { ...prev };
+  //     delete newTips[currentRound];
+  //     return newTips;
+  //   });
+  // };
 
-      return newTips;
-    });
-  };
+  // const handleResetAllTips = () => {
+  //   setTips({});
+  // };
 
-  const handleClearRoundTips = () => {
-    setTips((prev) => {
-      const newTips = { ...prev };
-      delete newTips[currentRound];
-      return newTips;
-    });
-  };
-
-  const handleResetAllTips = () => {
-    setTips({});
-  };
-
-  const currentRoundTips = tips[currentRound] || {};
+  // const currentRoundTips = tips[currentRound] || {};
 
   return (
     <div className="min-h-screen ">
@@ -108,7 +107,7 @@ function RouteComponent() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleResetAllTips}
+              // onClick={handleResetAllTips}
               className="text-muted-foreground hover:text-foreground bg-transparent"
             >
               <RotateCcw className="h-4 w-4 mr-1" />
@@ -122,22 +121,23 @@ function RouteComponent() {
           onRoundChange={setCurrentRound}
         />
 
-        {currentRoundData && (
-          <TipSummary
-            games={currentRoundData.games}
-            tips={currentRoundTips}
-            roundName={rounds[currentRound].name}
-            onClearTips={handleClearRoundTips}
-          />
-        )}
+        {/*{currentRoundData && (*/}
+        {/*  <TipSummary*/}
+        {/*    games={currentRoundData.games}*/}
+        {/*    // tips={currentRoundTips}*/}
+        {/*    roundName={rounds[currentRound].name}*/}
+        {/*    // onClearTips={handleClearRoundTips}*/}
+        {/*  />*/}
+        {/*)}*/}
 
         {currentRoundData && games && (
           <GamesList
             games={games}
             roundName={rounds[currentRound].name}
-            tips={currentRoundTips}
-            onTipSelect={handleTipSelect}
+            // tips={currentRoundTips}
+            // onTipSelect={handleTipSelect}
             teams={teams}
+            tips={tips}
           />
         )}
       </div>
