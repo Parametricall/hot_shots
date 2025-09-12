@@ -91,7 +91,7 @@ export function GameCard({
               ? game.aScore
               : game.hScore}
         </div>
-        <div className="hidden sm:inline font-semibold text-lg">
+        <div className="hidden sm:inline font-semibold text-2xl">
           {Date.now() < game.unixTime
             ? isAwayTeam
               ? `${tips?.awayConfidence ?? 0}%`

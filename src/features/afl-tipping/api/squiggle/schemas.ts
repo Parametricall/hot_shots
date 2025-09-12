@@ -134,7 +134,7 @@ export const squiggleGamesDtoToDomain = z.object({
 const squiggleTipsSchema = z.object({
   ateam: z.string().nullable(),
   ateamid: z.number().nullable(),
-  bits: z.number().nullable(),
+  bits: z.string().nullable(),
   confidence: z.string().nullable(),
   correct: z.number().nullable(),
   date: z.string(),
