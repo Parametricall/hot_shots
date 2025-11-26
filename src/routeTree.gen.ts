@@ -8,15 +8,9 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createServerRootRoute } from '@tanstack/react-start/server'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AflTippingRouteImport } from './routes/afl-tipping'
 import { Route as IndexRouteImport } from './routes/index'
-import { ServerRoute as ApiUsersServerRouteImport } from './routes/api/users'
-import { ServerRoute as ApiUsersUserIdServerRouteImport } from './routes/api/users.$userId'
-
-const rootServerRouteImport = createServerRootRoute()
 
 const AflTippingRoute = AflTippingRouteImport.update({
   id: '/afl-tipping',
@@ -27,16 +21,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUsersServerRoute = ApiUsersServerRouteImport.update({
-  id: '/api/users',
-  path: '/api/users',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const ApiUsersUserIdServerRoute = ApiUsersUserIdServerRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => ApiUsersServerRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -64,30 +48,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AflTippingRoute: typeof AflTippingRoute
 }
-export interface FileServerRoutesByFullPath {
-  '/api/users': typeof ApiUsersServerRouteWithChildren
-  '/api/users/$userId': typeof ApiUsersUserIdServerRoute
-}
-export interface FileServerRoutesByTo {
-  '/api/users': typeof ApiUsersServerRouteWithChildren
-  '/api/users/$userId': typeof ApiUsersUserIdServerRoute
-}
-export interface FileServerRoutesById {
-  __root__: typeof rootServerRouteImport
-  '/api/users': typeof ApiUsersServerRouteWithChildren
-  '/api/users/$userId': typeof ApiUsersUserIdServerRoute
-}
-export interface FileServerRouteTypes {
-  fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/users' | '/api/users/$userId'
-  fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/users' | '/api/users/$userId'
-  id: '__root__' | '/api/users' | '/api/users/$userId'
-  fileServerRoutesById: FileServerRoutesById
-}
-export interface RootServerRouteChildren {
-  ApiUsersServerRoute: typeof ApiUsersServerRouteWithChildren
-}
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
@@ -107,36 +67,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-declare module '@tanstack/react-start/server' {
-  interface ServerFileRoutesByPath {
-    '/api/users': {
-      id: '/api/users'
-      path: '/api/users'
-      fullPath: '/api/users'
-      preLoaderRoute: typeof ApiUsersServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/api/users/$userId': {
-      id: '/api/users/$userId'
-      path: '/$userId'
-      fullPath: '/api/users/$userId'
-      preLoaderRoute: typeof ApiUsersUserIdServerRouteImport
-      parentRoute: typeof ApiUsersServerRoute
-    }
-  }
-}
-
-interface ApiUsersServerRouteChildren {
-  ApiUsersUserIdServerRoute: typeof ApiUsersUserIdServerRoute
-}
-
-const ApiUsersServerRouteChildren: ApiUsersServerRouteChildren = {
-  ApiUsersUserIdServerRoute: ApiUsersUserIdServerRoute,
-}
-
-const ApiUsersServerRouteWithChildren = ApiUsersServerRoute._addFileChildren(
-  ApiUsersServerRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -145,9 +75,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiUsersServerRoute: ApiUsersServerRouteWithChildren,
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
 }
-export const serverRouteTree = rootServerRouteImport
-  ._addFileChildren(rootServerRouteChildren)
-  ._addFileTypes<FileServerRouteTypes>()
