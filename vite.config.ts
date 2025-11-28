@@ -28,15 +28,25 @@ export default defineConfig({
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tailwindcss(),
     tanstackStart(),
     devtools(),
-    nitro({
-      preset: "vercel",
-    }),
+    // nitro({
+    //   preset: "vercel",
+    // }),
     viteReact(),
   ],
-  nitro: {},
+  optimizeDeps: {
+    include: ["cookie"],
+  },
+  resolve: {
+    alias: [
+      {
+        find: "use-sync-external-store/shim/index.js",
+        replacement: "react",
+      },
+    ],
+  },
+  // nitro: {},
   test: {
     projects: [
       {

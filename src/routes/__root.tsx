@@ -13,6 +13,13 @@ import appCss from "~/styles/app.css?url";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/tanstack-react-start";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -56,37 +63,47 @@ export const Route = createRootRouteWithContext<{
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html>
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <div className="p-2 flex gap-2 text-lg">
-          <Link
-            to="/"
-            activeProps={{
-              className: "font-bold",
-            }}
-            activeOptions={{ exact: true }}
-          >
-            Home
-          </Link>
-          <Link
-            to="/afl-tipping"
-            activeProps={{
-              className: "font-bold",
-            }}
-            activeOptions={{ exact: true }}
-          >
-            AFL Tipping
-          </Link>
-        </div>
-        <hr />
-        {children}
-        <TanStackRouterDevtools position="bottom-right" />
-        <ReactQueryDevtools />
-        <Scripts />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html>
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          <div className="p-2 flex gap-2 text-lg">
+            <Link
+              to="/"
+              activeProps={{
+                className: "font-bold",
+              }}
+              activeOptions={{ exact: true }}
+            >
+              Home
+            </Link>
+            <Link
+              to="/afl-tipping"
+              activeProps={{
+                className: "font-bold",
+              }}
+              activeOptions={{ exact: true }}
+            >
+              AFL Tipping
+            </Link>
+            <SignedIn>
+              <p>You are signed in</p>
+              <UserButton />
+            </SignedIn>
+            <SignedOut>
+              <p>You are signed out</p>
+              <SignInButton />
+            </SignedOut>
+          </div>
+          <hr />
+          {children}
+          <TanStackRouterDevtools position="bottom-right" />
+          <ReactQueryDevtools />
+          <Scripts />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
