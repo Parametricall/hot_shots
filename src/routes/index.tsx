@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { useSupabaseClient } from "~/lib/supabaseClient";
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/tanstack-react-start";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(async () => {
   const { isAuthenticated, userId } = await auth();
@@ -34,10 +35,12 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { teams, standings } = Route.useLoaderData();
+  const { user } = useUser();
 
   const supabaseClient = useSupabaseClient();
 
   const [tips, setTips] = useState(null);
+  const [myTips, setMyTips] = useState(null);
 
   useEffect(() => {
     async function fetchTips() {
@@ -50,12 +53,52 @@ function Home() {
     fetchTips().then(setTips);
   }, []);
 
+  useEffect(() => {
+    async function fetchTips() {
+      const { data, error } = await supabaseClient
+        .from("afl_tipping")
+        .select("*")
+        .eq("user_id", user.id);
+
+      console.log(error);
+      return data;
+    }
+    fetchTips().then(setMyTips);
+  }, []);
+
   return (
     <div className="p-2">
       <h3>Welcome Home!!!</h3>
       <br />
-      <h4>Your Tips:</h4>
+      <h4>All Tips:</h4>
       {JSON.stringify(tips, null, 2)}
+      <br />
+      <h4>My Tips:</h4>
+      {JSON.stringify(myTips, null, 2)}
+      <h4>Create a Tip:</h4>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const gameId = formData.get("gameId");
+          const teamId = formData.get("teamId");
+
+          const { data, error } = await supabaseClient
+            .from("afl_tipping")
+            .insert([
+              {
+                game_id: Number(gameId),
+                tip: Number(teamId),
+              },
+            ]);
+          console.log("Insert error:", error);
+          console.log("Insert data:", data);
+        }}
+      >
+        <input type="number" name="gameId" placeholder="Game Id" />
+        <input type="number" name="teamId" placeholder="Team Id" />
+        <button type="submit">Submit Tip</button>
+      </form>
       <br />
       <h4>Standing:</h4>
       {standings?.map((item) => {
