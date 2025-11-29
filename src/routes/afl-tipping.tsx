@@ -7,6 +7,7 @@ import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useQuery } from "@tanstack/react-query";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
+import {useSupabaseClient} from "~/lib/supabaseClient";
 
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
@@ -53,7 +54,20 @@ function RouteComponent() {
 
   const currentRoundData = rounds[currentRound];
 
-  // const handleTipSelect = (gameId: number, teamId: number) => {
+  const supabaseClient = useSupabaseClient()
+
+  const handleTipSelect = async (gameId: number, teamId: number) => {
+      const {data, error} = await supabaseClient
+          .from("afl_tipping")
+          .upsert([
+              {
+                  game_id: Number(gameId),
+                  tip: Number(teamId),
+              },
+          ]);
+
+
+
   //   setTips((prev) => {
   //     const newTips = { ...prev };
   //
@@ -75,7 +89,7 @@ function RouteComponent() {
   //
   //     return newTips;
   //   });
-  // };
+  };
 
   // const handleClearRoundTips = () => {
   //   setTips((prev) => {
@@ -135,7 +149,7 @@ function RouteComponent() {
             games={games}
             roundName={rounds[currentRound].name}
             // tips={currentRoundTips}
-            // onTipSelect={handleTipSelect}
+            onTipSelect={handleTipSelect}
             teams={teams}
             tips={tips}
           />

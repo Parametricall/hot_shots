@@ -1,5 +1,5 @@
 import { Card, CardContent } from "~/components/ui/card";
-import type React from "react";
+import React, {useEffect, useState} from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
 import { AflGame, AflTeam, AflTips } from "~/features/afl-tipping/types";
@@ -10,6 +10,8 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { AccordionContent } from "@radix-ui/react-accordion";
+import {useSupabaseClient} from "~/lib/supabaseClient";
+import {useUser} from "@clerk/tanstack-react-start";
 
 interface GameCardProps {
   game: AflGame;
@@ -17,7 +19,7 @@ interface GameCardProps {
   awayTeam: AflTeam;
   tips?: AflTips;
   // selectedTip?: number;
-  // onTipSelect: (gameId: number, teamId: number) => void;
+  onTipSelect: (gameId: number, teamId: number) => void;
 }
 
 export function GameCard({
@@ -26,7 +28,7 @@ export function GameCard({
   awayTeam,
   tips,
   // selectedTip,
-  // onTipSelect,
+  onTipSelect,
 }: GameCardProps) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-AU", {
@@ -43,6 +45,25 @@ export function GameCard({
     });
   };
 
+  const [tips2, setTips] = useState<{tip: number} | null>();
+  const supabaseClient = useSupabaseClient()
+    const {user} = useUser();
+
+    useEffect(() => {
+    async function fetchTips() {
+      const { data, error } = await supabaseClient
+        .from("afl_tipping")
+        .select("*")
+        .eq("user_id", user.id)
+          .eq("game_id", game.id)
+          .single()
+
+      console.log("fetch game tips", error, data);
+      return data;
+    }
+    fetchTips().then(setTips);
+  }, []);
+
   const TeamButton = ({
     team,
     // isSelected,
@@ -52,20 +73,20 @@ export function GameCard({
     // isSelected: boolean;
     isAwayTeam?: boolean;
   }) => {
+      const isSelected = tips2?.tip === team.id;
     return (
       <Button
         className={cn(
           `flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-[80px] sm:min-h-[90px] bg-transparent hover:bg-inherit sm:hover:bg-blue-200 hover:cursor-pointer shadow-none`,
           isAwayTeam && "flex-row-reverse",
         )}
-        // onClick={() => onTipSelect(game.id, team.id)}
+        onClick={() => onTipSelect(game.id, team.id)}
       >
         <div
-          className={
-            `aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center`
-            // ${
-            // isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
-            // }
+          className={cn(
+            `aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center`,
+            isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
+          )
           }
         >
           {/*{isSelected && <div className="w-2 h-2 bg-white rounded-full" />}*/}
@@ -107,6 +128,7 @@ export function GameCard({
   return (
     <Card className={cn(`p-0 transition-all overflow-hidden rounded-lg`)}>
       <CardContent className="p-0 ">
+          {JSON.stringify(tips2)}
         <Accordion type="single" collapsible>
           <AccordionItem value="item 1">
             <div className="px-2 py-2 bg-gray-100 ">

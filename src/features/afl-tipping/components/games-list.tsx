@@ -13,7 +13,7 @@ interface GamesListProps {
   roundName: string;
   tips?: AflTips[];
   // tips: Record<number, number>;
-  // onTipSelect: (gameId: number, teamId: number) => void;
+  onTipSelect: (gameId: number, teamId: number) => void;
   teams: AflTeam[];
 }
 
@@ -37,7 +37,7 @@ export function GamesList({
   games,
   roundName,
   tips,
-  // onTipSelect,
+  onTipSelect,
   teams,
 }: GamesListProps) {
   // Group games by date
@@ -115,7 +115,7 @@ export function GamesList({
                         tips?.find((t) => t.gameId === game.id) || undefined
                       }
                       // selectedTip={tips[game.id]}
-                      // onTipSelect={onTipSelect}
+                      onTipSelect={onTipSelect}
                     />
                   );
                 })}
