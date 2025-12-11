@@ -51,7 +51,7 @@ export function RoundNavigation({
 
           <div className="text-center flex-1 px-2">
             <h2 className="font-semibold text-base sm:text-lg">
-              {rounds[currentRound].name}
+              {rounds?.[currentRound]?.name ?? "no round"}
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
               {currentRound + 1} of {rounds.length}

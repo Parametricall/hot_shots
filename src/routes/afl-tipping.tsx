@@ -9,6 +9,15 @@ import { useQuery } from "@tanstack/react-query";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
 import {useSupabaseClient} from "~/lib/supabaseClient";
 
+/**
+ * route: /afl-tipping/
+ * tabs:
+ *      '/' -> standings
+ *      '/<comp_id>/<round_id>'
+ *
+ * comps tabs -> opens fixed comp for now -> choose tips
+ */
+
 export const Route = createFileRoute("/afl-tipping")({
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {

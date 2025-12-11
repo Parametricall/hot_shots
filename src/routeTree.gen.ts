@@ -13,6 +13,8 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AflTippingRouteImport } from './routes/afl-tipping'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AflTippingIndexRouteImport } from './routes/afl-tipping/index'
+import { Route as AflTippingTipsRouteImport } from './routes/afl-tipping/tips'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -34,37 +36,65 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AflTippingIndexRoute = AflTippingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AflTippingRoute,
+} as any)
+const AflTippingTipsRoute = AflTippingTipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
+  getParentRoute: () => AflTippingRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
+  '/afl-tipping': typeof AflTippingRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/afl-tipping/tips': typeof AflTippingTipsRoute
+  '/afl-tipping/': typeof AflTippingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/afl-tipping/tips': typeof AflTippingTipsRoute
+  '/afl-tipping': typeof AflTippingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
+  '/afl-tipping': typeof AflTippingRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/afl-tipping/tips': typeof AflTippingTipsRoute
+  '/afl-tipping/': typeof AflTippingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
+  fullPaths:
+    | '/'
+    | '/afl-tipping'
+    | '/sign-in'
+    | '/sign-up'
+    | '/afl-tipping/tips'
+    | '/afl-tipping/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
-  id: '__root__' | '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
+  to: '/' | '/sign-in' | '/sign-up' | '/afl-tipping/tips' | '/afl-tipping'
+  id:
+    | '__root__'
+    | '/'
+    | '/afl-tipping'
+    | '/sign-in'
+    | '/sign-up'
+    | '/afl-tipping/tips'
+    | '/afl-tipping/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AflTippingRoute: typeof AflTippingRoute
+  AflTippingRoute: typeof AflTippingRouteWithChildren
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
 }
@@ -99,12 +129,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/afl-tipping/': {
+      id: '/afl-tipping/'
+      path: '/'
+      fullPath: '/afl-tipping/'
+      preLoaderRoute: typeof AflTippingIndexRouteImport
+      parentRoute: typeof AflTippingRoute
+    }
+    '/afl-tipping/tips': {
+      id: '/afl-tipping/tips'
+      path: '/tips'
+      fullPath: '/afl-tipping/tips'
+      preLoaderRoute: typeof AflTippingTipsRouteImport
+      parentRoute: typeof AflTippingRoute
+    }
   }
 }
 
+interface AflTippingRouteChildren {
+  AflTippingTipsRoute: typeof AflTippingTipsRoute
+  AflTippingIndexRoute: typeof AflTippingIndexRoute
+}
+
+const AflTippingRouteChildren: AflTippingRouteChildren = {
+  AflTippingTipsRoute: AflTippingTipsRoute,
+  AflTippingIndexRoute: AflTippingIndexRoute,
+}
+
+const AflTippingRouteWithChildren = AflTippingRoute._addFileChildren(
+  AflTippingRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AflTippingRoute: AflTippingRoute,
+  AflTippingRoute: AflTippingRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
 }
