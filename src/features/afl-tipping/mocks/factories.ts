@@ -10,6 +10,14 @@ export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {
     name: "Suns",
     abbrev: "SUN",
   },
+  COL: {
+    name: "Collingwood",
+    abbrev: "COL",
+  },
+  ESS: {
+    name: "Essendon",
+    abbrev: "ESS",
+  },
 };
 
 export function createAflTeam(overrides: Partial<AflTeam> = {}): AflTeam {

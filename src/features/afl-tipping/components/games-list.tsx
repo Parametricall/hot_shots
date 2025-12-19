@@ -1,21 +1,26 @@
 "use client";
 
 import { GameCard } from "./game-card";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { AflGame, AflTeam, AflTips } from "~/features/afl-tipping/types";
+import { Card, CardContent } from "~/components/ui/card";
+import { AflGame, AflTips } from "~/features/afl-tipping/types";
 import {
   createUnknownAflTeam,
   findAflTeamById,
 } from "~/features/afl-tipping/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
+import { useAflServerFns } from "~/features/afl-tipping/providers/afl-server-fns-provider";
+import { useServerFn } from "@tanstack/react-start";
+import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 
-interface GamesListProps {
-  games: AflGame[];
-  roundName: string;
-  tips?: AflTips[];
-  // tips: Record<number, number>;
-  onTipSelect: (gameId: number, teamId: number) => void;
-  teams: AflTeam[];
-}
+// interface GamesListProps {
+//   games: AflGame[];
+//   tips?: AflTips[];
+//   // tips: Record<number, number>;
+//   onTipSelect: (gameId: number, teamId: number) => void;
+//   teams: AflTeam[];
+// }
 
 const groupedByDate = (games: AflGame[]) =>
   games.reduce(
@@ -33,13 +38,54 @@ const groupedByDate = (games: AflGame[]) =>
     {} as Record<string, AflGame[]>,
   );
 
-export function GamesList({
-  games,
-  roundName,
-  tips,
-  onTipSelect,
-  teams,
-}: GamesListProps) {
+export function GamesList() {
+  const tips: AflTips[] = [];
+
+  const { submitTip } = useAflServerFns();
+
+  // const submitTipFn = useServerFn(submitTip);
+  const submitTipMutation = useMutation({
+    mutationFn: submitTip,
+  });
+
+  const handleTipSelect = async (gameId: number, teamId: number) => {
+    submitTipMutation.mutate(
+      { data: { gameId, teamId } },
+      {
+        onSuccess: () => {
+          console.log("submit tip mutation success");
+        },
+      },
+    );
+
+    // const { data, error } = await supabaseClient.from("afl_tipping").upsert([
+    //   {
+    //     game_id: Number(gameId),
+    //     tip: Number(teamId),
+    //   },
+    // ]);
+  };
+
+  const [currentRound] = useCurrentRound();
+  const { data: games } = useQuery({
+    ...aflQueries.games(currentRound),
+  });
+  const { data: teams } = useQuery({
+    ...aflQueries.teams(),
+  });
+
+  if (!games || !teams || games.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-6 sm:py-8 text-sm sm:text-base">
+            No games scheduled for this round.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Group games by date
   const gamesByDate = groupedByDate(games);
 
@@ -53,25 +99,13 @@ export function GamesList({
     });
   };
 
-  if (games.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">{roundName}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-6 sm:py-8 text-sm sm:text-base">
-            No games scheduled for this round.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-4 sm:space-y-6">
+      <RoundNavigation
+        currentRound={currentRound}
+        // onRoundChange={setCurrentRound}
+      />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-        <h2 className="text-xl sm:text-2xl font-bold">{roundName}</h2>
         <div className="text-xs sm:text-sm text-muted-foreground">
           {/*{Object.keys(tips).length} of {games.length} tips made*/}
         </div>
@@ -115,7 +149,7 @@ export function GamesList({
                         tips?.find((t) => t.gameId === game.id) || undefined
                       }
                       // selectedTip={tips[game.id]}
-                      onTipSelect={onTipSelect}
+                      onTipSelect={handleTipSelect}
                     />
                   );
                 })}

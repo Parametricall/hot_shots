@@ -1,15 +1,15 @@
-import {createFileRoute} from '@tanstack/react-router'
-import {AflPersistenceProvider} from "~/features/afl-tipping/providers/afl-persistance-provider";
+import { createFileRoute } from "@tanstack/react-router";
+import { Index } from "~/pages/afl-tipping/index";
+import { AflServerFnsProvider } from "~/features/afl-tipping/providers/afl-server-fns-provider";
 
-export const Route = createFileRoute('/afl-tipping/')({
-    component: RouteComponent,
-})
+export const Route = createFileRoute("/afl-tipping/")({
+  component: RouteComponent,
+});
 
 function RouteComponent() {
-
-    return (
-        <AflPersistenceProvider>
-            <Outlet />
-        </AflPersistenceProvider>
-    )
+  return (
+    <AflServerFnsProvider>
+      <Index />
+    </AflServerFnsProvider>
+  );
 }

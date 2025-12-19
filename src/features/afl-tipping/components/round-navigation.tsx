@@ -6,10 +6,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
+import { Dispatch, SetStateAction } from "react";
 
 interface RoundNavigationProps {
-  currentRound: number;
-  onRoundChange: (roundIndex: number) => void;
+  currentRound: number | undefined;
+  onRoundChange: Dispatch<SetStateAction<number>>;
 }
 
 export function RoundNavigation({
@@ -19,7 +20,6 @@ export function RoundNavigation({
   const { data: rounds } = useQuery({
     ...aflQueries.allGames(),
     select: aflGamesToRounds,
-    initialData: [], // This should already be in the cache
   });
 
   const handlePrevious = () => {
@@ -33,6 +33,8 @@ export function RoundNavigation({
       onRoundChange(currentRound + 1);
     }
   };
+
+  if (!rounds || !currentRound) return <div>Loading rounds</div>;
 
   return (
     <Card className="mb-4 sm:mb-6">

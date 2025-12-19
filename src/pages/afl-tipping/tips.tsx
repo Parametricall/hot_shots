@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
 import { Button } from "~/components/ui/button";
@@ -8,6 +8,8 @@ import { RoundNavigation } from "~/features/afl-tipping/components/round-navigat
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { useAflPersistence } from "~/features/afl-tipping/providers/afl-persistance-provider";
 import { AflGame, AflTeam } from "~/features/afl-tipping/types";
+import { useAflServerFns } from "~/features/afl-tipping/providers/afl-server-fns-provider";
+import { useServerFn } from "@tanstack/react-start";
 
 type TipsProps = {
   teams: AflTeam[];
@@ -35,10 +37,22 @@ export function Tips({ teams, incompleteGames }: TipsProps) {
 
   const currentRoundData = rounds[currentRound];
 
-  const { selectTips } = useAflPersistence();
+  const { submitTip } = useAflServerFns();
+
+  const submitTipFn = useServerFn(submitTip);
+  const submitTipMutation = useMutation({
+    mutationFn: submitTipFn,
+  });
 
   const handleTipSelect = async (gameId: number, teamId: number) => {
-    const res = await selectTips(gameId, teamId);
+    submitTipMutation.mutate(
+      { data: { gameId, teamId } },
+      {
+        onSuccess: () => {
+          console.log("submit tip mutation success");
+        },
+      },
+    );
 
     // const { data, error } = await supabaseClient.from("afl_tipping").upsert([
     //   {

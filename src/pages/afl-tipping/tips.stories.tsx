@@ -7,6 +7,7 @@ import {
   AflPersistenceProvider,
   AflPersistenceProviderContext,
 } from "~/features/afl-tipping/providers/afl-persistance-provider";
+import { AflServerFnsContext } from "~/features/afl-tipping/providers/afl-server-fns-provider";
 
 const meta = preview.meta({
   component: Tips,
@@ -15,13 +16,13 @@ const meta = preview.meta({
     containerDecorator("max-w-xl"),
     centeredYDecorator,
     (Story) => (
-      <AflPersistenceProviderContext
+      <AflServerFnsContext
         value={{
-          selectTips: () => {},
+          submitTip: () => {},
         }}
       >
         <Story />
-      </AflPersistenceProviderContext>
+      </AflServerFnsContext>
     ),
   ],
 });
