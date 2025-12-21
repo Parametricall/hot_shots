@@ -15,6 +15,7 @@ const meta = preview.meta({
     game: createAflGame({ homeTeamId: 1, awayTeamId: 2 }),
     homeTeam: createAflTeam({ id: 1, ...fakeTeams.lions }),
     awayTeam: createAflTeam({ id: 2, ...fakeTeams.suns }),
+    onTipSelect: () => {},
   },
   parameters: { layout: "padded" },
   decorators: [containerDecorator("max-w-xl"), centeredYDecorator],
@@ -22,9 +23,6 @@ const meta = preview.meta({
 
 export const Demo = meta.story({
   tags: ["demo"],
-  render: (args) => {
-    return <GameCard {...args} />;
-  },
 });
 
 export const HomeTeamSelected = meta.story({

@@ -1,7 +1,4 @@
-import preview, {
-  centeredYDecorator,
-  containerDecorator,
-} from "#.storybook/preview";
+import preview, { containerDecorator } from "#.storybook/preview";
 import { Index } from "~/pages/afl-tipping/index/index";
 import { AflStanding, AflTeam } from "~/features/afl-tipping/types";
 import {
@@ -10,8 +7,13 @@ import {
   fakeTeams,
 } from "~/features/afl-tipping/mocks/factories";
 import { AflServerFnsContext } from "~/features/afl-tipping/providers/afl-server-fns-provider";
-import { RouterProvider } from "@tanstack/react-router";
-import { routeTree } from "~/routeTree.gen";
+
+const GAMES = [
+  createAflGame({ id: 1 }),
+  createAflGame({ id: 2 }),
+  createAflGame({ id: 3, round: 2, roundName: "Round 2" }),
+  createAflGame({ id: 4, round: 3, roundName: "Round 3" }),
+];
 
 const meta = preview.meta({
   component: Index,
@@ -41,13 +43,12 @@ export const Demo = meta.story({
             },
           ] satisfies AflStanding[];
         },
-        getGames: async () => {
-          return [
-            createAflGame({ id: 1 }),
-            createAflGame({ id: 2 }),
-            createAflGame({ id: 3 }),
-            createAflGame({ id: 4 }),
-          ];
+        getGames: async (round: number) => {
+          if (round != undefined) return GAMES.filter((g) => g.round == round);
+          return GAMES;
+        },
+        getIncompleteGames: async () => {
+          return [];
         },
       },
     },
@@ -56,6 +57,7 @@ export const Demo = meta.story({
     (Story) => (
       <AflServerFnsContext
         value={{
+          // @ts-expect-error - wip
           submitTip: (payload) => {
             console.log(payload);
           },

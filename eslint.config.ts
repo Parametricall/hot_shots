@@ -12,6 +12,18 @@ import { defineConfig } from "eslint/config";
 import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default defineConfig([
+  {
+    ignores: [
+      ".storybook",
+      "components.json",
+      ".tanstack",
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "**/*.css",
+      "tsconfig.json",
+    ],
+  },
   pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
@@ -22,6 +34,11 @@ export default defineConfig([
   tseslint.configs.recommended,
   {
     ...pluginReact.configs.flat.recommended,
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
     rules: {
       ...pluginReact.configs.flat.recommended.rules,
       "react/react-in-jsx-scope": "off", // Not needed with React 17+

@@ -1,13 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Standings } from "~/features/afl-tipping/components/standings";
-import { GamesList } from "~/features/afl-tipping/components/games-list";
-import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
+import { MyTips } from "~/pages/afl-tipping/my-tips/my-tips";
 
 const TABS = [
   {
     id: "competitions" as const,
     label: "My Tips",
-    Component: GamesList,
+    Component: MyTips,
   },
   {
     id: "standings" as const,
@@ -16,25 +15,23 @@ const TABS = [
   },
 ];
 
-export function Index({ view }: { view: (typeof TABS)[number]["id"] }) {
+export function Index() {
   return (
-    <CurrentRoundProvider>
-      <div className="h-full container">
-        <Tabs defaultValue={TABS[0].id}>
-          <TabsList className="w-full">
-            {TABS.map((tab) => (
-              <TabsTrigger value={tab.id} key={tab.id}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+    <div className="h-full container">
+      <Tabs defaultValue={TABS[0].id}>
+        <TabsList className="w-full">
           {TABS.map((tab) => (
-            <TabsContent value={tab.id} key={tab.id}>
-              {tab.Component ? <tab.Component /> : tab.label}
-            </TabsContent>
+            <TabsTrigger value={tab.id} key={tab.id}>
+              {tab.label}
+            </TabsTrigger>
           ))}
-        </Tabs>
-      </div>
-    </CurrentRoundProvider>
+        </TabsList>
+        {TABS.map((tab) => (
+          <TabsContent value={tab.id} key={tab.id}>
+            {tab.Component ? <tab.Component /> : tab.label}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
   );
 }

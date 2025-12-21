@@ -11,8 +11,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useAflServerFns } from "~/features/afl-tipping/providers/afl-server-fns-provider";
-import { useServerFn } from "@tanstack/react-start";
-import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 
 // interface GamesListProps {
 //   games: AflGame[];
@@ -66,7 +64,7 @@ export function GamesList() {
     // ]);
   };
 
-  const [currentRound] = useCurrentRound();
+  const currentRound = useCurrentRound();
   const { data: games } = useQuery({
     ...aflQueries.games(currentRound),
   });
@@ -101,10 +99,6 @@ export function GamesList() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <RoundNavigation
-        currentRound={currentRound}
-        // onRoundChange={setCurrentRound}
-      />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div className="text-xs sm:text-sm text-muted-foreground">
           {/*{Object.keys(tips).length} of {games.length} tips made*/}

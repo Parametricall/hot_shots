@@ -1,7 +1,7 @@
-import type {service as squiggleService} from '~/features/afl-tipping/api/squiggle.service'
+import type { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 
 export interface ServiceTypes {
-    squiggleService: typeof squiggleService
+  squiggleService: typeof squiggleService;
 }
 
 class ServiceRegistry {

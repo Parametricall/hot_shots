@@ -1,11 +1,15 @@
-import {Card, CardContent} from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
-import {Button} from "~/components/ui/button";
-import {Calendar, Check, Clock, MapPin, X} from "lucide-react";
-import {AflGame, AflTeam, AflTips} from "~/features/afl-tipping/types";
-import {cn} from "~/lib/utils";
-import {Accordion, AccordionItem, AccordionTrigger,} from "~/components/ui/accordion";
-import {AccordionContent} from "@radix-ui/react-accordion";
+import { Button } from "~/components/ui/button";
+import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
+import { AflGame, AflTeam, AflTips } from "~/features/afl-tipping/types";
+import { cn } from "~/lib/utils";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
+import { AccordionContent } from "@radix-ui/react-accordion";
 
 interface GameCardProps {
   game: AflGame;
@@ -48,7 +52,7 @@ export function GameCard({
     // isSelected: boolean;
     isAwayTeam?: boolean;
   }) => {
-      // const isSelected = tips2?.tip === team.id;
+    // const isSelected = tips2?.tip === team.id;
     return (
       <Button
         className={cn(
@@ -61,8 +65,7 @@ export function GameCard({
           className={cn(
             `aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center`,
             // isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
-          )
-          }
+          )}
         >
           {/*{isSelected && <div className="w-2 h-2 bg-white rounded-full" />}*/}
         </div>

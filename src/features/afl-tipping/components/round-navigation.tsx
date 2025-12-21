@@ -1,27 +1,20 @@
-"use client";
-
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { aflGamesToRounds } from "~/features/afl-tipping/utils";
 import { Dispatch, SetStateAction } from "react";
+import { AflRound } from "~/features/afl-tipping/types";
 
 interface RoundNavigationProps {
-  currentRound: number | undefined;
-  onRoundChange: Dispatch<SetStateAction<number>>;
+  currentRound: number;
+  onRoundChange: Dispatch<SetStateAction<number | undefined>>;
+  rounds: AflRound[];
 }
 
 export function RoundNavigation({
   currentRound,
   onRoundChange,
+  rounds,
 }: RoundNavigationProps) {
-  const { data: rounds } = useQuery({
-    ...aflQueries.allGames(),
-    select: aflGamesToRounds,
-  });
-
   const handlePrevious = () => {
     if (currentRound > 0) {
       onRoundChange(currentRound - 1);
@@ -33,8 +26,6 @@ export function RoundNavigation({
       onRoundChange(currentRound + 1);
     }
   };
-
-  if (!rounds || !currentRound) return <div>Loading rounds</div>;
 
   return (
     <Card className="mb-4 sm:mb-6">
@@ -75,7 +66,9 @@ export function RoundNavigation({
         {/* Desktop Navigation */}
         <div className="hidden md:block">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Select Round</h2>
+            <h2 className="text-xl font-semibold">
+              {rounds?.[currentRound]?.name ?? "no round"}
+            </h2>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

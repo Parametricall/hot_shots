@@ -1,19 +1,16 @@
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, PropsWithChildren, useContext } from "react";
 
-export const CurrentRoundContext = createContext<null | ReturnType<number>>(
-  null,
-);
+export const CurrentRoundContext = createContext<undefined | number>(undefined);
 
 export function useCurrentRound() {
   const context = useContext(CurrentRoundContext);
-  if (!context) throw new Error("CurrentRound provider context not available");
+  // if (!context) throw new Error("CurrentRound provider context not available");
   return context;
 }
 
-export function CurrentRoundProvider({ children }: PropsWithChildren) {
-  const roundState = useState<number>();
-
-  return (
-    <CurrentRoundContext value={roundState}>{children}</CurrentRoundContext>
-  );
+export function CurrentRoundProvider({
+  children,
+  state,
+}: PropsWithChildren<{ state: number | undefined }>) {
+  return <CurrentRoundContext value={state}>{children}</CurrentRoundContext>;
 }

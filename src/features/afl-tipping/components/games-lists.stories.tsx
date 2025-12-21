@@ -2,7 +2,6 @@ import preview, {
   centeredYDecorator,
   containerDecorator,
 } from "#.storybook/preview";
-import { GameCard } from "~/features/afl-tipping/components/game-card";
 import {
   createAflGame,
   createAflTeam,

@@ -7,9 +7,9 @@ import {
 } from "~/features/afl-tipping/api/squiggle/api";
 
 export const service = {
-    getAllCurrentTeams: fetchAllCurrentTeams,
-    getStandings: fetchStandings,
-    getGames: fetchGames,
-    getIncompleteGames: fetchIncompleteGames,
-    getTIps: fetchTips,
-}
+  getAllCurrentTeams: fetchAllCurrentTeams,
+  getStandings: fetchStandings,
+  getGames: fetchGames,
+  getIncompleteGames: fetchIncompleteGames,
+  getTIps: fetchTips,
+};

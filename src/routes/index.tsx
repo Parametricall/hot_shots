@@ -50,6 +50,7 @@ function Home() {
       console.log(error);
       return data;
     }
+    // @ts-expect-error - wip
     fetchTips().then(setTips);
   }, []);
 
@@ -58,11 +59,12 @@ function Home() {
       const { data, error } = await supabaseClient
         .from("afl_tipping")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user!.id);
 
       console.log(error);
       return data;
     }
+    // @ts-expect-error - wip
     fetchTips().then(setMyTips);
   }, []);
 

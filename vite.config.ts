@@ -9,7 +9,6 @@ import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
-import { nitro } from "nitro/vite";
 import { playwright } from "@vitest/browser-playwright";
 
 const dirname =

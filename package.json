@@ -11,7 +11,8 @@
     "build-storybook": "storybook build",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@clerk/tanstack-react-start": "^0.27.5",
