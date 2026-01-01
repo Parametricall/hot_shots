@@ -2,7 +2,7 @@ import {
   squiggleGamesDtoToDomain,
   squiggleStandingsDtoToDomain,
   squiggleTeamsDtoToDomain,
-  squiggleTipsListDtoToDomain,
+  squiggleModelTipListDtoToDomain,
 } from "~/features/afl-tipping/api/squiggle/schemas";
 import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 
@@ -103,5 +103,5 @@ export async function fetchTips(round: number) {
     throw new Error("Failed to fetch tips");
   }
   const dto = await response.json();
-  return squiggleTipsListDtoToDomain.parse(dto).tips;
+  return squiggleModelTipListDtoToDomain.parse(dto).tips;
 }

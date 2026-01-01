@@ -2,7 +2,7 @@
 
 import { GameCard } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
-import { AflGame, AflTips } from "~/features/afl-tipping/types";
+import { AflGame, AflModelTip } from "~/features/afl-tipping/types";
 import {
   createUnknownAflTeam,
   findAflTeamById,
@@ -37,9 +37,27 @@ const groupedByDate = (games: AflGame[]) =>
   );
 
 export function GamesList() {
-  const tips: AflTips[] = [];
+  const tips: AflModelTip[] = [];
+
+  const currentRound = useCurrentRound();
+  const { data: games } = useQuery({
+    ...aflQueries.games(currentRound),
+  });
+  const { data: teams } = useQuery({
+    ...aflQueries.teams(),
+  });
+
+  const { data: modelTips } = useQuery({
+    ...aflQueries.modelTips(currentRound),
+  });
 
   const { submitTip } = useAflServerFns();
+
+  // const tipsQuery = useQuery({
+  //   queryKey: ["tips", games],
+  //   queryFn: () =>
+  //     games ? getTips({ data: { gameIds: games.map((g) => g.id) } }) : [],
+  // });
 
   // const submitTipFn = useServerFn(submitTip);
   const submitTipMutation = useMutation({
@@ -63,14 +81,6 @@ export function GamesList() {
     //   },
     // ]);
   };
-
-  const currentRound = useCurrentRound();
-  const { data: games } = useQuery({
-    ...aflQueries.games(currentRound),
-  });
-  const { data: teams } = useQuery({
-    ...aflQueries.teams(),
-  });
 
   if (!games || !teams || games.length === 0) {
     return (
@@ -139,8 +149,9 @@ export function GamesList() {
                         findAflTeamById(teams, game.awayTeamId) ??
                         createUnknownAflTeam(game.awayTeamId)
                       }
-                      tips={
-                        tips?.find((t) => t.gameId === game.id) || undefined
+                      prediction={
+                        modelTips?.find((t) => t.gameId === game.id) ||
+                        undefined
                       }
                       // selectedTip={tips[game.id]}
                       onTipSelect={handleTipSelect}

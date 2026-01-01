@@ -39,7 +39,7 @@ export interface AflRound {
   games: AflGame[];
 }
 
-export type AflTips = {
+export type AflModelTip = {
   awayTeamId: number | null;
   homeTeamId: number | null;
   confidence: number | null;
@@ -47,5 +47,9 @@ export type AflTips = {
   homeConfidence: number | null;
   awayConfidence: number | null;
   round: number;
-  tip: string | null;
+  tipTeamId: number | null;
+};
+
+export type AflUserTip = {
+  tipTeamId: number;
 };

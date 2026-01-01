@@ -9,10 +9,10 @@ import {
 import { AflServerFnsContext } from "~/features/afl-tipping/providers/afl-server-fns-provider";
 
 const GAMES = [
+  createAflGame({ id: 0 }),
   createAflGame({ id: 1 }),
-  createAflGame({ id: 2 }),
+  createAflGame({ id: 2, round: 1, roundName: "Round 1" }),
   createAflGame({ id: 3, round: 2, roundName: "Round 2" }),
-  createAflGame({ id: 4, round: 3, roundName: "Round 3" }),
 ];
 
 const meta = preview.meta({

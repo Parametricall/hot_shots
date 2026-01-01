@@ -2,7 +2,10 @@ import preview, {
   centeredYDecorator,
   containerDecorator,
 } from "#.storybook/preview";
-import { GameCard } from "~/features/afl-tipping/components/game-card";
+import {
+  GameCard,
+  GameCardSimple,
+} from "~/features/afl-tipping/components/game-card";
 import {
   createAflGame,
   createAflTeam,
@@ -26,9 +29,19 @@ export const Demo = meta.story({
 });
 
 export const HomeTeamSelected = meta.story({
-  args: {},
+  args: {
+    tip: {
+      tipTeamId: 1,
+    },
+  },
 });
 
 export const AwayTeamSelected = meta.story({
   args: {},
+});
+
+export const Test = meta.story({
+  render: (args) => {
+    return <GameCardSimple {...args} />;
+  },
 });

@@ -11,5 +11,5 @@ export const service = {
   getStandings: fetchStandings,
   getGames: fetchGames,
   getIncompleteGames: fetchIncompleteGames,
-  getTIps: fetchTips,
+  getModelTips: fetchTips,
 };

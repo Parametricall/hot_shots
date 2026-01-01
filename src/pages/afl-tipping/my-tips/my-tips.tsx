@@ -64,18 +64,16 @@ export function MyTips() {
 
   // if (!games || !teams || !currentRound) return null;
 
+  if (!currentRound || !rounds) return "loading";
+
   return (
     <CurrentRoundProvider state={currentRound}>
       <div className="space-y-4 sm:space-y-6">
-        {currentRound != undefined && rounds ? (
-          <RoundNavigation
-            rounds={rounds}
-            currentRound={currentRound}
-            onRoundChange={setCurrentRound}
-          />
-        ) : (
-          <div>Rounds loading</div>
-        )}
+        <RoundNavigation
+          rounds={rounds}
+          currentRound={currentRound}
+          onRoundChange={setCurrentRound}
+        />
         <GamesList
         // games={games}
         // roundName={rounds[currentRound].name}

@@ -50,12 +50,12 @@ export const aflQueries = {
       staleTime: 1000 * 60, // Cache incomplete games for 1 hour
     });
   },
-  allTipsKey: () => [...aflQueries.aflKey(), "tips"],
-  tips: (round: number) => {
-    const { getTIps } = ServiceRegistry.getService("squiggleService");
+  allModelTipsKey: () => [...aflQueries.aflKey(), "modelTips"],
+  modelTips: (round: number) => {
+    const { getModelTips } = ServiceRegistry.getService("squiggleService");
     return queryOptions({
-      queryKey: [...aflQueries.allTipsKey(), { round }],
-      queryFn: () => getTIps(round),
+      queryKey: [...aflQueries.allModelTipsKey(), { round }],
+      queryFn: () => getModelTips(round),
       staleTime: 1000 * 60 * 60, // Cache tips for 1 hour
     });
   },

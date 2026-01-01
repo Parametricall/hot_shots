@@ -32,8 +32,8 @@ export function createAflTeam(overrides: Partial<AflTeam> = {}): AflTeam {
 
 export function createAflGame(overrides: Partial<AflGame> = {}) {
   return {
-    id: 1,
-    round: 1,
+    id: 0,
+    round: 0,
     roundName: "Round 1",
     venue: VENUES.gabba,
     unixTime: Date.now(),

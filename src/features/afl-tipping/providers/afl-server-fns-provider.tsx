@@ -1,8 +1,9 @@
 import { createContext, PropsWithChildren, useContext, useMemo } from "react";
-import { submitTip } from "~/features/afl-tipping/api/tips";
+import { getTips, submitTip } from "~/features/afl-tipping/api/tips";
 
 export type AflServerFnsContext = {
   submitTip: typeof submitTip;
+  getTips: typeof getTips;
 };
 
 export const AflServerFnsContext = createContext<null | AflServerFnsContext>(
@@ -19,8 +20,9 @@ export function AflServerFnsProvider({ children }: PropsWithChildren) {
   const context: AflServerFnsContext = useMemo(() => {
     return {
       submitTip,
+      getTips,
     };
-  }, [submitTip]);
+  }, [submitTip, getTips]);
 
   return <AflServerFnsContext value={context}>{children}</AflServerFnsContext>;
 }

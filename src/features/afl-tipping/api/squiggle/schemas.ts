@@ -3,7 +3,7 @@ import {
   AflGame,
   AflStanding,
   AflTeam,
-  AflTips,
+  AflModelTip,
   Venue,
 } from "~/features/afl-tipping/types";
 import { SQUIGGLE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
@@ -131,7 +131,7 @@ export const squiggleGamesDtoToDomain = z.object({
   games: z.array(squiggleGameDtoToDomain),
 });
 
-const squiggleTipsSchema = z.object({
+const squiggleModelTipSchema = z.object({
   ateam: z.string().nullable(),
   ateamid: z.number().nullable(),
   bits: z.string().nullable(),
@@ -155,8 +155,8 @@ const squiggleTipsSchema = z.object({
   year: z.number(),
 });
 
-const squiggleTipsDtoToDomain = squiggleTipsSchema.transform<AflTips>(
-  (dto) => ({
+const squiggleModelTipDtoToDomain =
+  squiggleModelTipSchema.transform<AflModelTip>((dto) => ({
     awayTeamId: dto.ateamid,
     homeTeamId: dto.hteamid,
     confidence: dto.confidence ? parseFloat(dto.confidence) : null,
@@ -164,10 +164,9 @@ const squiggleTipsDtoToDomain = squiggleTipsSchema.transform<AflTips>(
     homeConfidence: dto.hconfidence ? parseFloat(dto.hconfidence) : null,
     awayConfidence: dto.hconfidence ? 100 - parseFloat(dto.hconfidence) : null,
     round: dto.round,
-    tip: dto.tip,
-  }),
-);
+    tipTeamId: dto.tipteamid,
+  }));
 
-export const squiggleTipsListDtoToDomain = z.object({
-  tips: z.array(squiggleTipsDtoToDomain),
+export const squiggleModelTipListDtoToDomain = z.object({
+  tips: z.array(squiggleModelTipDtoToDomain),
 });
