@@ -1,41 +1,58 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSupabaseClient } from "~/lib/supabaseClient";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { auth } from "@clerk/tanstack-react-start/server";
-import { useSupabaseClient } from "~/lib/supabaseClient";
-import { useEffect, useState } from "react";
-import { useUser } from "@clerk/tanstack-react-start";
+import { createSupabaseServerClient } from "~/lib/server";
 
-const authStateFn = createServerFn({ method: "GET" }).handler(async () => {
-  const { isAuthenticated, userId } = await auth();
+const fetchTips = createServerFn({ method: "GET" }).handler(async () => {
+  const supabaseClient = await createSupabaseServerClient();
+  const { userId } = await auth();
+  const { data } = await supabaseClient.from("afl_tipping").select("*");
 
-  if (!isAuthenticated) {
-    // This will error because you're redirecting to a path that doesn't exist yet
-    // You can create a sign-in route to handle this
-    // See https://clerk.com/docs/tanstack-react-start/guides/development/custom-sign-in-or-up-page
-    throw redirect({
-      to: "/sign-in",
-    });
-  }
-
-  return { userId };
+  const { data: myTips } = await supabaseClient
+    .from("afl_tipping")
+    .select("*")
+    .eq("user_id", userId);
+  return {
+    data,
+    myTips,
+  };
 });
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authed/")({
+  ssr: false, // disable ssr as there are issues fetching squiggle data server-side
   component: Home,
-  beforeLoad: async () => await authStateFn(),
-  loader: async ({ context: { queryClient, userId } }) => {
+  loader: async ({ context: { queryClient } }) => {
     const teams = queryClient.ensureQueryData(aflQueries.teams());
     const standings = queryClient.ensureQueryData(aflQueries.standings());
 
-    const [teamsData, standingsData] = await Promise.all([teams, standings]);
-    return { teams: teamsData, standings: standingsData, userId };
+    const [teamsData, standingsData, tips] = await Promise.all([
+      teams,
+      standings,
+      fetchTips(),
+    ]);
+    return { teams: teamsData, standings: standingsData, tips };
   },
 });
 
 function Home() {
-  const { teams, standings } = Route.useLoaderData();
-  const { user } = useUser();
+  const { userId } = Route.useRouteContext();
+  const {
+    teams,
+    standings,
+    tips: { data: loaderTips, myTips: loaderMyTips },
+  } = Route.useLoaderData();
+  console.log("Loader tips:", loaderTips);
+  // const { user } = useUser();
 
   const supabaseClient = useSupabaseClient();
 
@@ -43,6 +60,7 @@ function Home() {
   const [myTips, setMyTips] = useState(null);
 
   useEffect(() => {
+    if (!supabaseClient) return;
     async function fetchTips() {
       const { data, error } = await supabaseClient
         .from("afl_tipping")
@@ -54,27 +72,61 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    if (!supabaseClient) return;
     async function fetchTips() {
       const { data, error } = await supabaseClient
         .from("afl_tipping")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       console.log(error);
       return data;
     }
     fetchTips().then(setMyTips);
-  }, []);
+  }, [userId, supabaseClient]);
 
   return (
     <div className="p-2">
+      <div className="p-2 flex gap-2 text-lg">
+        <Link
+          to="/"
+          activeProps={{
+            className: "font-bold",
+          }}
+          activeOptions={{ exact: true }}
+        >
+          Home
+        </Link>
+        <Link
+          to="/afl-tipping"
+          activeProps={{
+            className: "font-bold",
+          }}
+          activeOptions={{ exact: true }}
+        >
+          AFL Tipping
+        </Link>
+        <SignedIn>
+          <p>You are signed in</p>
+          <UserButton />
+        </SignedIn>
+        <SignedOut>
+          <p>You are signed out</p>
+          <SignInButton />
+        </SignedOut>
+      </div>
+      <hr />
       <h3>Welcome Home!!!</h3>
       <br />
       <h4>All Tips:</h4>
       {JSON.stringify(tips, null, 2)}
+      <h4>All Loader tips:</h4>
+      {JSON.stringify(loaderTips, null, 2)}
       <br />
       <h4>My Tips:</h4>
       {JSON.stringify(myTips, null, 2)}
+      <h4>My Loader Tips:</h4>
+      {JSON.stringify(loaderMyTips, null, 2)}
       <h4>Create a Tip:</h4>
       <form
         onSubmit={async (e) => {

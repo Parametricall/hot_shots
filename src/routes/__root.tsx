@@ -2,7 +2,7 @@
 import {
   createRootRouteWithContext,
   HeadContent,
-  Link,
+  Outlet,
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -13,17 +13,28 @@ import appCss from "~/styles/app.css?url";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/tanstack-react-start";
+import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { createServerFn } from "@tanstack/react-start";
+import { auth } from "@clerk/tanstack-react-start/server";
+
+const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
+  const { userId } = await auth();
+
+  return {
+    userId,
+  };
+});
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
+  beforeLoad: async () => {
+    const { userId } = await fetchClerkAuth();
+
+    return {
+      userId,
+    };
+  },
   head: () => ({
     meta: [
       {
@@ -58,52 +69,31 @@ export const Route = createRootRouteWithContext<{
   }),
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,
-  shellComponent: RootDocument,
+  component: RootComponent,
 });
+
+function RootComponent() {
+  return (
+    <ClerkProvider>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </ClerkProvider>
+  );
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html>
-        <head>
-          <HeadContent />
-        </head>
-        <body>
-          <div className="p-2 flex gap-2 text-lg">
-            <Link
-              to="/"
-              activeProps={{
-                className: "font-bold",
-              }}
-              activeOptions={{ exact: true }}
-            >
-              Home
-            </Link>
-            <Link
-              to="/afl-tipping"
-              activeProps={{
-                className: "font-bold",
-              }}
-              activeOptions={{ exact: true }}
-            >
-              AFL Tipping
-            </Link>
-            <SignedIn>
-              <p>You are signed in</p>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <p>You are signed out</p>
-              <SignInButton />
-            </SignedOut>
-          </div>
-          <hr />
-          {children}
-          <TanStackRouterDevtools position="bottom-right" />
-          <ReactQueryDevtools />
-          <Scripts />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools />
+        <Scripts />
+      </body>
+    </html>
   );
 }

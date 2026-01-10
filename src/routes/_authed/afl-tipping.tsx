@@ -7,9 +7,45 @@ import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useQuery } from "@tanstack/react-query";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
-import {useSupabaseClient} from "~/lib/supabaseClient";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { createSupabaseServerClient } from "~/lib/server";
+import { auth } from "@clerk/tanstack-react-start/server";
 
-export const Route = createFileRoute("/afl-tipping")({
+const selectTip = createServerFn({ method: "POST" })
+  .inputValidator((data) => {
+    return {
+      gameId: Number(data.gameId),
+      teamId: Number(data.teamId),
+    };
+  })
+  .handler(async ({ data: { gameId, teamId } }) => {
+    console.log("selectTip called with:", { gameId, teamId });
+    const supabaseClient = await createSupabaseServerClient();
+    const { userId } = await auth();
+    const { data, error } = await supabaseClient
+      .from("afl_tipping")
+      .select()
+      .eq("game_id", gameId)
+      .eq("user_id", userId)
+      .single();
+
+    if (data) {
+      // Update existing row
+      await supabaseClient
+        .from("afl_tipping")
+        .update({ tip: teamId })
+        .eq("game_id", gameId)
+        .eq("user_id", userId);
+    } else {
+      // Insert new row
+      await supabaseClient
+        .from("afl_tipping")
+        .insert({ game_id: gameId, user_id: userId, tip: teamId });
+    }
+  });
+
+export const Route = createFileRoute("/_authed/afl-tipping")({
+  ssr: false, // disable ssr as there are issues fetching squiggle data server-side
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {
     const teams = queryClient.ensureQueryData(aflQueries.teams());
@@ -43,6 +79,8 @@ function RouteComponent() {
   //   Record<string, Record<number, number>>
   // >("afl-tips-2024", {});
 
+  const selectTipFn = useServerFn(selectTip);
+
   const { data: rounds } = useQuery({
     ...aflQueries.allGames(),
     select: aflGamesToRounds,
@@ -54,41 +92,29 @@ function RouteComponent() {
 
   const currentRoundData = rounds[currentRound];
 
-  const supabaseClient = useSupabaseClient()
-
   const handleTipSelect = async (gameId: number, teamId: number) => {
-      const {data, error} = await supabaseClient
-          .from("afl_tipping")
-          .upsert([
-              {
-                  game_id: Number(gameId),
-                  tip: Number(teamId),
-              },
-          ]);
-
-
-
-  //   setTips((prev) => {
-  //     const newTips = { ...prev };
-  //
-  //     // Handle clearing tips when empty string is passed
-  //     // if (teamId === "") {
-  //     //   if (newTips[currentRound]) {
-  //     //     delete newTips[currentRound][gameId];
-  //     //     // Remove round entry if no tips left
-  //     //     if (Object.keys(newTips[currentRound]).length === 0) {
-  //     //       delete newTips[currentRound];
-  //     //     }
-  //     //   }
-  //     // } else {
-  //     newTips[currentRound] = {
-  //       ...newTips[currentRound],
-  //       [gameId]: teamId,
-  //     };
-  //     // }
-  //
-  //     return newTips;
-  //   });
+    await selectTipFn({ data: { gameId, teamId } });
+    //   setTips((prev) => {
+    //     const newTips = { ...prev };
+    //
+    //     // Handle clearing tips when empty string is passed
+    //     // if (teamId === "") {
+    //     //   if (newTips[currentRound]) {
+    //     //     delete newTips[currentRound][gameId];
+    //     //     // Remove round entry if no tips left
+    //     //     if (Object.keys(newTips[currentRound]).length === 0) {
+    //     //       delete newTips[currentRound];
+    //     //     }
+    //     //   }
+    //     // } else {
+    //     newTips[currentRound] = {
+    //       ...newTips[currentRound],
+    //       [gameId]: teamId,
+    //     };
+    //     // }
+    //
+    //     return newTips;
+    //   });
   };
 
   // const handleClearRoundTips = () => {

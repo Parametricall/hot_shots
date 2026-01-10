@@ -11,8 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as AflTippingRouteImport } from './routes/afl-tipping'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedAflTippingRouteImport } from './routes/_authed/afl-tipping'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -24,47 +25,57 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AflTippingRoute = AflTippingRouteImport.update({
-  id: '/afl-tipping',
-  path: '/afl-tipping',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAflTippingRoute = AuthedAflTippingRouteImport.update({
+  id: '/afl-tipping',
+  path: '/afl-tipping',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/afl-tipping': typeof AuthedAflTippingRoute
+  '/': typeof AuthedIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/afl-tipping': typeof AuthedAflTippingRoute
+  '/': typeof AuthedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/afl-tipping': typeof AflTippingRoute
+  '/_authed': typeof AuthedRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_authed/afl-tipping': typeof AuthedAflTippingRoute
+  '/_authed/': typeof AuthedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
+  fullPaths: '/sign-in' | '/sign-up' | '/afl-tipping' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
-  id: '__root__' | '/' | '/afl-tipping' | '/sign-in' | '/sign-up'
+  to: '/sign-in' | '/sign-up' | '/afl-tipping' | '/'
+  id:
+    | '__root__'
+    | '/_authed'
+    | '/sign-in'
+    | '/sign-up'
+    | '/_authed/afl-tipping'
+    | '/_authed/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AflTippingRoute: typeof AflTippingRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
 }
@@ -85,26 +96,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/afl-tipping': {
-      id: '/afl-tipping'
-      path: '/afl-tipping'
-      fullPath: '/afl-tipping'
-      preLoaderRoute: typeof AflTippingRouteImport
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_authed/': {
+      id: '/_authed/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/afl-tipping': {
+      id: '/_authed/afl-tipping'
+      path: '/afl-tipping'
+      fullPath: '/afl-tipping'
+      preLoaderRoute: typeof AuthedAflTippingRouteImport
+      parentRoute: typeof AuthedRoute
     }
   }
 }
 
+interface AuthedRouteChildren {
+  AuthedAflTippingRoute: typeof AuthedAflTippingRoute
+  AuthedIndexRoute: typeof AuthedIndexRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAflTippingRoute: AuthedAflTippingRoute,
+  AuthedIndexRoute: AuthedIndexRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AflTippingRoute: AflTippingRoute,
+  AuthedRoute: AuthedRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
 }

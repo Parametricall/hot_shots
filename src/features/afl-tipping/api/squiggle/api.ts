@@ -10,7 +10,9 @@ function squiggleFetch(searchParams: URLSearchParams) {
   const url = new URL(
     `${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`,
   );
+  console.log("Fetching Squiggle API URL:", url.toString());
   return fetch(url, {
+    signal: AbortSignal.timeout(30000), // 30s, similar to "no timeout" feel
     headers: new Headers({
       "User-Agent":
         "Alex's Tipping App - parametricall@users.noreply.github.com",
