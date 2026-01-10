@@ -2,7 +2,7 @@
 
 import { GameCard } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
-import { AflGame, AflModelTip } from "~/features/afl-tipping/types";
+import { AflGame } from "~/features/afl-tipping/types";
 import {
   createUnknownAflTeam,
   findAflTeamById,
@@ -37,8 +37,6 @@ const groupedByDate = (games: AflGame[]) =>
   );
 
 export function GamesList() {
-  const tips: AflModelTip[] = [];
-
   const currentRound = useCurrentRound();
   const { data: games } = useQuery({
     ...aflQueries.games(currentRound),
@@ -52,6 +50,13 @@ export function GamesList() {
   });
 
   const { submitTip } = useAflServerFns();
+
+  const gameIds = games?.map((g) => g.id);
+
+  const { data: tip } = useQuery({
+    ...aflQueries.getTips(gameIds ?? []),
+    enabled: !!gameIds,
+  });
 
   // const tipsQuery = useQuery({
   //   queryKey: ["tips", games],
@@ -153,6 +158,7 @@ export function GamesList() {
                         modelTips?.find((t) => t.gameId === game.id) ||
                         undefined
                       }
+                      tip={tip}
                       // selectedTip={tips[game.id]}
                       onTipSelect={handleTipSelect}
                     />

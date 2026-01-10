@@ -59,4 +59,11 @@ export const aflQueries = {
       staleTime: 1000 * 60 * 60, // Cache tips for 1 hour
     });
   },
+  getTips: (gameIds: number[]) => {
+    const { getTips } = ServiceRegistry.getService("aflService");
+    return queryOptions({
+      queryKey: [...aflQueries.aflKey(), "getTips", { gameIds }],
+      queryFn: () => getTips({ data: { gameIds } }),
+    });
+  },
 };

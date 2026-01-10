@@ -64,7 +64,8 @@ export function MyTips() {
 
   // if (!games || !teams || !currentRound) return null;
 
-  if (!currentRound || !rounds) return "loading";
+  if (currentRound == undefined) return "No round";
+  if (!rounds) return "No rounds data";
 
   return (
     <CurrentRoundProvider state={currentRound}>

@@ -27,6 +27,11 @@ export const Demo = meta.story({
   },
   parameters: {
     services: {
+      aflService: {
+        getTips: () => {
+          return { tipTeamId: 1 };
+        },
+      },
       squiggleService: {
         getAllCurrentTeams: async () => {
           return [

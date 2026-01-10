@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { getSupabaseServerClient } from "~/utils/supabase";
 import { auth } from "@clerk/tanstack-react-start/server";
+import { AflUserTip } from "~/features/afl-tipping/types";
 
 const SubmitTipSchema = z.object({
   gameId: z.number(),
@@ -36,6 +37,9 @@ export const getTips = createServerFn({ method: "GET" })
     //   .from("afl_tipping")
     //   .select("*")
     //   .eq("user_id", userId);
+    return {
+      tipTeamId: 1,
+    } as AflUserTip;
   });
 
 export const service = {

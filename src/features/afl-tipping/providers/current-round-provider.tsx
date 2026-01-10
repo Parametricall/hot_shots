@@ -4,7 +4,8 @@ export const CurrentRoundContext = createContext<undefined | number>(undefined);
 
 export function useCurrentRound() {
   const context = useContext(CurrentRoundContext);
-  if (!context) throw new Error("CurrentRound provider context not available");
+  if (context == undefined)
+    throw new Error("CurrentRound provider context not available");
   return context;
 }
 
