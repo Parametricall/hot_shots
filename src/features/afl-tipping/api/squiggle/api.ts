@@ -6,16 +6,19 @@ import {
 } from "~/features/afl-tipping/api/squiggle/schemas";
 import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 
-function squiggleFetch(searchParams: URLSearchParams) {
+async function squiggleFetch(searchParams: URLSearchParams) {
   const url = new URL(
     `${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`,
   );
-  return fetch(url, {
+  console.log("Fetching Squiggle API URL:", url.toString());
+  const res = await fetch(url, {
     headers: new Headers({
       "User-Agent":
         "Alex's Tipping App - parametricall@users.noreply.github.com",
     }),
   });
+  console.log("Squiggle API response status:", res.status);
+  return res;
 }
 
 type SquiggleSearchParams = {
@@ -66,10 +69,13 @@ export async function fetchGames(round?: number) {
     round,
   };
 
+  console.log("Fetching games with params:", params);
   const response = await squiggleFetch(buildSearchParams(params));
+  console.log("Response:", response);
   if (!response.ok) {
     throw new Error("Failed to fetch games");
   }
+
   const dto = await response.json();
   return squiggleGamesDtoToDomain.parse(dto).games;
 }
@@ -104,4 +110,9 @@ export async function fetchTips(round: number) {
   }
   const dto = await response.json();
   return squiggleModelTipListDtoToDomain.parse(dto).tips;
+}
+
+export async function fetchSquiggleGame(gameId: number) {
+  const games = await fetchGames();
+  return games.find((g) => g.id === gameId);
 }

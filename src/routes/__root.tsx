@@ -62,8 +62,16 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const navigate = Route.useNavigate();
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      routerPush={(to) => navigate({ to })}
+      routerReplace={(to) => navigate({ to, replace: true })}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <html>
         <head>
           <HeadContent />

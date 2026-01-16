@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "inspect-dev": "cross-env NODE_OPTIONS=--inspect vite dev",
     "build": "vite build && tsc --noEmit",
     "start": "node .output/server/index.mjs",
     "storybook": "storybook dev -p 6006",
@@ -31,6 +32,7 @@
     "@tanstack/react-start": "^1.131.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cross-env": "^10.1.0",
     "effect": "^3.18.4",
     "lucide-react": "^0.562.0",
     "react": "^19.0.0",

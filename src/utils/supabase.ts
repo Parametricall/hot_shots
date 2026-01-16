@@ -6,9 +6,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export function getSupabaseServerClient() {
-  return createServerClient(supabaseUrl, supabaseKey, {
+  console.log("Creating Supabase server client");
+  const s = createServerClient(supabaseUrl, supabaseKey, {
     async accessToken() {
-      return (await auth()).getToken();
+      console.log("Fetching access token for Supabase server client");
+      const t = (await auth()).getToken();
+      console.log("Access token fetched:", t);
+      return t;
     },
     cookies: {
       getAll() {
@@ -24,4 +28,6 @@ export function getSupabaseServerClient() {
       },
     },
   });
+  console.log("Supabase server client created");
+  return s;
 }
