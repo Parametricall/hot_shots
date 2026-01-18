@@ -7,7 +7,7 @@ import {
   createUnknownAflTeam,
   findAflTeamById,
 } from "~/features/afl-tipping/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useAflServerFns } from "~/features/afl-tipping/providers/afl-server-fns-provider";
@@ -50,6 +50,7 @@ export function GamesList() {
   });
 
   const { submitTip } = useAflServerFns();
+  const queryClient = useQueryClient();
 
   const gameIds = games?.map((g) => g.id);
 
@@ -76,6 +77,10 @@ export function GamesList() {
         onSuccess: () => {
           console.log("submit tip mutation success");
         },
+        onSettled: () =>
+          queryClient.invalidateQueries({
+            queryKey: aflQueries.getTips(gameIds ?? []).queryKey,
+          }),
       },
     );
 
@@ -158,7 +163,7 @@ export function GamesList() {
                         modelTips?.find((t) => t.gameId === game.id) ||
                         undefined
                       }
-                      tip={tip}
+                      tip={tip?.[0]}
                       // selectedTip={tips[game.id]}
                       onTipSelect={handleTipSelect}
                     />

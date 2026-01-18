@@ -39,7 +39,7 @@ const squiggleStandingSchema = z.object({
   wins: z.number().int(),
   draws: z.number().int(),
   losses: z.number().int(),
-  pts: z.number().positive(),
+  pts: z.number(),
   goals_for: z.number().int(),
   goals_against: z.number().int(),
   behinds_for: z.number().int(),

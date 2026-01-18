@@ -13,7 +13,7 @@ const SubmitTipSchema = z.object({
 
 interface TipRow {
   game_id: number;
-  team_id: number;
+  tip: number;
 }
 
 export const submitTip = createServerFn({ method: "POST" })
@@ -47,7 +47,7 @@ export const submitTip = createServerFn({ method: "POST" })
     }
     console.log("Submitting tip for user:", userId);
     // Save tip directly to Supabase
-    const supabaseClient = getSupabaseServerClient();
+    const supabaseClient = await getSupabaseServerClient();
 
     console.log("Checking for existing tip for user:", userId);
     const { data: data2, error } = await supabaseClient
@@ -62,17 +62,19 @@ export const submitTip = createServerFn({ method: "POST" })
     if (data2) {
       console.log("Updating existing tip for user:", userId);
       // Update existing row
-      await supabaseClient
+      const { data: dd, error: ee } = await supabaseClient
         .from("afl_tipping")
         .update({ tip: teamId })
         .eq("game_id", gameId)
         .eq("user_id", userId);
+      console.log("updating", dd, ee);
     } else {
       console.log("Inserting new tip for user:", userId);
       // Insert new row
-      await supabaseClient
+      const { data: r, error: e } = await supabaseClient
         .from("afl_tipping")
         .insert({ game_id: gameId, user_id: userId, tip: teamId });
+      console.log("inserted", r, e);
     }
 
     // const { error } = await supabaseClient.from("afl_tipping").upsert(
@@ -103,19 +105,21 @@ export const getTips = createServerFn({ method: "GET" })
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    const supabaseClient = getSupabaseServerClient();
+    const supabaseClient = await getSupabaseServerClient();
+    console.log("get tips with client", userId, gameIds);
     const { data: tips, error } = await supabaseClient
       .from("afl_tipping")
-      .select("game_id, team_id")
+      .select("game_id, tip")
       .eq("user_id", userId)
       .in("game_id", gameIds);
+    console.log("got tips", tips, error);
     if (error) {
       throw new Error(error.message || "Failed to fetch tips");
     }
     // Map to AflUserTip[]
     const result: AflUserTip[] = (tips || []).map((row: TipRow) => ({
       gameId: row.game_id,
-      tipTeamId: row.team_id,
+      tipTeamId: row.tip,
     }));
     return result;
   });
