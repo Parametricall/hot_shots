@@ -91,7 +91,7 @@ export function GamesList() {
           };
           return updatedTips;
         } else {
-          return [...old, { gameId, tip: teamId }];
+          return [...old, { gameId, tipTeamId: teamId }];
         }
       });
 
