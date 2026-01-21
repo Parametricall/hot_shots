@@ -18,7 +18,7 @@ const TABS = [
 
 export function Index() {
   return (
-    <div>
+    <div className="px-2">
       <Header />
       <hr />
       <div className="h-full container mx-auto py-2">

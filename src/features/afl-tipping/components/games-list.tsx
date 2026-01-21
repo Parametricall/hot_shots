@@ -68,6 +68,44 @@ export function GamesList() {
   // const submitTipFn = useServerFn(submitTip);
   const submitTipMutation = useMutation({
     mutationFn: submitTip,
+    onMutate: async ({ data: { gameId, teamId } }, context) => {
+      if (!gameIds) return;
+
+      const tipsQuery = aflQueries.getTips(gameIds);
+
+      await context.client.cancelQueries({
+        queryKey: tipsQuery.queryKey,
+      });
+
+      const previousTips = context.client.getQueryData(tipsQuery.queryKey);
+
+      context.client.setQueryData(tipsQuery.queryKey, (old) => {
+        if (!old) return old;
+        // Update the tip for the specific gameId
+        const existingTipIndex = old.findIndex((t) => t.gameId === gameId);
+        if (existingTipIndex !== -1) {
+          const updatedTips = [...old];
+          updatedTips[existingTipIndex] = {
+            ...updatedTips[existingTipIndex],
+            tipTeamId: teamId,
+          };
+          return updatedTips;
+        } else {
+          return [...old, { gameId, tip: teamId }];
+        }
+      });
+
+      return { previousTips };
+    },
+    onError: (err, newTodo, onMutateResult, context) => {
+      context.client.setQueryData(
+        aflQueries.getTips(gameIds!).queryKey,
+        onMutateResult?.previousTips,
+      );
+    },
+    // Always refetch after error or success:
+    onSettled: (data, error, variables, onMutateResult, context) =>
+      context.client.invalidateQueries(aflQueries.getTips(gameIds!)),
   });
 
   const handleTipSelect = async (gameId: number, teamId: number) => {

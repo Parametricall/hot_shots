@@ -124,6 +124,7 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
     awayTeamId: dto.ateamid,
     aScore: dto.ascore,
     winnerTeamId: dto.winnerteamid,
+    complete: dto.complete,
   }),
 );
 

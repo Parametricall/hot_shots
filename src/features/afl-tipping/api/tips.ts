@@ -76,17 +76,6 @@ export const submitTip = createServerFn({ method: "POST" })
         .insert({ game_id: gameId, user_id: userId, tip: teamId });
       console.log("inserted", r, e);
     }
-
-    // const { error } = await supabaseClient.from("afl_tipping").upsert(
-    //   [
-    //     {
-    //       user_id: userId,
-    //       game_id: gameId,
-    //       team_id: teamId,
-    //     },
-    //   ],
-    //   { onConflict: "user_id,game_id" },
-    // );
     if (error) {
       throw new Error(error.message || "Failed to submit tip");
     }

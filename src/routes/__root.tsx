@@ -20,6 +20,7 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/tanstack-react-start";
+import { Toaster } from "~/components/ui/sonner";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -70,6 +71,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </head>
         <body>
           {children}
+          <Toaster />
           <TanStackRouterDevtools position="bottom-right" />
           <ReactQueryDevtools />
           <Scripts />

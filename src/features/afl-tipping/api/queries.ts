@@ -64,6 +64,7 @@ export const aflQueries = {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "getTips", { gameIds }],
       queryFn: () => getTips({ data: { gameIds } }),
+      staleTime: 1000 * 60 * 5, // Cache tips for 5 minutes
     });
   },
 };

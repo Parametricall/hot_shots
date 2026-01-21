@@ -2,30 +2,26 @@ import { RoundNavigation } from "~/features/afl-tipping/components/round-navigat
 import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AflGame } from "~/features/afl-tipping/types";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 
-function calculateInitialRound(incompleteGames: AflGame[]) {
-  if (incompleteGames.length === 0) return 0;
-  return incompleteGames[0].round;
-}
-
 export function MyTips() {
   const currentRoundState = useState<number>();
   const [currentRound, setCurrentRound] = currentRoundState;
-  const { data: incompleteGames } = useQuery({
-    ...aflQueries.incompleteGames(),
-  });
 
-  const { data: rounds } = useQuery({
+  const { data: games } = useQuery({
     ...aflQueries.allGames(),
-    select: aflGamesToRounds,
   });
 
-  if (currentRound == undefined && incompleteGames) {
-    setCurrentRound(calculateInitialRound(incompleteGames));
+  const rounds = useMemo(
+    () => (games ? aflGamesToRounds(games) : undefined),
+    [games],
+  );
+
+  if (currentRound == undefined && games) {
+    setCurrentRound(AflGame.getActiveRound(games));
   }
 
   if (currentRound == undefined) return "No round";
@@ -39,14 +35,7 @@ export function MyTips() {
           currentRound={currentRound}
           onRoundChange={setCurrentRound}
         />
-        <GamesList
-        // games={games}
-        // roundName={rounds[currentRound].name}
-        // // tips={currentRoundTips}
-        // onTipSelect={handleTipSelect}
-        // teams={teams}
-        // tips={tips}
-        />
+        <GamesList />
       </div>
     </CurrentRoundProvider>
   );

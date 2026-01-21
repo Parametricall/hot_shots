@@ -3,10 +3,11 @@ import { routeTree } from "./routeTree.gen";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 import serviceRegistry from "~/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
+import { toast } from "sonner";
 
 serviceRegistry.registerService("squiggleService", squiggleService);
 serviceRegistry.registerService("aflService", aflService);
@@ -17,6 +18,15 @@ serviceRegistry.registerService("aflService", aflService);
 export function getRouter() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 60 * 1000 } }, // 1 minute
+    mutationCache: new MutationCache({
+      onError: (error) => {
+        console.error("Mutation error:", error);
+        toast.error("An error occurred. Please try again.");
+      },
+      onSuccess: () => {
+        toast.success("Action completed successfully.");
+      },
+    }),
   });
   return routerWithQueryClient(
     createTanStackRouter({
