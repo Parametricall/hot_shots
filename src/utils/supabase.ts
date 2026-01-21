@@ -1,5 +1,3 @@
-import { getCookies, setCookie } from "@tanstack/react-start/server";
-import { createServerClient } from "@supabase/ssr";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { createClient } from "@supabase/supabase-js";
 

@@ -10,6 +10,7 @@ import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { playwright } from "@vitest/browser-playwright";
+import { nitro } from "nitro/vite";
 
 const dirname =
   typeof __dirname !== "undefined"
@@ -29,9 +30,7 @@ export default defineConfig({
     }),
     tanstackStart(),
     devtools(),
-    // nitro({
-    //   preset: "vercel",
-    // }),
+    nitro(),
     viteReact(),
   ],
   optimizeDeps: {
