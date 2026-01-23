@@ -2,7 +2,6 @@
 import {
   createRootRouteWithContext,
   HeadContent,
-  Link,
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -13,13 +12,7 @@ import appCss from "~/styles/app.css?url";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/tanstack-react-start";
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { Toaster } from "~/components/ui/sonner";
 
 export const Route = createRootRouteWithContext<{
