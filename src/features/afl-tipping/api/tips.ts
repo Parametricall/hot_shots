@@ -19,37 +19,28 @@ interface TipRow {
 export const submitTip = createServerFn({ method: "POST" })
   .inputValidator(SubmitTipSchema)
   .handler(async ({ data }) => {
-    console.log("data", data);
     const { gameId, teamId } = data;
     const { userId } = await auth();
-    console.log("userId", userId);
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    console.log("serviceRegistry", serviceRegistry);
     // Use service registry to get services
     const squiggleService = serviceRegistry.getService("squiggleService");
-    console.log("squiggleService", squiggleService);
     // Always use getGames and find by id
     const games: AflGame[] = await squiggleService.getGames();
-    console.log("games", games);
     const game = games.find((g) => g.id === gameId);
-    console.log("game", game);
     // Use 'date' as the start time property (Squiggle API)
     const startTime = game?.date as string | undefined;
     if (!game || !startTime) {
       throw new Error("Game not found in Squiggle API");
     }
-    console.log("startTime", startTime);
     // Use gameRules abstraction
     if (!gameRules.canSubmitTip({ gameStart: new Date(startTime) })) {
       throw new Error("Cannot submit tip after the game has started");
     }
-    console.log("Submitting tip for user:", userId);
     // Save tip directly to Supabase
     const supabaseClient = await getSupabaseServerClient();
 
-    console.log("Checking for existing tip for user:", userId);
     const { data: data2, error } = await supabaseClient
       .from("afl_tipping")
       .select()
@@ -57,24 +48,18 @@ export const submitTip = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .single();
 
-    console.log("Existing tip data:", data2, error);
-
     if (data2) {
-      console.log("Updating existing tip for user:", userId);
       // Update existing row
       const { data: dd, error: ee } = await supabaseClient
         .from("afl_tipping")
         .update({ tip: teamId })
         .eq("game_id", gameId)
         .eq("user_id", userId);
-      console.log("updating", dd, ee);
     } else {
-      console.log("Inserting new tip for user:", userId);
       // Insert new row
       const { data: r, error: e } = await supabaseClient
         .from("afl_tipping")
         .insert({ game_id: gameId, user_id: userId, tip: teamId });
-      console.log("inserted", r, e);
     }
     if (error) {
       throw new Error(error.message || "Failed to submit tip");
@@ -95,13 +80,11 @@ export const getTips = createServerFn({ method: "GET" })
       throw new Error("User not authenticated");
     }
     const supabaseClient = await getSupabaseServerClient();
-    console.log("get tips with client", userId, gameIds);
     const { data: tips, error } = await supabaseClient
       .from("afl_tipping")
       .select("game_id, tip")
       .eq("user_id", userId)
       .in("game_id", gameIds);
-    console.log("got tips", tips, error);
     if (error) {
       throw new Error(error.message || "Failed to fetch tips");
     }

@@ -10,14 +10,12 @@ async function squiggleFetch(searchParams: URLSearchParams) {
   const url = new URL(
     `${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`,
   );
-  console.log("Fetching Squiggle API URL:", url.toString());
   const res = await fetch(url, {
     headers: new Headers({
       "User-Agent":
         "Alex's Tipping App - parametricall@users.noreply.github.com",
     }),
   });
-  console.log("Squiggle API response status:", res.status);
   return res;
 }
 
@@ -69,9 +67,7 @@ export async function fetchGames(round?: number) {
     round,
   };
 
-  console.log("Fetching games with params:", params);
   const response = await squiggleFetch(buildSearchParams(params));
-  console.log("Response:", response);
   if (!response.ok) {
     throw new Error("Failed to fetch games");
   }

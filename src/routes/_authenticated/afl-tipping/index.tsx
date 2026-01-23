@@ -4,7 +4,7 @@ import { AflServerFnsProvider } from "~/features/afl-tipping/providers/afl-serve
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { AflGame } from "~/features/afl-tipping/types";
 
-export const Route = createFileRoute("/afl-tipping/")({
+export const Route = createFileRoute("/_authenticated/afl-tipping/")({
   component: RouteComponent,
   loader: async ({ context: { queryClient } }) => {
     const teams = queryClient.ensureQueryData(aflQueries.teams());
@@ -22,6 +22,8 @@ export const Route = createFileRoute("/afl-tipping/")({
         roundGames,
       );
     });
+
+    console.log("afltipping index loader - prefetching tips");
 
     await Promise.all(
       Object.values(gamesByRound).map((games) =>
