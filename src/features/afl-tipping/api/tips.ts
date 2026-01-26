@@ -74,6 +74,8 @@ const GetTipsSchema = z.object({
 export const getTips = createServerFn({ method: "GET" })
   .inputValidator(GetTipsSchema)
   .handler(async ({ data }) => {
+    console.log("env", process.env.CLERK_SECRET_KEY);
+
     const { gameIds } = data;
     const { userId } = await auth();
     if (!userId) {
