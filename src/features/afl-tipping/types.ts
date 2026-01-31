@@ -35,6 +35,7 @@ export type AflGame = {
 };
 
 export const AflGame = {
+  hasStarted: (game: AflGame) => Date.now() >= game.unixTime,
   isComplete: (game: AflGame): boolean => game.complete === 100,
   getActiveRound: (games: AflGame[]): number => {
     const incompleteGames = games.filter((game) => !AflGame.isComplete(game));
