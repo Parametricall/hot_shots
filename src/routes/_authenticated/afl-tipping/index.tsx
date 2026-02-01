@@ -23,8 +23,6 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/")({
       );
     });
 
-    console.log("afltipping index loader - prefetching tips");
-
     await Promise.all(
       Object.values(gamesByRound).map((games) =>
         queryClient.ensureQueryData(aflQueries.getTips(games.map((g) => g.id))),

@@ -4,9 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { auth } from "@clerk/tanstack-react-start/server";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(async () => {
-  console.log("Checking authentication state...");
   const { isAuthenticated, userId } = await auth();
-  console.log("Authentication state:", { isAuthenticated, userId });
   if (!isAuthenticated) {
     throw redirect({ to: "/sign-in" });
   }

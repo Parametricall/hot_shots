@@ -15,6 +15,7 @@ export default defineConfig([
   globalIgnores(["!.storybook"], "Include Storybook Directory"),
   {
     ignores: [
+      ".github",
       "components.json",
       ".tanstack",
       "package.json",

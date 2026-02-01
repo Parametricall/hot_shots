@@ -1,4 +1,3 @@
-import { SignIn } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { SignInPage } from "~/pages/sign-in";
 
