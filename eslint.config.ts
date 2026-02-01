@@ -8,13 +8,13 @@ import pluginReact from "eslint-plugin-react";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import css from "@eslint/css";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default defineConfig([
+  globalIgnores(["!.storybook"], "Include Storybook Directory"),
   {
     ignores: [
-      ".storybook",
       "components.json",
       ".tanstack",
       "package.json",
@@ -54,6 +54,7 @@ export default defineConfig([
   },
   {
     files: ["**/*.json"],
+    ignores: ["package-lock.json"],
     plugins: { json },
     language: "json/json",
     extends: ["json/recommended"],
