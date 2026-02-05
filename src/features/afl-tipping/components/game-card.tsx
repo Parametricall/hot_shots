@@ -4,6 +4,8 @@ import React, {
   createContext,
   PropsWithChildren,
   useContext,
+  useEffect,
+  useState,
 } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
@@ -20,6 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { GameRules } from "~/features/afl-tipping/api/game-rules";
 
 // Context for sharing game data across composed components
 interface GameCardContextValue {
@@ -135,7 +138,36 @@ function GameCardTeamButton({
   className,
 }: TeamButtonProps) {
   const { game, prediction, tip, onTipSelect } = useGameCard();
-  const isGameStarted = Date.now() >= game.unixTime;
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  useEffect(() => {
+    const gameStartTime = game.unixTime;
+
+    // Update immediately if game has started
+    if (gameStartTime <= Date.now()) {
+      setCurrentTime(Date.now());
+      return;
+    }
+
+    // Set timeout for exact start time
+    const timeUntilStart = gameStartTime - Date.now();
+    const startTimer = setTimeout(() => {
+      setCurrentTime(Date.now());
+    }, timeUntilStart);
+
+    // Also check every minute as a backup
+    const checkInterval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Check every minute
+
+    return () => {
+      clearTimeout(startTimer);
+      clearInterval(checkInterval);
+    };
+  }, [game.unixTime]);
+
+  const isGameStarted = Date.now() > currentTime;
+  const disabled = isGameStarted;
 
   const isSelected = tip?.tipTeamId === team.id;
   const displayValue = isGameStarted
@@ -154,6 +186,7 @@ function GameCardTeamButton({
         className,
       )}
       onClick={() => onTipSelect(game.id, team.id)}
+      disabled={disabled}
     >
       <div
         className={cn(

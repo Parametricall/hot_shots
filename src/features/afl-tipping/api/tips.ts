@@ -3,7 +3,7 @@ import * as z from "zod";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { AflUserTip, AflGame } from "~/features/afl-tipping/types";
 import serviceRegistry from "~/service-registry";
-import { gameRules } from "./game-rules";
+import { GameRules } from "./game-rules";
 import { getSupabaseServerClient } from "~/utils/supabase";
 
 const SubmitTipSchema = z.object({
@@ -25,9 +25,9 @@ export const submitTip = createServerFn({ method: "POST" })
       throw new Error("User not authenticated");
     }
     // Use service registry to get services
-    const squiggleService = serviceRegistry.getService("squiggleService");
+    const { getGames } = serviceRegistry.getService("squiggleService");
     // Always use getGames and find by id
-    const games: AflGame[] = await squiggleService.getGames();
+    const games: AflGame[] = await getGames();
     const game = games.find((g) => g.id === gameId);
     // Use 'date' as the start time property (Squiggle API)
     const startTime = game?.date as string | undefined;
@@ -35,32 +35,18 @@ export const submitTip = createServerFn({ method: "POST" })
       throw new Error("Game not found in Squiggle API");
     }
     // Use gameRules abstraction
-    if (!gameRules.canSubmitTip({ gameStart: new Date(startTime) })) {
+    if (!GameRules.canSubmitTip({ game })) {
       throw new Error("Cannot submit tip after the game has started");
     }
     // Save tip directly to Supabase
     const supabaseClient = await getSupabaseServerClient();
 
-    const { data: data2, error } = await supabaseClient
+    const { error } = await supabaseClient
       .from("afl_tipping")
-      .select()
-      .eq("game_id", gameId)
-      .eq("user_id", userId)
-      .single();
-
-    if (data2) {
-      // Update existing row
-      const { data: dd, error: ee } = await supabaseClient
-        .from("afl_tipping")
-        .update({ tip: teamId })
-        .eq("game_id", gameId)
-        .eq("user_id", userId);
-    } else {
-      // Insert new row
-      const { data: r, error: e } = await supabaseClient
-        .from("afl_tipping")
-        .insert({ game_id: gameId, user_id: userId, tip: teamId });
-    }
+      .upsert(
+        { game_id: gameId, user_id: userId, tip: teamId },
+        { onConflict: "game_id,user_id" },
+      );
     if (error) {
       throw new Error(error.message || "Failed to submit tip");
     }

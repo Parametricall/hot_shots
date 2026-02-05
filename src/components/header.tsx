@@ -30,7 +30,7 @@ export function Header() {
                   Signed in as
                 </span>
                 <span className="text-sm font-medium text-foreground">
-                  {user?.fullName}
+                  {user?.fullName ?? user?.primaryEmailAddress?.emailAddress}
                 </span>
               </div>
               <div className="w-10 h-10 rounded-full bg-secondary border-2 border-primary overflow-hidden">

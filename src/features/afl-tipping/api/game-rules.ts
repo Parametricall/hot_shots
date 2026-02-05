@@ -1,13 +1,14 @@
 // Abstraction for AFL tipping game rules
 
+import { AflGame } from "~/features/afl-tipping/types";
+
 export interface CanSubmitTipParams {
-  gameStart: Date;
-  now?: Date;
+  game: AflGame;
 }
 
-export const gameRules = {
-  canSubmitTip({ gameStart, now = new Date() }: CanSubmitTipParams): boolean {
-    return now < gameStart;
+export const GameRules = {
+  canSubmitTip({ game }: CanSubmitTipParams): boolean {
+    return !AflGame.hasStarted(game);
   },
   // Future rules can be added here
 };
