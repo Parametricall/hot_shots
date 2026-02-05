@@ -1,4 +1,5 @@
 import { AflGame, AflRound, AflTeam } from "~/features/afl-tipping/types";
+import { UNKNOWN_TEAM_ABBREV } from "~/features/afl-tipping/constants";
 
 export function findAflTeamById(
   teams: AflTeam[],
@@ -11,10 +12,20 @@ export function createUnknownAflTeam(id: AflTeam["id"]): AflTeam {
   return {
     id,
     name: "Unknown Team",
-    abbrev: "UNK",
+    abbrev: UNKNOWN_TEAM_ABBREV,
     logo: "/dummy-footy-logo.png",
     debut: 0,
   };
+}
+
+export function formatDateHeader(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-AU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 export function aflGamesToRounds(games: AflGame[]): AflRound[] {

@@ -27,9 +27,9 @@ export type AflGame = {
   date: Date;
   timeStr: string;
   homeTeamId: number | null;
-  hScore: number | null;
+  homeScore: number | null;
   awayTeamId: number | null;
-  aScore: number | null;
+  awayScore: number | null;
   winnerTeamId: number | null;
   complete: number;
 };

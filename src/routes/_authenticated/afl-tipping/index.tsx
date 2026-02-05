@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Index } from "~/pages/afl-tipping/index";
-import { AflServerFnsProvider } from "~/features/afl-tipping/providers/afl-server-fns-provider";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { AflGame } from "~/features/afl-tipping/types";
 
@@ -32,9 +31,5 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/")({
 });
 
 function RouteComponent() {
-  return (
-    <AflServerFnsProvider>
-      <Index />
-    </AflServerFnsProvider>
-  );
+  return <Index />;
 }

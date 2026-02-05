@@ -11,19 +11,29 @@ const SubmitTipSchema = z.object({
   teamId: z.number(), // Squiggle team id
 });
 
+const GetTipsSchema = z.object({
+  gameIds: z.array(z.number()),
+});
+
 interface TipRow {
   game_id: number;
   tip: number;
+}
+
+async function ensureUserAuthenticated(): Promise<string> {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+  return userId;
 }
 
 export const submitTip = createServerFn({ method: "POST" })
   .inputValidator(SubmitTipSchema)
   .handler(async ({ data }) => {
     const { gameId, teamId } = data;
-    const { userId } = await auth();
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+    const userId = await ensureUserAuthenticated();
+
     // Use service registry to get services
     const { getGames } = serviceRegistry.getService("squiggleService");
     // Always use getGames and find by id
@@ -53,18 +63,12 @@ export const submitTip = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-const GetTipsSchema = z.object({
-  gameIds: z.array(z.number()),
-});
-
 export const getTips = createServerFn({ method: "GET" })
   .inputValidator(GetTipsSchema)
   .handler(async ({ data }) => {
     const { gameIds } = data;
-    const { userId } = await auth();
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+    const userId = await ensureUserAuthenticated();
+
     const supabaseClient = await getSupabaseServerClient();
     const { data: tips, error } = await supabaseClient
       .from("afl_tipping")

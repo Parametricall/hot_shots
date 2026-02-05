@@ -3,6 +3,8 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { AflRound } from "~/features/afl-tipping/types";
+import { REGULAR_SEASON_ROUNDS } from "~/features/afl-tipping/constants";
+import { cn } from "~/lib/utils";
 
 interface RoundNavigationProps {
   currentRound: number;
@@ -92,7 +94,7 @@ export function RoundNavigation({
           <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
             {rounds.map((round, index) => {
               const isActive = index === currentRound;
-              const isFinal = index >= 25;
+              const isFinal = index >= REGULAR_SEASON_ROUNDS;
 
               return (
                 <Button
@@ -100,15 +102,15 @@ export function RoundNavigation({
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   onClick={() => onRoundChange(index)}
-                  className={`text-xs px-2 py-1 h-auto min-h-[32px] ${
-                    isFinal
-                      ? "bg-orange-50 border-orange-200 hover:bg-orange-100"
-                      : ""
-                  } ${isActive && isFinal ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                  className={cn(
+                    "text-xs px-2 py-1 h-auto min-h-[32px]",
+                    isFinal && "bg-orange-50 border-orange-200 hover:bg-orange-100",
+                    isActive && isFinal && "bg-orange-500 hover:bg-orange-600",
+                  )}
                 >
                   {index === 0
                     ? "Opening"
-                    : index <= 24
+                    : index < REGULAR_SEASON_ROUNDS
                       ? `R${index}`
                       : round.name.split(" ")[0]}
                 </Button>

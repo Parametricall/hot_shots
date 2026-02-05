@@ -1,70 +1,66 @@
 import { queryOptions } from "@tanstack/react-query";
 import ServiceRegistry from "~/service-registry";
+import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
+
+// Lazy-initialize services to ensure they're registered before access
+const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
+const getAflService = () => ServiceRegistry.getService("aflService");
 
 export const aflQueries = {
   aflKey: () => ["afl"] as const,
   allTeamsKey: () => [...aflQueries.aflKey(), "teams"] as const,
   teams: () => {
-    const { getAllCurrentTeams } =
-      ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: aflQueries.allTeamsKey(),
-      queryFn: getAllCurrentTeams,
+      queryFn: getSquiggleService().getAllCurrentTeams,
       staleTime: Infinity, // Teams rarely change, so we can cache them indefinitely
     });
   },
   allStandingsKey: () => [...aflQueries.aflKey(), "standings"] as const,
   standings: () => {
-    const { getStandings } = ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: aflQueries.allStandingsKey(),
-      queryFn: getStandings,
-      staleTime: 1000 * 60 * 60, // Cache standings for 1 hour
+      queryFn: getSquiggleService().getStandings,
+      staleTime: CACHE_DURATIONS.STANDINGS,
     });
   },
   allGamesKey: () => [...aflQueries.aflKey(), "games"] as const,
   allGames: () => {
-    const { getGames } = ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: aflQueries.allGamesKey(),
-      queryFn: () => getGames(),
+      queryFn: () => getSquiggleService().getGames(),
       staleTime: Infinity,
     });
   },
   games: (round?: number) => {
-    const { getGames } = ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: [...aflQueries.allGamesKey(), { round }],
-      queryFn: () => getGames(round),
-      staleTime: 1000 * 60 * 5, // Cache games for 5 minutes
+      queryFn: () => getSquiggleService().getGames(round),
+      staleTime: CACHE_DURATIONS.GAMES,
     });
   },
   allIncompleteGamesKey: () =>
     [...aflQueries.allGamesKey(), "incompleteGames"] as const,
   incompleteGames: () => {
-    const { getIncompleteGames } =
-      ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: [...aflQueries.allIncompleteGamesKey()],
-      queryFn: getIncompleteGames,
-      staleTime: 1000 * 60, // Cache incomplete games for 1 hour
+      queryFn: getSquiggleService().getIncompleteGames,
+      staleTime: CACHE_DURATIONS.INCOMPLETE_GAMES,
     });
   },
   allModelTipsKey: () => [...aflQueries.aflKey(), "modelTips"],
   modelTips: (round: number) => {
-    const { getModelTips } = ServiceRegistry.getService("squiggleService");
     return queryOptions({
       queryKey: [...aflQueries.allModelTipsKey(), { round }],
-      queryFn: () => getModelTips(round),
-      staleTime: 1000 * 60 * 60, // Cache tips for 1 hour
+      queryFn: () => getSquiggleService().getModelTips(round),
+      staleTime: CACHE_DURATIONS.MODEL_TIPS,
     });
   },
   getTips: (gameIds: number[]) => {
-    const { getTips } = ServiceRegistry.getService("aflService");
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "getTips", { gameIds }],
-      queryFn: () => getTips({ data: { gameIds } }),
-      staleTime: 1000 * 60 * 5, // Cache tips for 5 minutes
+      queryFn: () => getAflService().getTips({ data: { gameIds } }),
+      staleTime: CACHE_DURATIONS.USER_TIPS,
     });
   },
 };

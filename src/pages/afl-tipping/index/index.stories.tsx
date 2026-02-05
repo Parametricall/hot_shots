@@ -6,7 +6,6 @@ import {
   createAflTeam,
   fakeTeams,
 } from "~/features/afl-tipping/mocks/factories";
-import { AflServerFnsContext } from "~/features/afl-tipping/providers/afl-server-fns-provider";
 
 const GAMES = [
   createAflGame({ id: 0 }),
@@ -30,6 +29,9 @@ export const Demo = meta.story({
       aflService: {
         getTips: () => {
           return { tipTeamId: 1 };
+        },
+        submitTip: () => {
+          return { success: true };
         },
       },
       squiggleService: {
@@ -58,18 +60,4 @@ export const Demo = meta.story({
       },
     },
   },
-  decorators: [
-    (Story) => (
-      <AflServerFnsContext
-        value={{
-          // @ts-expect-error - wip
-          submitTip: (payload) => {
-            console.log(payload);
-          },
-        }}
-      >
-        <Story />
-      </AflServerFnsContext>
-    ),
-  ],
 });

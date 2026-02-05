@@ -6,24 +6,16 @@ import { AflGame } from "~/features/afl-tipping/types";
 import {
   createUnknownAflTeam,
   findAflTeamById,
+  formatDateHeader,
 } from "~/features/afl-tipping/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
-import { useAflServerFns } from "~/features/afl-tipping/providers/afl-server-fns-provider";
-
-// interface GamesListProps {
-//   games: AflGame[];
-//   tips?: AflTips[];
-//   // tips: Record<number, number>;
-//   onTipSelect: (gameId: number, teamId: number) => void;
-//   teams: AflTeam[];
-// }
+import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
 
 const groupedByDate = (games: AflGame[]) =>
   games.reduce(
     (acc, item) => {
-      // Convert Date to an ISO string without time
       const key = item.date.toISOString().split("T")[0];
 
       if (!acc[key]) {
@@ -49,9 +41,6 @@ export function GamesList() {
     ...aflQueries.modelTips(currentRound),
   });
 
-  const { submitTip } = useAflServerFns();
-  const queryClient = useQueryClient();
-
   const gameIds = games?.map((g) => g.id);
 
   const { data: tip } = useQuery({
@@ -59,75 +48,10 @@ export function GamesList() {
     enabled: !!gameIds,
   });
 
-  // const tipsQuery = useQuery({
-  //   queryKey: ["tips", games],
-  //   queryFn: () =>
-  //     games ? getTips({ data: { gameIds: games.map((g) => g.id) } }) : [],
-  // });
+  const submitTipMutation = useTipMutation({ gameIds });
 
-  // const submitTipFn = useServerFn(submitTip);
-  const submitTipMutation = useMutation({
-    mutationFn: submitTip,
-    onMutate: async ({ data: { gameId, teamId } }, context) => {
-      if (!gameIds) return;
-
-      const tipsQuery = aflQueries.getTips(gameIds);
-
-      await context.client.cancelQueries({
-        queryKey: tipsQuery.queryKey,
-      });
-
-      const previousTips = context.client.getQueryData(tipsQuery.queryKey);
-
-      context.client.setQueryData(tipsQuery.queryKey, (old) => {
-        if (!old) return old;
-        // Update the tip for the specific gameId
-        const existingTipIndex = old.findIndex((t) => t.gameId === gameId);
-        if (existingTipIndex !== -1) {
-          const updatedTips = [...old];
-          updatedTips[existingTipIndex] = {
-            ...updatedTips[existingTipIndex],
-            tipTeamId: teamId,
-          };
-          return updatedTips;
-        } else {
-          return [...old, { gameId, tipTeamId: teamId }];
-        }
-      });
-
-      return { previousTips };
-    },
-    onError: (err, newTodo, onMutateResult, context) => {
-      context.client.setQueryData(
-        aflQueries.getTips(gameIds!).queryKey,
-        onMutateResult?.previousTips,
-      );
-    },
-    // Always refetch after error or success:
-    onSettled: (data, error, variables, onMutateResult, context) =>
-      context.client.invalidateQueries(aflQueries.getTips(gameIds!)),
-  });
-
-  const handleTipSelect = async (gameId: number, teamId: number) => {
-    submitTipMutation.mutate(
-      { data: { gameId, teamId } },
-      {
-        onSuccess: () => {
-          console.log("submit tip mutation success");
-        },
-        onSettled: () =>
-          queryClient.invalidateQueries({
-            queryKey: aflQueries.getTips(gameIds ?? []).queryKey,
-          }),
-      },
-    );
-
-    // const { data, error } = await supabaseClient.from("afl_tipping").upsert([
-    //   {
-    //     game_id: Number(gameId),
-    //     tip: Number(teamId),
-    //   },
-    // ]);
+  const handleTipSelect = (gameId: number, teamId: number) => {
+    submitTipMutation.mutate({ data: { gameId, teamId } });
   };
 
   if (!games || !teams || games.length === 0) {
@@ -142,27 +66,10 @@ export function GamesList() {
     );
   }
 
-  // Group games by date
   const gamesByDate = groupedByDate(games);
-
-  const formatDateHeader = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-AU", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-        <div className="text-xs sm:text-sm text-muted-foreground">
-          {/*{Object.keys(tips).length} of {games.length} tips made*/}
-        </div>
-      </div>
-
       {Object.entries(gamesByDate)
         .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
         .map(([date, dateGames]) => (
@@ -202,7 +109,6 @@ export function GamesList() {
                         undefined
                       }
                       tip={tip?.[0]}
-                      // selectedTip={tips[game.id]}
                       onTipSelect={handleTipSelect}
                     />
                   );

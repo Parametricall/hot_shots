@@ -1,5 +1,23 @@
 import { Venue } from "~/features/afl-tipping/types";
 
+// Season structure
+export const REGULAR_SEASON_ROUNDS = 25;
+
+// Polling intervals
+export const GAME_STATUS_CHECK_INTERVAL_MS = 60000; // 1 minute
+
+// Cache durations (in milliseconds)
+export const CACHE_DURATIONS = {
+  STANDINGS: 1000 * 60 * 60, // 1 hour
+  GAMES: 1000 * 60 * 5, // 5 minutes
+  INCOMPLETE_GAMES: 1000 * 60, // 1 minute
+  MODEL_TIPS: 1000 * 60 * 60, // 1 hour
+  USER_TIPS: 1000 * 60 * 5, // 5 minutes
+} as const;
+
+// Fallback values
+export const UNKNOWN_TEAM_ABBREV = "UNK";
+
 // venues collected from: https://www.afl.com.au/venues
 export const VENUES: Record<string, Venue> = {
   adelaideOval: {

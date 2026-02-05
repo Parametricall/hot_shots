@@ -120,9 +120,9 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
     date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
     timeStr: dto.timestr ?? "Not Started",
     homeTeamId: dto.hteamid,
-    hScore: dto.hscore,
+    homeScore: dto.hscore,
     awayTeamId: dto.ateamid,
-    aScore: dto.ascore,
+    awayScore: dto.ascore,
     winnerTeamId: dto.winnerteamid,
     complete: dto.complete,
   }),
