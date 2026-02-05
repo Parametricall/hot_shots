@@ -31,13 +31,14 @@ export function createAflTeam(overrides: Partial<AflTeam> = {}): AflTeam {
 }
 
 export function createAflGame(overrides: Partial<AflGame> = {}) {
+  const futureTime = Date.now() + 1000 * 60 * 60 * 24; // 24 hours in future
   return {
     id: 0,
     round: 0,
     roundName: "Round 1",
     venue: VENUES.gabba,
-    unixTime: Date.now(),
-    date: new Date(),
+    unixTime: futureTime,
+    date: new Date(futureTime),
     homeTeamId: 1,
     awayTeamId: 2,
     timeStr: "Q4  4:16",
