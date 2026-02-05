@@ -18,7 +18,7 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url));
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
   },
@@ -29,10 +29,10 @@ export default defineConfig({
       projects: ["./tsconfig.json"],
     }),
     tanstackStart(),
-    devtools(),
+    mode === "development" && devtools(),
     nitro(),
     viteReact(),
-  ],
+  ].filter(Boolean),
   optimizeDeps: {
     include: ["cookie"],
   },
@@ -73,4 +73,4 @@ export default defineConfig({
       },
     ],
   },
-});
+}));
