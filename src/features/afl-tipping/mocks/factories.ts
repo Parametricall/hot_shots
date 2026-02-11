@@ -1,4 +1,8 @@
-import { AflGame, AflTeam } from "~/features/afl-tipping/types";
+import {
+  AflGame,
+  AflLeaderboardEntry,
+  AflTeam,
+} from "~/features/afl-tipping/types";
 import { VENUES } from "~/features/afl-tipping/constants";
 
 export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {
@@ -26,6 +30,20 @@ export function createAflTeam(overrides: Partial<AflTeam> = {}): AflTeam {
     ...fakeTeams.lions,
     logo: "/dummy-footy-logo.png",
     debut: 1897,
+    ...overrides,
+  };
+}
+
+export function createAflLeaderboardEntry(
+  overrides: Partial<AflLeaderboardEntry> = {},
+): AflLeaderboardEntry {
+  return {
+    userId: "user-1",
+    displayName: "John Smith",
+    avatarUrl: null,
+    correctTips: 10,
+    totalTips: 15,
+    accuracy: 66.7,
     ...overrides,
   };
 }
