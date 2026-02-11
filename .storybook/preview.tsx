@@ -9,9 +9,7 @@ import ServiceRegistry, { ServiceTypes } from "~/service-registry";
 
 import "~/styles/app.css";
 
-export const containerDecorator = (
-  className: HTMLProps<HTMLElement>["className"],
-) => {
+export const containerDecorator = (className: HTMLProps<HTMLElement>["className"]) => {
   const Decorated: Decorator = (Story) => (
     <div className={cn("w-full", className)}>
       <Story />

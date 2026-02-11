@@ -1,10 +1,7 @@
 import { AflGame, AflRound, AflTeam } from "~/features/afl-tipping/types";
 import { UNKNOWN_TEAM_ABBREV } from "~/features/afl-tipping/constants";
 
-export function findAflTeamById(
-  teams: AflTeam[],
-  teamId: number,
-): AflTeam | undefined {
+export function findAflTeamById(teams: AflTeam[], teamId: number): AflTeam | undefined {
   return teams.find((team) => team.id === teamId);
 }
 

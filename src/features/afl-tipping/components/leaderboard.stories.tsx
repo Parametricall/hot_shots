@@ -1,7 +1,4 @@
-import preview, {
-  centeredYDecorator,
-  containerDecorator,
-} from "#.storybook/preview";
+import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
 

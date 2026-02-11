@@ -1,11 +1,5 @@
 import * as z from "zod";
-import {
-  AflGame,
-  AflStanding,
-  AflTeam,
-  AflModelTip,
-  Venue,
-} from "~/features/afl-tipping/types";
+import { AflGame, AflStanding, AflTeam, AflModelTip, Venue } from "~/features/afl-tipping/types";
 import { SQUIGGLE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 import { VENUES } from "~/features/afl-tipping/constants";
 
@@ -17,15 +11,13 @@ const squiggleTeamSchema = z.object({
   debut: z.number().positive(),
 });
 
-const squiggleTeamDtoToDomain = squiggleTeamSchema.transform<AflTeam>(
-  (dto) => ({
-    id: dto.id,
-    name: dto.name,
-    abbrev: dto.abbrev,
-    logo: `${SQUIGGLE_HOST}${dto.logo}`,
-    debut: dto.debut,
-  }),
-);
+const squiggleTeamDtoToDomain = squiggleTeamSchema.transform<AflTeam>((dto) => ({
+  id: dto.id,
+  name: dto.name,
+  abbrev: dto.abbrev,
+  logo: `${SQUIGGLE_HOST}${dto.logo}`,
+  debut: dto.debut,
+}));
 
 export const squiggleTeamsDtoToDomain = z.object({
   teams: z.array(squiggleTeamDtoToDomain),
@@ -49,12 +41,11 @@ const squiggleStandingSchema = z.object({
   percentage: z.number(),
 });
 
-const squiggleStandingDtoToDomain =
-  squiggleStandingSchema.transform<AflStanding>((dto) => ({
-    id: dto.id,
-    name: dto.name,
-    rank: dto.rank,
-  }));
+const squiggleStandingDtoToDomain = squiggleStandingSchema.transform<AflStanding>((dto) => ({
+  id: dto.id,
+  name: dto.name,
+  rank: dto.rank,
+}));
 
 export const squiggleStandingsDtoToDomain = z.object({
   standings: z.array(squiggleStandingDtoToDomain),
@@ -110,23 +101,21 @@ const squiggleVenueDomainMap: Record<string, Venue> = {
   "York Park": VENUES.utasStadium,
 };
 
-const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>(
-  (dto) => ({
-    id: dto.id,
-    round: dto.round,
-    roundName: dto.roundname,
-    venue: squiggleVenueDomainMap[dto.venue] ?? { name: dto.venue },
-    unixTime: dto.unixtime * 1000, // Convert from seconds to milliseconds
-    date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
-    timeStr: dto.timestr ?? "Not Started",
-    homeTeamId: dto.hteamid,
-    homeScore: dto.hscore,
-    awayTeamId: dto.ateamid,
-    awayScore: dto.ascore,
-    winnerTeamId: dto.winnerteamid,
-    complete: dto.complete,
-  }),
-);
+const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>((dto) => ({
+  id: dto.id,
+  round: dto.round,
+  roundName: dto.roundname,
+  venue: squiggleVenueDomainMap[dto.venue] ?? { name: dto.venue },
+  unixTime: dto.unixtime * 1000, // Convert from seconds to milliseconds
+  date: new Date(dto.unixtime * 1000), // Convert from seconds to milliseconds
+  timeStr: dto.timestr ?? "Not Started",
+  homeTeamId: dto.hteamid,
+  homeScore: dto.hscore,
+  awayTeamId: dto.ateamid,
+  awayScore: dto.ascore,
+  winnerTeamId: dto.winnerteamid,
+  complete: dto.complete,
+}));
 
 export const squiggleGamesDtoToDomain = z.object({
   games: z.array(squiggleGameDtoToDomain),
@@ -156,17 +145,16 @@ const squiggleModelTipSchema = z.object({
   year: z.number(),
 });
 
-const squiggleModelTipDtoToDomain =
-  squiggleModelTipSchema.transform<AflModelTip>((dto) => ({
-    awayTeamId: dto.ateamid,
-    homeTeamId: dto.hteamid,
-    confidence: dto.confidence ? parseFloat(dto.confidence) : null,
-    gameId: dto.gameid,
-    homeConfidence: dto.hconfidence ? parseFloat(dto.hconfidence) : null,
-    awayConfidence: dto.hconfidence ? 100 - parseFloat(dto.hconfidence) : null,
-    round: dto.round,
-    tipTeamId: dto.tipteamid,
-  }));
+const squiggleModelTipDtoToDomain = squiggleModelTipSchema.transform<AflModelTip>((dto) => ({
+  awayTeamId: dto.ateamid,
+  homeTeamId: dto.hteamid,
+  confidence: dto.confidence ? parseFloat(dto.confidence) : null,
+  gameId: dto.gameid,
+  homeConfidence: dto.hconfidence ? parseFloat(dto.hconfidence) : null,
+  awayConfidence: dto.hconfidence ? 100 - parseFloat(dto.hconfidence) : null,
+  round: dto.round,
+  tipTeamId: dto.tipteamid,
+}));
 
 export const squiggleModelTipListDtoToDomain = z.object({
   tips: z.array(squiggleModelTipDtoToDomain),

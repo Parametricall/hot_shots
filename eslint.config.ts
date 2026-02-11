@@ -16,6 +16,9 @@ export default defineConfig([
   {
     ignores: [
       ".github",
+      ".claude",
+      "CLAUDE.md",
+      ".output",
       "components.json",
       ".tanstack",
       "package.json",

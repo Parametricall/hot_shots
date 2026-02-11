@@ -14,12 +14,7 @@ interface TipSummaryProps {
   onClearTips: () => void;
 }
 
-export function TipSummary({
-  games,
-  tips,
-  roundName,
-  onClearTips,
-}: TipSummaryProps) {
+export function TipSummary({ games, tips, roundName, onClearTips }: TipSummaryProps) {
   const totalGames = games.length;
   const tipsMade = Object.keys(tips).length;
   const progressPercentage = totalGames > 0 ? (tipsMade / totalGames) * 100 : 0;
@@ -59,10 +54,7 @@ export function TipSummary({
         {/* Status Badge */}
         <div className="flex items-center gap-2">
           {tipsMade === totalGames ? (
-            <Badge
-              variant="default"
-              className="bg-green-500 hover:bg-green-600"
-            >
+            <Badge variant="default" className="bg-green-500 hover:bg-green-600">
               <CheckCircle className="h-3 w-3 mr-1" />
               Complete
             </Badge>
@@ -87,9 +79,7 @@ export function TipSummary({
               <div className="text-xs text-muted-foreground">Tips Made</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-semibold">
-                {totalGames - tipsMade}
-              </div>
+              <div className="text-lg font-semibold">{totalGames - tipsMade}</div>
               <div className="text-xs text-muted-foreground">Remaining</div>
             </div>
           </div>

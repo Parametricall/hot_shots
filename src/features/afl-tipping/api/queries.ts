@@ -39,8 +39,7 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.GAMES,
     });
   },
-  allIncompleteGamesKey: () =>
-    [...aflQueries.allGamesKey(), "incompleteGames"] as const,
+  allIncompleteGamesKey: () => [...aflQueries.allGamesKey(), "incompleteGames"] as const,
   incompleteGames: () => {
     return queryOptions({
       queryKey: [...aflQueries.allIncompleteGamesKey()],

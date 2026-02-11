@@ -83,10 +83,7 @@ export function GamesList() {
                 .map((game) => {
                   if (!game.homeTeamId || !game.awayTeamId) {
                     return (
-                      <div
-                        key={game.id}
-                        className="text-red-500 text-sm sm:text-base"
-                      >
+                      <div key={game.id} className="text-red-500 text-sm sm:text-base">
                         Game {game.id} is missing team IDs.
                       </div>
                     );
@@ -104,10 +101,7 @@ export function GamesList() {
                         findAflTeamById(teams, game.awayTeamId) ??
                         createUnknownAflTeam(game.awayTeamId)
                       }
-                      prediction={
-                        modelTips?.find((t) => t.gameId === game.id) ||
-                        undefined
-                      }
+                      prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
                       tip={tip?.[0]}
                       onTipSelect={handleTipSelect}
                     />

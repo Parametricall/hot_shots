@@ -1,12 +1,5 @@
-import preview, {
-  centeredYDecorator,
-  containerDecorator,
-} from "#.storybook/preview";
-import {
-  createAflGame,
-  createAflTeam,
-  fakeTeams,
-} from "~/features/afl-tipping/mocks/factories";
+import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
+import { createAflGame, createAflTeam, fakeTeams } from "~/features/afl-tipping/mocks/factories";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
 
 const meta = preview.meta({

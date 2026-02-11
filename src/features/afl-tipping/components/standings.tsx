@@ -23,11 +23,7 @@ export function Standings() {
           <div key={item.id} className="p-2 border-b flex flex-row gap-3">
             {item.rank}
             <h5>{team.name}</h5>
-            <img
-              src={team.logo}
-              alt={`${item.name} logo`}
-              className="h-8 w-8"
-            />
+            <img src={team.logo} alt={`${item.name} logo`} className="h-8 w-8" />
           </div>
         );
       })}

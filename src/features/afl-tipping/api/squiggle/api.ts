@@ -7,13 +7,10 @@ import {
 import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 
 async function squiggleFetch(searchParams: URLSearchParams) {
-  const url = new URL(
-    `${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`,
-  );
+  const url = new URL(`${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`);
   const res = await fetch(url, {
     headers: new Headers({
-      "User-Agent":
-        "Alex's Tipping App - parametricall@users.noreply.github.com",
+      "User-Agent": "Alex's Tipping App - parametricall@users.noreply.github.com",
     }),
   });
   return res;

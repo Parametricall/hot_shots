@@ -12,11 +12,7 @@ interface RoundNavigationProps {
   rounds: AflRound[];
 }
 
-export function RoundNavigation({
-  currentRound,
-  onRoundChange,
-  rounds,
-}: RoundNavigationProps) {
+export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNavigationProps) {
   const handlePrevious = () => {
     if (currentRound > 0) {
       onRoundChange(currentRound - 1);
@@ -68,9 +64,7 @@ export function RoundNavigation({
         {/* Desktop Navigation */}
         <div className="hidden md:block">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">
-              {rounds?.[currentRound]?.name ?? "no round"}
-            </h2>
+            <h2 className="text-xl font-semibold">{rounds?.[currentRound]?.name ?? "no round"}</h2>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

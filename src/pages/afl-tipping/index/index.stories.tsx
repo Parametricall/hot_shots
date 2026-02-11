@@ -1,11 +1,7 @@
 import preview, { containerDecorator } from "#.storybook/preview";
 import { Index } from "~/pages/afl-tipping/index/index";
 import { AflStanding, AflTeam } from "~/features/afl-tipping/types";
-import {
-  createAflGame,
-  createAflTeam,
-  fakeTeams,
-} from "~/features/afl-tipping/mocks/factories";
+import { createAflGame, createAflTeam, fakeTeams } from "~/features/afl-tipping/mocks/factories";
 
 const GAMES = [
   createAflGame({ id: 0 }),

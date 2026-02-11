@@ -7,13 +7,9 @@ export interface ServiceTypes {
 }
 
 class ServiceRegistry {
-  private services: Map<keyof ServiceTypes, ServiceTypes[keyof ServiceTypes]> =
-    new Map();
+  private services: Map<keyof ServiceTypes, ServiceTypes[keyof ServiceTypes]> = new Map();
 
-  registerService<K extends keyof ServiceTypes>(
-    serviceName: K,
-    service: ServiceTypes[K],
-  ) {
+  registerService<K extends keyof ServiceTypes>(serviceName: K, service: ServiceTypes[K]) {
     this.services.set(serviceName, service);
   }
 

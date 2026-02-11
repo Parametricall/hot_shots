@@ -17,10 +17,7 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/")({
 
     // Populate cache for each round
     Object.entries(gamesByRound).forEach(([round, roundGames]) => {
-      queryClient.setQueryData(
-        aflQueries.games(parseInt(round, 10)).queryKey,
-        roundGames,
-      );
+      queryClient.setQueryData(aflQueries.games(parseInt(round, 10)).queryKey, roundGames);
     });
 
     await Promise.all(

@@ -15,10 +15,7 @@ export function MyTips() {
     ...aflQueries.allGames(),
   });
 
-  const rounds = useMemo(
-    () => (games ? aflGamesToRounds(games) : undefined),
-    [games],
-  );
+  const rounds = useMemo(() => (games ? aflGamesToRounds(games) : undefined), [games]);
 
   if (currentRound == undefined && games) {
     setCurrentRound(AflGame.getActiveRound(games));

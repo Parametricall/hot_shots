@@ -1,18 +1,8 @@
 import { Card, CardContent } from "~/components/ui/card";
-import React, {
-  ComponentProps,
-  createContext,
-  PropsWithChildren,
-  useContext,
-} from "react";
+import React, { ComponentProps, createContext, PropsWithChildren, useContext } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
-import {
-  AflGame,
-  AflModelTip,
-  AflTeam,
-  AflUserTip,
-} from "~/features/afl-tipping/types";
+import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import {
@@ -64,15 +54,8 @@ function GameCardRoot({
   className,
 }: GameCardRootProps) {
   return (
-    <GameCardContext.Provider
-      value={{ game, homeTeam, awayTeam, tip, prediction, onTipSelect }}
-    >
-      <Card
-        className={cn(
-          "p-0 transition-all overflow-hidden rounded-lg",
-          className,
-        )}
-      >
+    <GameCardContext.Provider value={{ game, homeTeam, awayTeam, tip, prediction, onTipSelect }}>
+      <Card className={cn("p-0 transition-all overflow-hidden rounded-lg", className)}>
         <CardContent className="p-0">{children}</CardContent>
       </Card>
     </GameCardContext.Provider>
@@ -130,11 +113,7 @@ interface TeamButtonProps {
   className?: string;
 }
 
-function GameCardTeamButton({
-  team,
-  isAwayTeam = false,
-  className,
-}: TeamButtonProps) {
+function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonProps) {
   const { game, prediction, tip, onTipSelect } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
   const disabled = isGameStarted;
@@ -177,9 +156,7 @@ function GameCardTeamButton({
       </div>
 
       <div className="sm:hidden font-semibold text-lg">{displayValue}</div>
-      <div className="hidden sm:inline font-semibold text-2xl">
-        {displayValue}
-      </div>
+      <div className="hidden sm:inline font-semibold text-2xl">{displayValue}</div>
     </Button>
   );
 }
@@ -194,12 +171,7 @@ function GameCardMatchup({ className, children }: GameCardMatchupProps) {
   const { homeTeam, awayTeam } = useGameCard();
 
   return (
-    <div
-      className={cn(
-        "from-blue-300 via-50% via-transparent bg-no-repeat",
-        className,
-      )}
-    >
+    <div className={cn("from-blue-300 via-50% via-transparent bg-no-repeat", className)}>
       <div className="flex">
         <GameCardTeamButton team={homeTeam} />
         {children}
@@ -209,10 +181,7 @@ function GameCardMatchup({ className, children }: GameCardMatchupProps) {
   );
 }
 
-function GameCardSeparatorTime({
-  className,
-  ...divProps
-}: ComponentProps<"div">) {
+function GameCardSeparatorTime({ className, ...divProps }: ComponentProps<"div">) {
   const { game } = useGameCard();
   return (
     <div {...divProps} className={cn("text-xs", className)}>
@@ -222,17 +191,9 @@ function GameCardSeparatorTime({
 }
 
 // Separator component for between teams (can be customized)
-function GameCardSeparator({
-  children,
-  className,
-}: PropsWithChildren<{ className?: string }>) {
+function GameCardSeparator({ children, className }: PropsWithChildren<{ className?: string }>) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-2 p-2 sm:px-4",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col items-center justify-center gap-2 p-2 sm:px-4", className)}>
       {children}
     </div>
   );

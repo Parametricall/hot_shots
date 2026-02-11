@@ -13,22 +13,16 @@ export function Header() {
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
               <img src={logo} alt="Logo" className="w-12 h-12 rounded-xl" />
             </div>
-            <span className="hidden sm:block text-xl font-bold text-foreground">
-              Hot Shots
-            </span>
+            <span className="hidden sm:block text-xl font-bold text-foreground">Hot Shots</span>
           </Link>
 
-          <span className="sm:block text-xl font-bold text-foreground">
-            AFL Tipping
-          </span>
+          <span className="sm:block text-xl font-bold text-foreground">AFL Tipping</span>
 
           {/* User */}
           <div className="flex items-center gap-3">
             <SignedIn>
               <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs text-muted-foreground">
-                  Signed in as
-                </span>
+                <span className="text-xs text-muted-foreground">Signed in as</span>
                 <span className="text-sm font-medium text-foreground">
                   {user?.fullName ?? user?.primaryEmailAddress?.emailAddress}
                 </span>

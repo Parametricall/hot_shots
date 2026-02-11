@@ -21,9 +21,7 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
         queryKey: tipsQuery.queryKey,
       });
 
-      const previousTips = queryClient.getQueryData<AflUserTip[]>(
-        tipsQuery.queryKey,
-      );
+      const previousTips = queryClient.getQueryData<AflUserTip[]>(tipsQuery.queryKey);
 
       queryClient.setQueryData<AflUserTip[]>(tipsQuery.queryKey, (old) => {
         if (!old) return old;
@@ -45,10 +43,7 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousTips && gameIds) {
-        queryClient.setQueryData(
-          aflQueries.getTips(gameIds).queryKey,
-          context.previousTips,
-        );
+        queryClient.setQueryData(aflQueries.getTips(gameIds).queryKey, context.previousTips);
       }
     },
     onSettled: () => {

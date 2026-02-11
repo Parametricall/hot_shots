@@ -1,8 +1,4 @@
-import {
-  AflGame,
-  AflLeaderboardEntry,
-  AflTeam,
-} from "~/features/afl-tipping/types";
+import { AflGame, AflLeaderboardEntry, AflTeam } from "~/features/afl-tipping/types";
 import { VENUES } from "~/features/afl-tipping/constants";
 
 export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {

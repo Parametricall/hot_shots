@@ -20,6 +20,7 @@ npm run storybook        # Storybook dev server (port 6006)
 ## Architecture
 
 ### Tech Stack
+
 - **Framework**: React 19 + TanStack Router (file-based routing)
 - **State**: TanStack Query for server state
 - **Server Functions**: TanStack React Start (server-side functions with Clerk auth)
@@ -30,38 +31,46 @@ npm run storybook        # Storybook dev server (port 6006)
 - **Validation**: Zod schemas for DTO-to-domain mapping
 
 ### Key Directories
+
 - `src/routes/` - TanStack Router file-based routes (auto-generates `routeTree.gen.ts`)
 - `src/features/afl-tipping/` - Main feature module with components, API, providers
 - `src/features/afl-tipping/api/squiggle/` - Squiggle API integration with Zod schemas
 - `src/components/ui/` - shadcn/ui components
 
 ### Service Registry Pattern
+
 All API calls go through `src/service-registry.ts`. This centralizes:
+
 - Service instantiation and dependency injection
 - DTO-to-domain type mapping (only place this should happen)
 - Easy mocking for tests
 
 ### Server Functions
+
 Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start server functions that:
+
 - Run server-side only
 - Use Clerk for auth
 - Interact with Supabase for user tips
 
 ### Routing
+
 - `src/routes/__root.tsx` - Root layout with providers (Clerk, Query, Router)
 - `src/routes/_authenticated.tsx` - Auth guard layout for protected routes
 - Protected pages under `src/routes/_authenticated/`
 
 ### Query Patterns
+
 Use hierarchical query keys:
+
 ```typescript
-["fixtures", "round", roundNumber]
-["tips", "user", userId, "round", roundNumber]
+["fixtures", "round", roundNumber][("tips", "user", userId, "round", roundNumber)];
 ```
 
 ## Domain Types
 
 Key types in `src/features/afl-tipping/types.ts`:
+
 - `AflTeam` - Team with name, abbreviation, colors
 - `AflGame` - Game with teams, venue, scores, status
 - `AflUserTip` - User's tip submission

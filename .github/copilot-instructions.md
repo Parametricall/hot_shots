@@ -58,9 +58,9 @@ Use consistent, hierarchical query keys:
 
 ```typescript
 // Good
-["fixtures", "round", roundNumber][
-  ("tips", "user", userId, "round", roundNumber)
-][("ladder", season)][
+["fixtures", "round", roundNumber][("tips", "user", userId, "round", roundNumber)][
+  ("ladder", season)
+][
   // Bad
   "getFixtures"
 ]["tips"];

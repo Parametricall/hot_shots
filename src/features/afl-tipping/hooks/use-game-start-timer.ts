@@ -5,9 +5,7 @@ import { GAME_STATUS_CHECK_INTERVAL_MS } from "~/features/afl-tipping/constants"
 const MAX_SAFE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 
 export function useGameStartTimer(gameUnixTime: number): boolean {
-  const [hasStarted, setHasStarted] = useState(
-    () => Date.now() >= gameUnixTime,
-  );
+  const [hasStarted, setHasStarted] = useState(() => Date.now() >= gameUnixTime);
 
   useEffect(() => {
     if (gameUnixTime <= Date.now()) {
