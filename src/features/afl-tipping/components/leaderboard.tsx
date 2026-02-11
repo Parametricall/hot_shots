@@ -11,11 +11,7 @@ function getRankIcon(rank: number) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
   if (rank === 3) return <Award className="h-5 w-5 text-amber-600" />;
-  return (
-    <span className="text-sm font-medium text-muted-foreground w-5 text-center">
-      {rank}
-    </span>
-  );
+  return <span className="text-sm font-medium text-muted-foreground w-5 text-center">{rank}</span>;
 }
 
 interface LeaderboardRowProps {
@@ -32,9 +28,7 @@ function LeaderboardRow({ entry, rank, isCurrentUser }: LeaderboardRowProps) {
         isCurrentUser && "bg-blue-50 border-blue-200",
       )}
     >
-      <div className="flex items-center justify-center w-8">
-        {getRankIcon(rank)}
-      </div>
+      <div className="flex items-center justify-center w-8">{getRankIcon(rank)}</div>
 
       {entry.avatarUrl && (
         <img
@@ -46,9 +40,7 @@ function LeaderboardRow({ entry, rank, isCurrentUser }: LeaderboardRowProps) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate">
-            {entry.displayName}
-          </span>
+          <span className="text-sm font-medium truncate">{entry.displayName}</span>
           {isCurrentUser && (
             <Badge variant="secondary" className="text-xs">
               You
