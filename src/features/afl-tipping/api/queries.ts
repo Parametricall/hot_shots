@@ -63,4 +63,12 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.USER_TIPS,
     });
   },
+  allLeaderboardKey: () => [...aflQueries.aflKey(), "leaderboard"] as const,
+  leaderboard: () => {
+    return queryOptions({
+      queryKey: aflQueries.allLeaderboardKey(),
+      queryFn: () => getAflService().getLeaderboard(),
+      staleTime: CACHE_DURATIONS.LEADERBOARD,
+    });
+  },
 };

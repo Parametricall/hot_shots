@@ -80,3 +80,12 @@ export type AflUserTip = {
   gameId: number;
   tipTeamId: number;
 };
+
+export type AflLeaderboardEntry = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  correctTips: number;
+  totalTips: number;
+  accuracy: number;
+};

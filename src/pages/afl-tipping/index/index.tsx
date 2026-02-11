@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Standings } from "~/features/afl-tipping/components/standings";
+import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { MyTips } from "~/pages/afl-tipping/my-tips/my-tips";
 import { Header } from "~/components/header";
 
@@ -13,6 +14,11 @@ const TABS = [
     id: "standings" as const,
     label: "Standings",
     Component: Standings,
+  },
+  {
+    id: "leaderboard" as const,
+    label: "Leaderboard",
+    Component: Leaderboard,
   },
 ];
 

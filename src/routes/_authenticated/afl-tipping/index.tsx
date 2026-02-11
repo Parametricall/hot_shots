@@ -8,6 +8,7 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/")({
   loader: async ({ context: { queryClient } }) => {
     const teams = queryClient.ensureQueryData(aflQueries.teams());
     void queryClient.ensureQueryData(aflQueries.standings());
+    void queryClient.ensureQueryData(aflQueries.leaderboard());
     const allGames = queryClient.ensureQueryData(aflQueries.allGames());
 
     const [allGamesData] = await Promise.all([allGames, teams]);
