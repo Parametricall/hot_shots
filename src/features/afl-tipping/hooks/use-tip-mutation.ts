@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { submitTip } from "~/features/afl-tipping/api/tips";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { AflUserTip } from "~/features/afl-tipping/types";
+import { toast } from "sonner";
 
 interface UseTipMutationOptions {
   gameIds: number[] | undefined;
@@ -11,6 +12,7 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ["submitTip"],
     mutationFn: submitTip,
     onMutate: async ({ data: { gameId, teamId } }) => {
       if (!gameIds) return { previousTips: undefined };
@@ -45,10 +47,15 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
       if (context?.previousTips && gameIds) {
         queryClient.setQueryData(aflQueries.getTips(gameIds).queryKey, context.previousTips);
       }
+      toast.error("Failed to submit tip. Please try again.");
     },
     onSettled: () => {
       if (gameIds) {
-        queryClient.invalidateQueries(aflQueries.getTips(gameIds));
+        // Only refetch once the last pending tip mutation settles,
+        // so earlier server responses don't overwrite newer optimistic state.
+        if (queryClient.isMutating({ mutationKey: ["submitTip"] }) === 1) {
+          queryClient.invalidateQueries(aflQueries.getTips(gameIds));
+        }
       }
     },
   });
