@@ -79,3 +79,97 @@ export const SingleUser = meta.story({
     ]),
   },
 });
+
+export const TiedFirstPlace = meta.story({
+  parameters: {
+    services: leaderboardService([
+      createAflLeaderboardEntry({
+        userId: "user-1",
+        displayName: "Alice Johnson",
+        correctTips: 18,
+        totalTips: 20,
+        accuracy: 90.0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-2",
+        displayName: "Bob Williams",
+        correctTips: 18,
+        totalTips: 20,
+        accuracy: 90.0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-storybook",
+        displayName: "You (Current User)",
+        avatarUrl: null,
+        correctTips: 14,
+        totalTips: 20,
+        accuracy: 70.0,
+      }),
+    ]),
+  },
+});
+
+export const TiedSecondPlace = meta.story({
+  parameters: {
+    services: leaderboardService([
+      createAflLeaderboardEntry({
+        userId: "user-1",
+        displayName: "Alice Johnson",
+        correctTips: 18,
+        totalTips: 20,
+        accuracy: 90.0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-2",
+        displayName: "Bob Williams",
+        correctTips: 15,
+        totalTips: 20,
+        accuracy: 75.0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-storybook",
+        displayName: "You (Current User)",
+        avatarUrl: null,
+        correctTips: 15,
+        totalTips: 20,
+        accuracy: 75.0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-4",
+        displayName: "Charlie Brown",
+        correctTips: 10,
+        totalTips: 20,
+        accuracy: 50.0,
+      }),
+    ]),
+  },
+});
+
+export const NoGamesCompleted = meta.story({
+  parameters: {
+    services: leaderboardService([
+      createAflLeaderboardEntry({
+        userId: "user-1",
+        displayName: "Alice Johnson",
+        correctTips: 0,
+        totalTips: 0,
+        accuracy: 0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-2",
+        displayName: "Bob Williams",
+        correctTips: 0,
+        totalTips: 0,
+        accuracy: 0,
+      }),
+      createAflLeaderboardEntry({
+        userId: "user-storybook",
+        displayName: "You (Current User)",
+        avatarUrl: null,
+        correctTips: 0,
+        totalTips: 0,
+        accuracy: 0,
+      }),
+    ]),
+  },
+});

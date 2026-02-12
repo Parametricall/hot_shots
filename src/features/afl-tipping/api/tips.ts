@@ -112,31 +112,33 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
 
   const userStats = new Map<string, { correct: number; total: number }>();
   for (const tip of (allTips ?? []) as AllTipsRow[]) {
+    if (!userStats.has(tip.user_id)) {
+      userStats.set(tip.user_id, { correct: 0, total: 0 });
+    }
+
     const winner = completedGameWinners.get(tip.game_id);
     if (winner === undefined) continue;
 
-    const stats = userStats.get(tip.user_id) ?? { correct: 0, total: 0 };
+    const stats = userStats.get(tip.user_id)!;
     stats.total += 1;
     if (tip.tip === winner) {
       stats.correct += 1;
     }
-    userStats.set(tip.user_id, stats);
   }
-
-  const userIds = Array.from(userStats.keys());
-  if (userIds.length === 0) return [];
 
   const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY!,
   });
 
+  // Fetch all users from Clerk so everyone appears on the leaderboard
   const BATCH_SIZE = 100;
   const userMap = new Map<string, { displayName: string; avatarUrl: string | null }>();
-  for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
-    const batch = userIds.slice(i, i + BATCH_SIZE);
+  let offset = 0;
+  let hasMore = true;
+  while (hasMore) {
     const { data: users } = await clerkClient.users.getUserList({
-      userId: batch,
       limit: BATCH_SIZE,
+      offset,
     });
     for (const user of users) {
       userMap.set(user.id, {
@@ -147,23 +149,23 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
         avatarUrl: user.imageUrl ?? null,
       });
     }
+    hasMore = users.length === BATCH_SIZE;
+    offset += BATCH_SIZE;
   }
 
-  const leaderboard: AflLeaderboardEntry[] = userIds.map((userId) => {
-    const stats = userStats.get(userId)!;
-    const userInfo = userMap.get(userId) ?? {
-      displayName: "Unknown User",
-      avatarUrl: null,
-    };
-    return {
-      userId,
-      displayName: userInfo.displayName,
-      avatarUrl: userInfo.avatarUrl,
-      correctTips: stats.correct,
-      totalTips: stats.total,
-      accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 1000) / 10 : 0,
-    };
-  });
+  const leaderboard: AflLeaderboardEntry[] = Array.from(userMap.entries()).map(
+    ([userId, userInfo]) => {
+      const stats = userStats.get(userId) ?? { correct: 0, total: 0 };
+      return {
+        userId,
+        displayName: userInfo.displayName,
+        avatarUrl: userInfo.avatarUrl,
+        correctTips: stats.correct,
+        totalTips: stats.total,
+        accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 1000) / 10 : 0,
+      };
+    },
+  );
 
   leaderboard.sort((a, b) => {
     if (b.correctTips !== a.correctTips) return b.correctTips - a.correctTips;

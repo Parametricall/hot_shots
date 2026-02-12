@@ -85,6 +85,19 @@ export function Leaderboard() {
     );
   }
 
+  const ranks: number[] = [];
+  for (let i = 0; i < leaderboard.length; i++) {
+    if (
+      i > 0 &&
+      leaderboard[i].correctTips === leaderboard[i - 1].correctTips &&
+      leaderboard[i].accuracy === leaderboard[i - 1].accuracy
+    ) {
+      ranks.push(ranks[i - 1]);
+    } else {
+      ranks.push(i + 1);
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -98,7 +111,7 @@ export function Leaderboard() {
           <LeaderboardRow
             key={entry.userId}
             entry={entry}
-            rank={index + 1}
+            rank={ranks[index]}
             isCurrentUser={entry.userId === user?.id}
           />
         ))}
