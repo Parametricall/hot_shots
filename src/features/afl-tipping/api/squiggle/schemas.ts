@@ -45,6 +45,10 @@ const squiggleStandingDtoToDomain = squiggleStandingSchema.transform<AflStanding
   id: dto.id,
   name: dto.name,
   rank: dto.rank,
+  wins: dto.wins,
+  losses: dto.losses,
+  draws: dto.draws,
+  points: dto.pts,
 }));
 
 export const squiggleStandingsDtoToDomain = z.object({

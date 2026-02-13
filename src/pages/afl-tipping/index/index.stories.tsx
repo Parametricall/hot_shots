@@ -43,6 +43,10 @@ export const Demo = meta.story({
               id: 1,
               name: "Lions",
               rank: 1,
+              wins: 10,
+              losses: 3,
+              draws: 1,
+              points: 42,
             },
           ] satisfies AflStanding[];
         },
