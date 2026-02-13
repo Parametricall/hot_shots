@@ -21,7 +21,7 @@ export default defineMain({
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...(config.resolve.alias as Record<string, string>),
-      "@clerk/tanstack-react-start": path.resolve(dirname, "./mocks/clerk.ts"),
+      "@clerk/tanstack-react-start": path.resolve(dirname, "./mocks/clerk.tsx"),
     };
     return config;
   },

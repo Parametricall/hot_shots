@@ -49,9 +49,7 @@ export function Standings() {
               standing={item}
               team={team}
               isExpanded={isExpanded}
-              onToggle={() =>
-                setExpandedId(isExpanded ? null : item.id)
-              }
+              onToggle={() => setExpandedId(isExpanded ? null : item.id)}
             />
           );
         })}
@@ -73,27 +71,18 @@ function StandingRow({
 }) {
   return (
     <>
-      <TableRow
-        className="cursor-pointer"
-        onClick={onToggle}
-      >
+      <TableRow className="cursor-pointer" onClick={onToggle}>
         <TableCell>{standing.rank}</TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
-            <img
-              src={team.logo}
-              alt={`${team.name} logo`}
-              className="h-6 w-6"
-            />
+            <img src={team.logo} alt={`${team.name} logo`} className="h-6 w-6" />
             {team.name}
           </div>
         </TableCell>
         <TableCell className="text-center">{standing.wins}</TableCell>
         <TableCell className="text-center">{standing.losses}</TableCell>
         <TableCell className="text-center">{standing.draws}</TableCell>
-        <TableCell className="text-center font-medium">
-          {standing.points}
-        </TableCell>
+        <TableCell className="text-center font-medium">{standing.points}</TableCell>
         <TableCell>
           <ChevronDownIcon
             className={cn(

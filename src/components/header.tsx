@@ -2,6 +2,18 @@ import { Link } from "@tanstack/react-router";
 import { SignedIn, UserButton, useUser } from "@clerk/tanstack-react-start";
 import * as React from "react";
 import logo from "/dummy-footy-logo.png?url";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+
+function getInitials(fullName: string | null | undefined): string {
+  if (!fullName) return "?";
+  return fullName
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export function Header() {
   const { user } = useUser();
@@ -27,14 +39,20 @@ export function Header() {
                   {user?.fullName ?? user?.primaryEmailAddress?.emailAddress}
                 </span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-secondary border-2 border-primary overflow-hidden">
-                <UserButton
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox: "w-9! h-10!",
-                    },
-                  }}
-                />
+              <div className="relative">
+                <Avatar size="lg" className="border-2 border-primary">
+                  <AvatarImage src={user?.imageUrl ?? undefined} alt={user?.fullName ?? "User"} />
+                  <AvatarFallback>{getInitials(user?.fullName)}</AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 opacity-0">
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        userButtonAvatarBox: "w-10! h-10!",
+                      },
+                    }}
+                  />
+                </div>
               </div>
             </SignedIn>
           </div>

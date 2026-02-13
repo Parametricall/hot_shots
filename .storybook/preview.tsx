@@ -6,6 +6,14 @@ import { HTMLProps } from "react";
 import { cn } from "~/lib/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ServiceRegistry, { ServiceTypes } from "~/service-registry";
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+} from "@tanstack/react-router";
 
 import "~/styles/app.css";
 
@@ -46,6 +54,53 @@ export function withServices(queryClient: QueryClient): Decorator {
     return <Story />;
   };
 }
+
+export const withRouter: Decorator = (Story) => {
+  const rootRoute = createRootRoute({
+    component: () => <Outlet />,
+  });
+
+  const indexRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/",
+    component: () => <Story />,
+  });
+
+  const router = createRouter({
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+    routeTree: rootRoute.addChildren([indexRoute]),
+  });
+
+  return <RouterProvider router={router} />;
+};
+
+type MockUser = {
+  id?: string;
+  fullName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  primaryEmailAddress?: { emailAddress: string } | null;
+};
+
+declare global {
+  var __STORYBOOK_CLERK_USER__: MockUser | undefined;
+}
+
+export const withMockUser = (overrides: MockUser): Decorator => {
+  return function WithMockUser(Story) {
+    globalThis.__STORYBOOK_CLERK_USER__ = {
+      id: "user-storybook",
+      fullName: "Jane Doe",
+      firstName: "Jane",
+      lastName: "Doe",
+      imageUrl: null,
+      primaryEmailAddress: { emailAddress: "jane.doe@example.com" },
+      ...overrides,
+    };
+    return <Story />;
+  };
+};
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60 * 1000, retry: false } }, // 1 minute
