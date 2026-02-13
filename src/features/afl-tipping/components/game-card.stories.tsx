@@ -135,3 +135,64 @@ export const H2HAwayLeads = meta.story({
     },
   },
 });
+
+// Prediction stories showing Favourite/Underdog labels
+export const HomeFavourite = meta.story({
+  args: {
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 1,
+      confidence: 72,
+      homeConfidence: 72,
+      awayConfidence: 28,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithHistory),
+    },
+  },
+});
+
+export const AwayFavourite = meta.story({
+  args: {
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 2,
+      confidence: 65,
+      homeConfidence: 35,
+      awayConfidence: 65,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithHistory),
+    },
+  },
+});
+
+export const EvenMatchup = meta.story({
+  args: {
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 1,
+      confidence: 50,
+      homeConfidence: 50,
+      awayConfidence: 50,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithHistory),
+    },
+  },
+});

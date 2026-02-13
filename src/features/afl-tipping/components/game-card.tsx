@@ -121,13 +121,17 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
   const disabled = isGameStarted;
 
   const isSelected = tip?.tipTeamId === team.id;
+  const confidence = isAwayTeam
+    ? (prediction?.awayConfidence ?? 0)
+    : (prediction?.homeConfidence ?? 0);
   const displayValue = isGameStarted
     ? isAwayTeam
       ? game.awayScore
       : game.homeScore
-    : isAwayTeam
-      ? `${Math.round(prediction?.awayConfidence ?? 0)}%`
-      : `${Math.round(prediction?.homeConfidence ?? 0)}%`;
+    : `${Math.round(confidence)}%`;
+  const confidenceLabel = !isGameStarted && prediction
+    ? confidence >= 50 ? "Favourite" : "Underdog"
+    : null;
 
   return (
     <Button
@@ -157,8 +161,14 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
         </span>
       </div>
 
-      <div className="sm:hidden font-semibold text-lg">{displayValue}</div>
-      <div className="hidden sm:inline font-semibold text-2xl">{displayValue}</div>
+      <div className="sm:hidden flex flex-col items-center">
+        <div className="font-semibold text-lg">{displayValue}</div>
+        {confidenceLabel && <div className="text-[10px] text-gray-500">{confidenceLabel}</div>}
+      </div>
+      <div className="hidden sm:flex flex-col items-center">
+        <div className="font-semibold text-2xl">{displayValue}</div>
+        {confidenceLabel && <div className="text-xs text-gray-500">{confidenceLabel}</div>}
+      </div>
     </Button>
   );
 }
