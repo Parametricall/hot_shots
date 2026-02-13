@@ -16,10 +16,18 @@ export type AflStanding = {
   id: number;
   name: string;
   rank: number;
+  played: number;
   wins: number;
   losses: number;
   draws: number;
   points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  behindsFor: number;
+  behindsAgainst: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  percentage: number;
 };
 
 export type AflGame = {
