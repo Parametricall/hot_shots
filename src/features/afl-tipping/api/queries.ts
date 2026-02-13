@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import ServiceRegistry from "~/service-registry";
 import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
+import { AflGame } from "~/features/afl-tipping/types";
 
 // Lazy-initialize services to ensure they're registered before access
 const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
@@ -68,6 +69,53 @@ export const aflQueries = {
       queryKey: aflQueries.allLeaderboardKey(),
       queryFn: () => getAflService().getLeaderboard(),
       staleTime: CACHE_DURATIONS.LEADERBOARD,
+    });
+  },
+  gameStats: (gameId: number) => {
+    return queryOptions({
+      queryKey: [...aflQueries.aflKey(), "gameStats", { gameId }],
+      queryFn: () => getSquiggleService().getGames(),
+      staleTime: Infinity,
+      select: (allGames) => {
+        const thisGame = allGames.find((g) => g.id === gameId);
+        if (!thisGame) return null;
+
+        const { homeTeamId, awayTeamId, round } = thisGame;
+
+        const completedBefore = allGames.filter(
+          (g) => AflGame.isComplete(g) && g.round < round,
+        );
+
+        const getLast5 = (teamId: number | null) => {
+          if (!teamId) return [];
+          return completedBefore
+            .filter((g) => g.homeTeamId === teamId || g.awayTeamId === teamId)
+            .sort((a, b) => b.round - a.round)
+            .slice(0, 5)
+            .reverse()
+            .map((g) => g.winnerTeamId === teamId);
+        };
+
+        const h2hGames = completedBefore.filter(
+          (g) =>
+            (g.homeTeamId === homeTeamId && g.awayTeamId === awayTeamId) ||
+            (g.homeTeamId === awayTeamId && g.awayTeamId === homeTeamId),
+        );
+
+        const homeH2hWins = h2hGames.filter(
+          (g) => g.winnerTeamId === homeTeamId,
+        ).length;
+        const awayH2hWins = h2hGames.filter(
+          (g) => g.winnerTeamId === awayTeamId,
+        ).length;
+        const draws = h2hGames.filter((g) => g.winnerTeamId === null).length;
+
+        return {
+          homeLast5: getLast5(homeTeamId),
+          awayLast5: getLast5(awayTeamId),
+          h2h: { homeWins: homeH2hWins, awayWins: awayH2hWins, draws, total: h2hGames.length },
+        };
+      },
     });
   },
 };

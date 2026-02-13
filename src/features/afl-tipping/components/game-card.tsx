@@ -1,5 +1,5 @@
 import { Card, CardContent } from "~/components/ui/card";
-import React, { ComponentProps, createContext, PropsWithChildren, useContext } from "react";
+import React, { ComponentProps, createContext, PropsWithChildren, useContext, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
@@ -11,6 +11,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { useQuery } from "@tanstack/react-query";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
 
 // Context for sharing game data across composed components
 interface GameCardContextValue {
@@ -199,9 +201,56 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
   );
 }
 
+// Last 5 result indicators
+function Last5Indicators({ results }: { results: boolean[] }) {
+  return (
+    <div className="text-xs flex flex-row items-center gap-1">
+      {results.map((isWin, idx) => (
+        <div
+          key={idx}
+          className={cn(
+            "flex items-center justify-center w-4 h-4 rounded",
+            isWin ? "bg-green-500" : "bg-red-500",
+          )}
+        >
+          {isWin ? (
+            <Check size={12} className="text-white" strokeWidth={2} />
+          ) : (
+            <X size={12} className="text-white" strokeWidth={2} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Stats section component
-function GameCardStats({ className }: { className?: string }) {
-  const { homeTeam, awayTeam } = useGameCard();
+function GameCardStats({ className, enabled = false }: { className?: string; enabled?: boolean }) {
+  const { game, homeTeam, awayTeam } = useGameCard();
+  const { data: stats, isLoading } = useQuery({
+    ...aflQueries.gameStats(game.id),
+    enabled,
+  });
+
+  if (isLoading || !stats) {
+    return (
+      <div className={cn("p-2 bg-gray-50 border-t", className)}>
+        <div className="flex flex-col gap-3 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto" />
+          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  const h2hSummary =
+    stats.h2h.total === 0
+      ? "No H2H this season"
+      : stats.h2h.homeWins === stats.h2h.awayWins
+        ? `${stats.h2h.homeWins}-${stats.h2h.awayWins} drawn`
+        : stats.h2h.homeWins > stats.h2h.awayWins
+          ? `${homeTeam.name} leads ${stats.h2h.homeWins}-${stats.h2h.awayWins}`
+          : `${awayTeam.name} leads ${stats.h2h.awayWins}-${stats.h2h.homeWins}`;
 
   return (
     <div className={cn("p-2 bg-gray-50 border-t", className)}>
@@ -214,35 +263,18 @@ function GameCardStats({ className }: { className?: string }) {
           </div>
 
           <div className="flex flex-row justify-around gap-2 items-center">
-            <div className="text-xs flex flex-row items-center gap-1">
-              {[true, true, true, true, false].map((isWin, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "flex items-center justify-center w-4 h-4 rounded",
-                    isWin ? "bg-green-500" : "bg-red-500",
-                  )}
-                >
-                  {isWin ? (
-                    <Check size={12} className="text-white" strokeWidth={2} />
-                  ) : (
-                    <X size={12} className="text-white" strokeWidth={2} />
-                  )}
-                </div>
-              ))}
-            </div>
-
+            <Last5Indicators results={stats.homeLast5} />
             <div className="font-medium">Last 5 Games</div>
-            <div className="text-xs">L-W-W-L-W</div>
+            <Last5Indicators results={stats.awayLast5} />
           </div>
 
           <div className="flex flex-row justify-around gap-2 items-center">
-            <div className="text-xs">W</div>
+            <div className="text-xs">{stats.h2h.homeWins}W</div>
             <div className="flex flex-col items-center justify-center">
               <div className="font-medium">H2H</div>
-              <div className="text-xs">{homeTeam.name} won by 12</div>
+              <div className="text-xs">{h2hSummary}</div>
             </div>
-            <div className="text-xs">L</div>
+            <div className="text-xs">{stats.h2h.awayWins}W</div>
           </div>
         </div>
       </div>
@@ -268,6 +300,8 @@ export function GameCard({
   tip,
   onTipSelect,
 }: GameCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <GameCardRoot
       game={game}
@@ -277,7 +311,11 @@ export function GameCard({
       tip={tip}
       onTipSelect={onTipSelect}
     >
-      <Accordion type="single" collapsible>
+      <Accordion
+        type="single"
+        collapsible
+        onValueChange={(value) => setIsOpen(value === "item-1")}
+      >
         <AccordionItem value="item-1">
           <GameCardHeader />
           <GameCardMatchup>
@@ -289,7 +327,7 @@ export function GameCard({
             </GameCardSeparator>
           </GameCardMatchup>
           <AccordionContent>
-            <GameCardStats />
+            <GameCardStats enabled={isOpen} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
