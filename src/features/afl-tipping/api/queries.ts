@@ -86,14 +86,17 @@ export const aflQueries = {
           (g) => AflGame.isComplete(g) && g.round < round,
         );
 
-        const getLast5 = (teamId: number | null) => {
+        const getLast5 = (teamId: number | null): { round: number; result: "win" | "loss" | "draw" | "bye" }[] => {
           if (!teamId) return [];
-          return completedBefore
-            .filter((g) => g.homeTeamId === teamId || g.awayTeamId === teamId)
-            .sort((a, b) => b.round - a.round)
-            .slice(0, 5)
-            .reverse()
-            .map((g) => g.winnerTeamId === teamId);
+          const recentRounds = Array.from({ length: Math.min(5, round - 1) }, (_, i) => round - 1 - i).reverse();
+          return recentRounds.map((r) => {
+            const game = completedBefore.find(
+              (g) => g.round === r && (g.homeTeamId === teamId || g.awayTeamId === teamId),
+            );
+            if (!game) return { round: r, result: "bye" as const };
+            if (game.winnerTeamId === null) return { round: r, result: "draw" as const };
+            return { round: r, result: game.winnerTeamId === teamId ? "win" as const : "loss" as const };
+          });
         };
 
         const h2hGames = completedBefore.filter(

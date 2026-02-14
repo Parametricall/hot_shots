@@ -1,7 +1,13 @@
 import { Card, CardContent } from "~/components/ui/card";
-import React, { ComponentProps, createContext, PropsWithChildren, useContext, useState } from "react";
+import React, {
+  ComponentProps,
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
 import { Button } from "~/components/ui/button";
-import { Check, Clock, MapPin, X } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
@@ -115,9 +121,8 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
       ? game.awayScore
       : game.homeScore
     : `${Math.round(confidence)}%`;
-  const confidenceLabel = !isGameStarted && prediction
-    ? confidence >= 50 ? "Favourite" : "Underdog"
-    : null;
+  const confidenceLabel =
+    !isGameStarted && prediction ? (confidence >= 50 ? "Favourite" : "Underdog") : null;
 
   return (
     <Button
@@ -197,23 +202,34 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
   );
 }
 
-// Last 5 result indicators
-function Last5Indicators({ results }: { results: boolean[] }) {
+// Last 5 result indicators with round numbers, innermost = most recent
+function Last5Indicators({
+  results,
+  align,
+}: {
+  results: { round: number; result: "win" | "loss" | "draw" | "bye" }[];
+  align: "left" | "right";
+}) {
+  const ordered = align === "left" ? results : [...results].reverse();
+
   return (
     <div className="text-xs flex flex-row items-center gap-1">
-      {results.map((isWin, idx) => (
-        <div
-          key={idx}
-          className={cn(
-            "flex items-center justify-center w-4 h-4 rounded",
-            isWin ? "bg-green-500" : "bg-red-500",
-          )}
-        >
-          {isWin ? (
-            <Check size={12} className="text-white" strokeWidth={2} />
-          ) : (
-            <X size={12} className="text-white" strokeWidth={2} />
-          )}
+      {ordered.map((entry) => (
+        <div key={entry.round} className="flex flex-col items-center gap-0.5">
+          <div
+            className={cn(
+              "flex items-center justify-center w-4 h-4 rounded",
+              entry.result === "win" && "bg-green-500",
+              entry.result === "loss" && "bg-red-500",
+              entry.result === "draw" && "bg-amber-400",
+              entry.result === "bye" && "bg-gray-300",
+            )}
+          >
+            {entry.result === "win" && <span className="text-[10px] font-bold text-white">W</span>}
+            {entry.result === "loss" && <span className="text-[10px] font-bold text-white">L</span>}
+            {entry.result === "draw" && <span className="text-[10px] font-bold text-white">D</span>}
+          </div>
+          <span className="text-[9px] text-gray-400">{entry.round}</span>
         </div>
       ))}
     </div>
@@ -259,9 +275,9 @@ function GameCardStats({ className, enabled = false }: { className?: string; ena
           </div>
 
           <div className="flex flex-row justify-around gap-2 items-center">
-            <Last5Indicators results={stats.homeLast5} />
+            <Last5Indicators results={stats.homeLast5} align="left" />
             <div className="font-medium">Last 5 Games</div>
-            <Last5Indicators results={stats.awayLast5} />
+            <Last5Indicators results={stats.awayLast5} align="right" />
           </div>
 
           <div className="flex flex-row justify-around gap-2 items-center">
@@ -307,11 +323,7 @@ export function GameCard({
       tip={tip}
       onTipSelect={onTipSelect}
     >
-      <Accordion
-        type="single"
-        collapsible
-        onValueChange={(value) => setIsOpen(value === "item-1")}
-      >
+      <Accordion type="single" collapsible onValueChange={(value) => setIsOpen(value === "item-1")}>
         <AccordionItem value="item-1">
           <GameCardHeader />
           <GameCardMatchup>

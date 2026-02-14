@@ -136,6 +136,30 @@ export const H2HAwayLeads = meta.story({
   },
 });
 
+// Mixed results including draws and byes
+const gamesWithDrawsAndByes: AflGame[] = [
+  // Home team (1): round 9 win, round 8 draw, round 7 bye, round 6 loss, round 5 win
+  completedGame({ id: 1, round: 9, homeTeamId: 1, awayTeamId: 3, winnerTeamId: 1 }),
+  completedGame({ id: 2, round: 8, homeTeamId: 1, awayTeamId: 4, winnerTeamId: null, homeScore: 80, awayScore: 80 }),
+  // No game in round 7 for team 1 = bye
+  completedGame({ id: 3, round: 6, homeTeamId: 5, awayTeamId: 1, winnerTeamId: 5 }),
+  completedGame({ id: 4, round: 5, homeTeamId: 1, awayTeamId: 6, winnerTeamId: 1 }),
+  // Away team (2): round 9 bye, round 8 win, round 7 draw, round 6 win, round 5 loss
+  completedGame({ id: 5, round: 8, homeTeamId: 2, awayTeamId: 3, winnerTeamId: 2 }),
+  completedGame({ id: 6, round: 7, homeTeamId: 4, awayTeamId: 2, winnerTeamId: null, homeScore: 70, awayScore: 70 }),
+  completedGame({ id: 7, round: 6, homeTeamId: 2, awayTeamId: 5, winnerTeamId: 2 }),
+  completedGame({ id: 8, round: 5, homeTeamId: 6, awayTeamId: 2, winnerTeamId: 6 }),
+  currentGame,
+];
+
+export const DrawsAndByes = meta.story({
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithDrawsAndByes),
+    },
+  },
+});
+
 // Prediction stories showing Favourite/Underdog labels
 export const HomeFavourite = meta.story({
   args: {
