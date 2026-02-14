@@ -26,7 +26,7 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
   };
 
   return (
-    <Card className="mb-4 sm:mb-6">
+    <Card className="mb-2 sm:mb-4 py-2">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between md:hidden">
           <Button

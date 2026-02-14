@@ -92,7 +92,7 @@ function GameCardHeader({ className }: { className?: string }) {
           <MapPin className="h-3 w-3" />
           <span>
             <span>{game.venue.name}</span>
-            <span className="hidden md:inline-block">, {game.venue.city}</span>
+            <span>, {game.venue.city}</span>
           </span>
         </div>
       </div>

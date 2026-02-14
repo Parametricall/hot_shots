@@ -17,20 +17,68 @@ const day2 = new Date(2025, 3, 6, 13, 0); // Sunday
 const day3 = new Date(2025, 3, 7, 19, 0); // Monday
 
 const day1Games = [
-  createAflGame({ id: 1, homeTeamId: 1, awayTeamId: 2, date: new Date(day1), unixTime: day1.getTime() }),
-  createAflGame({ id: 2, homeTeamId: 3, awayTeamId: 4, date: new Date(day1.getTime() + 3600000), unixTime: day1.getTime() + 3600000 }),
-  createAflGame({ id: 3, homeTeamId: 2, awayTeamId: 3, date: new Date(day1.getTime() + 7200000), unixTime: day1.getTime() + 7200000 }),
+  createAflGame({
+    id: 1,
+    homeTeamId: 1,
+    awayTeamId: 2,
+    date: new Date(day1),
+    unixTime: day1.getTime(),
+  }),
+  createAflGame({
+    id: 2,
+    homeTeamId: 3,
+    awayTeamId: 4,
+    date: new Date(day1.getTime() + 3600000),
+    unixTime: day1.getTime() + 3600000,
+  }),
+  createAflGame({
+    id: 3,
+    homeTeamId: 2,
+    awayTeamId: 3,
+    date: new Date(day1.getTime() + 7200000),
+    unixTime: day1.getTime() + 7200000,
+  }),
 ];
 
 const day2Games = [
-  createAflGame({ id: 4, homeTeamId: 4, awayTeamId: 1, date: new Date(day2), unixTime: day2.getTime() }),
-  createAflGame({ id: 5, homeTeamId: 1, awayTeamId: 3, date: new Date(day2.getTime() + 3600000), unixTime: day2.getTime() + 3600000 }),
-  createAflGame({ id: 6, homeTeamId: 2, awayTeamId: 4, date: new Date(day2.getTime() + 7200000), unixTime: day2.getTime() + 7200000 }),
+  createAflGame({
+    id: 4,
+    homeTeamId: 4,
+    awayTeamId: 1,
+    date: new Date(day2),
+    unixTime: day2.getTime(),
+  }),
+  createAflGame({
+    id: 5,
+    homeTeamId: 1,
+    awayTeamId: 3,
+    date: new Date(day2.getTime() + 3600000),
+    unixTime: day2.getTime() + 3600000,
+  }),
+  createAflGame({
+    id: 6,
+    homeTeamId: 2,
+    awayTeamId: 4,
+    date: new Date(day2.getTime() + 7200000),
+    unixTime: day2.getTime() + 7200000,
+  }),
 ];
 
 const day3Games = [
-  createAflGame({ id: 7, homeTeamId: 3, awayTeamId: 1, date: new Date(day3), unixTime: day3.getTime() }),
-  createAflGame({ id: 8, homeTeamId: 4, awayTeamId: 2, date: new Date(day3.getTime() + 3600000), unixTime: day3.getTime() + 3600000 }),
+  createAflGame({
+    id: 7,
+    homeTeamId: 3,
+    awayTeamId: 1,
+    date: new Date(day3),
+    unixTime: day3.getTime(),
+  }),
+  createAflGame({
+    id: 8,
+    homeTeamId: 4,
+    awayTeamId: 2,
+    date: new Date(day3.getTime() + 3600000),
+    unixTime: day3.getTime() + 3600000,
+  }),
 ];
 
 const allGames: Record<string, AflGame[]> = {

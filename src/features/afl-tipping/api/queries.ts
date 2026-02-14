@@ -82,20 +82,26 @@ export const aflQueries = {
 
         const { homeTeamId, awayTeamId, round } = thisGame;
 
-        const completedBefore = allGames.filter(
-          (g) => AflGame.isComplete(g) && g.round < round,
-        );
+        const completedBefore = allGames.filter((g) => AflGame.isComplete(g) && g.round < round);
 
-        const getLast5 = (teamId: number | null): { round: number; result: "win" | "loss" | "draw" | "bye" }[] => {
+        const getLast5 = (
+          teamId: number | null,
+        ): { round: number; result: "win" | "loss" | "draw" | "bye" }[] => {
           if (!teamId) return [];
-          const recentRounds = Array.from({ length: Math.min(5, round - 1) }, (_, i) => round - 1 - i).reverse();
+          const recentRounds = Array.from(
+            { length: Math.min(5, round - 1) },
+            (_, i) => round - 1 - i,
+          ).reverse();
           return recentRounds.map((r) => {
             const game = completedBefore.find(
               (g) => g.round === r && (g.homeTeamId === teamId || g.awayTeamId === teamId),
             );
             if (!game) return { round: r, result: "bye" as const };
             if (game.winnerTeamId === null) return { round: r, result: "draw" as const };
-            return { round: r, result: game.winnerTeamId === teamId ? "win" as const : "loss" as const };
+            return {
+              round: r,
+              result: game.winnerTeamId === teamId ? ("win" as const) : ("loss" as const),
+            };
           });
         };
 
@@ -105,12 +111,8 @@ export const aflQueries = {
             (g.homeTeamId === awayTeamId && g.awayTeamId === homeTeamId),
         );
 
-        const homeH2hWins = h2hGames.filter(
-          (g) => g.winnerTeamId === homeTeamId,
-        ).length;
-        const awayH2hWins = h2hGames.filter(
-          (g) => g.winnerTeamId === awayTeamId,
-        ).length;
+        const homeH2hWins = h2hGames.filter((g) => g.winnerTeamId === homeTeamId).length;
+        const awayH2hWins = h2hGames.filter((g) => g.winnerTeamId === awayTeamId).length;
         const draws = h2hGames.filter((g) => g.winnerTeamId === null).length;
 
         return {
