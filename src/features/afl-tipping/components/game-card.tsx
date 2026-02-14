@@ -66,7 +66,9 @@ function GameCardRoot({
   className,
 }: GameCardRootProps) {
   return (
-    <GameCardContext.Provider value={{ game, homeTeam, awayTeam, tip, prediction, predictionLoading, onTipSelect }}>
+    <GameCardContext.Provider
+      value={{ game, homeTeam, awayTeam, tip, prediction, predictionLoading, onTipSelect }}
+    >
       <Card className={cn("p-0 transition-all overflow-hidden rounded-lg", className)}>
         <CardContent className="p-0">{children}</CardContent>
       </Card>
