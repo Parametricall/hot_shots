@@ -1,6 +1,6 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { AflRound } from "~/features/afl-tipping/types";
 import { REGULAR_SEASON_ROUNDS } from "~/features/afl-tipping/constants";
@@ -40,14 +40,26 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
             Prev
           </Button>
 
-          <div className="text-center flex-1 px-2">
+          <label className="text-center flex-1 px-2 cursor-pointer relative">
+            <select
+              value={currentRound}
+              onChange={(e) => onRoundChange(Number(e.target.value))}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            >
+              {rounds.map((round, index) => (
+                <option key={index} value={index}>
+                  {round.name}
+                </option>
+              ))}
+            </select>
             <h2 className="font-semibold text-base sm:text-lg">
               {rounds?.[currentRound]?.name ?? "no round"}
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground inline-flex items-center gap-1">
               {currentRound + 1} of {rounds.length}
+              <ChevronDown className="h-3 w-3" />
             </p>
-          </div>
+          </label>
 
           <Button
             variant="outline"
