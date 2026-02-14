@@ -1,7 +1,7 @@
 import { Card, CardContent } from "~/components/ui/card";
 import React, { ComponentProps, createContext, PropsWithChildren, useContext, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Calendar, Check, Clock, MapPin, X } from "lucide-react";
+import { Check, Clock, MapPin, X } from "lucide-react";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
@@ -68,14 +68,6 @@ function GameCardRoot({
 function GameCardHeader({ className }: { className?: string }) {
   const { game } = useGameCard();
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-AU", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    });
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-AU", {
       hour: "numeric",
@@ -86,15 +78,9 @@ function GameCardHeader({ className }: { className?: string }) {
   return (
     <div className={cn("px-2 py-2 bg-gray-100", className)}>
       <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
-        <div className="flex -flex-row gap-2">
-          <div className="flex items-center gap-1">
-            <Calendar className="hidden sm:inline-block h-3 w-3" />
-            <span>{formatDate(game.date)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            <span>{formatTime(game.date)}</span>
-          </div>
+        <div className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          <span>{formatTime(game.date)}</span>
         </div>
         <div className="flex items-center gap-1">
           <MapPin className="h-3 w-3" />
