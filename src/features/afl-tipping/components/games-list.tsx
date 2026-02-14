@@ -103,7 +103,7 @@ export function GamesList() {
                       }
                       prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
                       predictionLoading={isPredictionsLoading}
-                      tip={tip?.[0]}
+                      tip={tip?.find((t) => t.gameId === game.id)}
                       onTipSelect={handleTipSelect}
                     />
                   );
