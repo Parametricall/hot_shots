@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { Button } from "~/components/ui/button";
 import { Clock, MapPin } from "lucide-react";
+import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
@@ -27,6 +28,7 @@ interface GameCardContextValue {
   awayTeam: AflTeam;
   tip?: AflUserTip;
   prediction?: AflModelTip;
+  predictionLoading?: boolean;
   onTipSelect: (gameId: number, teamId: number) => void;
 }
 
@@ -47,6 +49,7 @@ interface GameCardRootProps extends PropsWithChildren {
   awayTeam: AflTeam;
   tip?: AflUserTip;
   prediction?: AflModelTip;
+  predictionLoading?: boolean;
   onTipSelect: (gameId: number, teamId: number) => void;
   className?: string;
 }
@@ -58,11 +61,12 @@ function GameCardRoot({
   awayTeam,
   tip,
   prediction,
+  predictionLoading,
   onTipSelect,
   className,
 }: GameCardRootProps) {
   return (
-    <GameCardContext.Provider value={{ game, homeTeam, awayTeam, tip, prediction, onTipSelect }}>
+    <GameCardContext.Provider value={{ game, homeTeam, awayTeam, tip, prediction, predictionLoading, onTipSelect }}>
       <Card className={cn("p-0 transition-all overflow-hidden rounded-lg", className)}>
         <CardContent className="p-0">{children}</CardContent>
       </Card>
@@ -108,7 +112,7 @@ interface TeamButtonProps {
 }
 
 function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonProps) {
-  const { game, prediction, tip, onTipSelect } = useGameCard();
+  const { game, prediction, predictionLoading, tip, onTipSelect } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
   const disabled = isGameStarted;
 
@@ -116,6 +120,7 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
   const confidence = isAwayTeam
     ? (prediction?.awayConfidence ?? 0)
     : (prediction?.homeConfidence ?? 0);
+  const showLoading = !isGameStarted && predictionLoading;
   const displayValue = isGameStarted
     ? isAwayTeam
       ? game.awayScore
@@ -153,12 +158,24 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
       </div>
 
       <div className="sm:hidden flex flex-col items-center">
-        <div className="font-semibold text-lg">{displayValue}</div>
-        {confidenceLabel && <div className="text-[10px] text-gray-500">{confidenceLabel}</div>}
+        {showLoading ? (
+          <img src={logo} alt="Loading" className="w-6 h-6 animate-spin" />
+        ) : (
+          <>
+            <div className="font-semibold text-lg">{displayValue}</div>
+            {confidenceLabel && <div className="text-[10px] text-gray-500">{confidenceLabel}</div>}
+          </>
+        )}
       </div>
       <div className="hidden sm:flex flex-col items-center">
-        <div className="font-semibold text-2xl">{displayValue}</div>
-        {confidenceLabel && <div className="text-xs text-gray-500">{confidenceLabel}</div>}
+        {showLoading ? (
+          <img src={logo} alt="Loading" className="w-8 h-8 animate-spin" />
+        ) : (
+          <>
+            <div className="font-semibold text-2xl">{displayValue}</div>
+            {confidenceLabel && <div className="text-xs text-gray-500">{confidenceLabel}</div>}
+          </>
+        )}
       </div>
     </Button>
   );
@@ -301,6 +318,7 @@ interface GameCardProps {
   awayTeam: AflTeam;
   tip?: AflUserTip;
   prediction?: AflModelTip;
+  predictionLoading?: boolean;
   onTipSelect: (gameId: number, teamId: number) => void;
 }
 
@@ -309,6 +327,7 @@ export function GameCard({
   homeTeam,
   awayTeam,
   prediction,
+  predictionLoading,
   tip,
   onTipSelect,
 }: GameCardProps) {
@@ -320,6 +339,7 @@ export function GameCard({
       homeTeam={homeTeam}
       awayTeam={awayTeam}
       prediction={prediction}
+      predictionLoading={predictionLoading}
       tip={tip}
       onTipSelect={onTipSelect}
     >
@@ -349,6 +369,7 @@ export function GameCardSimple({
   homeTeam,
   awayTeam,
   prediction,
+  predictionLoading,
   tip,
   onTipSelect,
 }: GameCardProps) {
@@ -358,6 +379,7 @@ export function GameCardSimple({
       homeTeam={homeTeam}
       awayTeam={awayTeam}
       prediction={prediction}
+      predictionLoading={predictionLoading}
       tip={tip}
       onTipSelect={onTipSelect}
     >

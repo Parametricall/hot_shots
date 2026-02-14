@@ -37,7 +37,7 @@ export function GamesList() {
     ...aflQueries.teams(),
   });
 
-  const { data: modelTips } = useQuery({
+  const { data: modelTips, isLoading: isPredictionsLoading } = useQuery({
     ...aflQueries.modelTips(currentRound),
   });
 
@@ -102,6 +102,7 @@ export function GamesList() {
                         createUnknownAflTeam(game.awayTeamId)
                       }
                       prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
+                      predictionLoading={isPredictionsLoading}
                       tip={tip?.[0]}
                       onTipSelect={handleTipSelect}
                     />

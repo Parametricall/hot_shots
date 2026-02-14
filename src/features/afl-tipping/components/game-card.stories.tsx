@@ -231,3 +231,14 @@ export const EvenMatchup = meta.story({
     },
   },
 });
+
+export const PredictionLoading = meta.story({
+  args: {
+    predictionLoading: true,
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithHistory),
+    },
+  },
+});
