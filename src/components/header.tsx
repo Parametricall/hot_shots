@@ -41,7 +41,10 @@ export function Header() {
               </div>
               <div className="relative">
                 <Avatar size="lg" className="border-2 border-primary">
-                  <AvatarImage src={user?.imageUrl ?? undefined} alt={user?.fullName ?? "User"} />
+                  <AvatarImage
+                    src={user?.hasImage ? user.imageUrl : undefined}
+                    alt={user?.fullName ?? "User"}
+                  />
                   <AvatarFallback>{getInitials(user?.fullName)}</AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 opacity-0">
