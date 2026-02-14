@@ -1,15 +1,15 @@
 import {
-  fetchAllCurrentTeams,
-  fetchGames,
-  fetchIncompleteGames,
-  fetchStandings,
-  fetchTips,
-} from "~/features/afl-tipping/api/squiggle/api";
+  getTeamsServerFn,
+  getStandingsServerFn,
+  getGamesServerFn,
+  getIncompleteGamesServerFn,
+  getModelTipsServerFn,
+} from "~/features/afl-tipping/api/squiggle.server";
 
 export const service = {
-  getAllCurrentTeams: fetchAllCurrentTeams,
-  getStandings: fetchStandings,
-  getGames: fetchGames,
-  getIncompleteGames: fetchIncompleteGames,
-  getModelTips: fetchTips,
+  getAllCurrentTeams: () => getTeamsServerFn(),
+  getStandings: () => getStandingsServerFn(),
+  getGames: (round?: number) => getGamesServerFn({ data: { round } }),
+  getIncompleteGames: () => getIncompleteGamesServerFn(),
+  getModelTips: (round: number) => getModelTipsServerFn({ data: { round } }),
 };

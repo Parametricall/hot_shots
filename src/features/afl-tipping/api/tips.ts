@@ -3,7 +3,7 @@ import * as z from "zod";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { AflUserTip, AflGame, AflLeaderboardEntry } from "~/features/afl-tipping/types";
 import { createClerkClient } from "@clerk/backend";
-import serviceRegistry from "~/service-registry";
+import { fetchGames } from "~/features/afl-tipping/api/squiggle/api";
 import { GameRules } from "./game-rules";
 import { getSupabaseServerClient } from "~/utils/supabase";
 
@@ -35,10 +35,8 @@ export const submitTip = createServerFn({ method: "POST" })
     const { gameId, teamId } = data;
     const userId = await ensureUserAuthenticated();
 
-    // Use service registry to get services
-    const { getGames } = serviceRegistry.getService("squiggleService");
-    // Always use getGames and find by id
-    const games: AflGame[] = await getGames();
+    // Fetch games directly (already server-side)
+    const games: AflGame[] = await fetchGames();
     const game = games.find((g) => g.id === gameId);
     // Use 'date' as the start time property (Squiggle API)
     const startTime = game?.date as string | undefined;
@@ -101,8 +99,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     throw new Error(error.message || "Failed to fetch all tips");
   }
 
-  const { getGames } = serviceRegistry.getService("squiggleService");
-  const games: AflGame[] = await getGames();
+  const games: AflGame[] = await fetchGames();
   const completedGameWinners = new Map<number, number | null>();
   for (const game of games) {
     if (AflGame.isComplete(game)) {
