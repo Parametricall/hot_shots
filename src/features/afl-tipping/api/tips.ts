@@ -1,7 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { auth } from "@clerk/tanstack-react-start/server";
-import { AflUserTip, AflGame, AflLeaderboardEntry } from "~/features/afl-tipping/types";
+import {
+  AflUserTip,
+  AflGame,
+  AflLeaderboardEntry,
+  AflGroupTipEntry,
+} from "~/features/afl-tipping/types";
 import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/service-registry";
 import { GameRules } from "./game-rules";
@@ -22,6 +27,38 @@ async function ensureUserAuthenticated(): Promise<string> {
     throw new Error("User not authenticated");
   }
   return userId;
+}
+
+async function fetchAllClerkUsers(): Promise<
+  Map<string, { displayName: string; avatarUrl: string | null }>
+> {
+  const clerkClient = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY!,
+  });
+
+  const BATCH_SIZE = 100;
+  const userMap = new Map<string, { displayName: string; avatarUrl: string | null }>();
+  let offset = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const { data: users } = await clerkClient.users.getUserList({
+      limit: BATCH_SIZE,
+      offset,
+    });
+    for (const user of users) {
+      userMap.set(user.id, {
+        displayName:
+          [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+          user.emailAddresses[0]?.emailAddress ||
+          "Unknown User",
+        avatarUrl: user.imageUrl ?? null,
+      });
+    }
+    hasMore = users.length === BATCH_SIZE;
+    offset += BATCH_SIZE;
+  }
+
+  return userMap;
 }
 
 export const submitTip = createServerFn({ method: "POST" })
@@ -90,32 +127,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     }
   }
 
-  const clerkClient = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY!,
-  });
-
-  // Fetch all users from Clerk so everyone appears on the leaderboard
-  const BATCH_SIZE = 100;
-  const userMap = new Map<string, { displayName: string; avatarUrl: string | null }>();
-  let offset = 0;
-  let hasMore = true;
-  while (hasMore) {
-    const { data: users } = await clerkClient.users.getUserList({
-      limit: BATCH_SIZE,
-      offset,
-    });
-    for (const user of users) {
-      userMap.set(user.id, {
-        displayName:
-          [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-          user.emailAddresses[0]?.emailAddress ||
-          "Unknown User",
-        avatarUrl: user.imageUrl ?? null,
-      });
-    }
-    hasMore = users.length === BATCH_SIZE;
-    offset += BATCH_SIZE;
-  }
+  const userMap = await fetchAllClerkUsers();
 
   const leaderboard: AflLeaderboardEntry[] = Array.from(userMap.entries()).map(
     ([userId, userInfo]) => {
@@ -139,8 +151,76 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   return leaderboard;
 });
 
+const GetGroupTipsSchema = z.object({
+  round: z.number(),
+});
+
+export const getGroupTips = createServerFn({ method: "GET" })
+  .inputValidator(GetGroupTipsSchema)
+  .handler(async ({ data }) => {
+    await ensureUserAuthenticated();
+
+    const { round } = data;
+    const { getGames } = serviceRegistry.getService("squiggleService");
+    const games: AflGame[] = await getGames(round);
+
+    const gameIds = games.map((g) => g.id);
+    const startedGameIds = new Set(games.filter((g) => AflGame.hasStarted(g)).map((g) => g.id));
+
+    const repo = serviceRegistry.getService("tipsRepository");
+    const allTips = await repo.getTipsByGameIds(gameIds);
+
+    const userMap = await fetchAllClerkUsers();
+
+    // Build set of user IDs who tipped each game
+    const tippedUsersByGame = new Map<number, Set<string>>();
+    for (const gameId of gameIds) {
+      tippedUsersByGame.set(gameId, new Set());
+    }
+    for (const tip of allTips) {
+      tippedUsersByGame.get(tip.game_id)?.add(tip.user_id);
+    }
+
+    const groupTips: AflGroupTipEntry[] = [];
+
+    // Add entries for users who tipped
+    for (const tip of allTips) {
+      const userInfo = userMap.get(tip.user_id);
+      const gameStarted = startedGameIds.has(tip.game_id);
+
+      groupTips.push({
+        userId: tip.user_id,
+        displayName: userInfo?.displayName ?? "Unknown User",
+        avatarUrl: userInfo?.avatarUrl ?? null,
+        gameId: tip.game_id,
+        hasTipped: true,
+        tipTeamId: gameStarted ? tip.tip : null,
+      });
+    }
+
+    // Add entries for users who haven't tipped each game
+    for (const gameId of gameIds) {
+      const tippedUsers = tippedUsersByGame.get(gameId)!;
+      for (const [userId, userInfo] of userMap) {
+        if (!tippedUsers.has(userId)) {
+          groupTips.push({
+            userId,
+            displayName: userInfo.displayName,
+            avatarUrl: userInfo.avatarUrl,
+            gameId,
+            hasTipped: false,
+            tipTeamId: null,
+          });
+        }
+      }
+    }
+
+    return groupTips;
+  });
+
 export const service = {
   submitTip,
   getTips,
   getLeaderboard,
+  getGroupTips,
 };

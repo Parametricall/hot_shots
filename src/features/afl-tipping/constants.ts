@@ -15,6 +15,7 @@ export const CACHE_DURATIONS = {
   MODEL_TIPS: 1000 * 60 * 60, // 1 hour
   USER_TIPS: 1000 * 60 * 5, // 5 minutes
   LEADERBOARD: 1000 * 60 * 10, // 10 minutes
+  GROUP_TIPS: 1000 * 60 * 5, // 5 minutes
 } as const;
 
 // Fallback values

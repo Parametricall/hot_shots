@@ -39,6 +39,18 @@ export const tipsRepository = {
     }));
   },
 
+  async getTipsByGameIds(gameIds: number[]): Promise<AllTipsRow[]> {
+    const supabaseClient = await getSupabaseServerClient();
+    const { data: tips, error } = await supabaseClient
+      .from("afl_tipping")
+      .select("game_id, user_id, tip")
+      .in("game_id", gameIds);
+    if (error) {
+      throw new Error(error.message || "Failed to fetch tips by game IDs");
+    }
+    return (tips ?? []) as AllTipsRow[];
+  },
+
   async getAllTips(): Promise<AllTipsRow[]> {
     const supabaseClient = await getSupabaseServerClient();
     const { data: allTips, error } = await supabaseClient

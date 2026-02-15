@@ -93,6 +93,15 @@ export type AflUserTip = {
   tipTeamId: number;
 };
 
+export type AflGroupTipEntry = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  gameId: number;
+  hasTipped: boolean;
+  tipTeamId: number | null; // null if game hasn't started (server-enforced)
+};
+
 export type AflLeaderboardEntry = {
   userId: string;
   displayName: string;

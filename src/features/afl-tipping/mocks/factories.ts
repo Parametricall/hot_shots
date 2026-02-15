@@ -1,4 +1,9 @@
-import { AflGame, AflLeaderboardEntry, AflTeam } from "~/features/afl-tipping/types";
+import {
+  AflGame,
+  AflGroupTipEntry,
+  AflLeaderboardEntry,
+  AflTeam,
+} from "~/features/afl-tipping/types";
 import { VENUES } from "~/features/afl-tipping/constants";
 
 export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {
@@ -40,6 +45,20 @@ export function createAflLeaderboardEntry(
     correctTips: 10,
     totalTips: 15,
     accuracy: 66.7,
+    ...overrides,
+  };
+}
+
+export function createAflGroupTipEntry(
+  overrides: Partial<AflGroupTipEntry> = {},
+): AflGroupTipEntry {
+  return {
+    userId: "user-1",
+    displayName: "John Smith",
+    avatarUrl: null,
+    gameId: 0,
+    hasTipped: true,
+    tipTeamId: null,
     ...overrides,
   };
 }

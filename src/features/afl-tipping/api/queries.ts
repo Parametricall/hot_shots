@@ -63,6 +63,14 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.USER_TIPS,
     });
   },
+  allGroupTipsKey: () => [...aflQueries.aflKey(), "groupTips"] as const,
+  groupTips: (round: number) => {
+    return queryOptions({
+      queryKey: [...aflQueries.allGroupTipsKey(), { round }],
+      queryFn: () => getAflService().getGroupTips({ data: { round } }),
+      staleTime: CACHE_DURATIONS.GROUP_TIPS,
+    });
+  },
   allLeaderboardKey: () => [...aflQueries.aflKey(), "leaderboard"] as const,
   leaderboard: () => {
     return queryOptions({

@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Standings } from "~/features/afl-tipping/components/standings";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { MyTips } from "~/pages/afl-tipping/my-tips/my-tips";
+import { GroupTips } from "~/pages/afl-tipping/group-tips/group-tips";
 import { Header } from "~/components/header";
 
 const TABS = [
@@ -9,6 +10,11 @@ const TABS = [
     id: "competitions" as const,
     label: "My Tips",
     Component: MyTips,
+  },
+  {
+    id: "group-tips" as const,
+    label: "Player Tips",
+    Component: GroupTips,
   },
   {
     id: "standings" as const,
