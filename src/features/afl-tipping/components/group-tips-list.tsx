@@ -46,6 +46,24 @@ function UserBadge({ tip, className }: { tip: AflGroupTipEntry; className?: stri
   );
 }
 
+function SkeletonBadges() {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-6 w-24 bg-gray-200 rounded-md animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function TipsSkeleton() {
+  return (
+    <div className="px-3 py-2 border-t">
+      <SkeletonBadges />
+    </div>
+  );
+}
+
 function PreGameTips({
   tipped,
   notTipped,
@@ -158,11 +176,13 @@ function GameGroupTipCard({
   homeTeam,
   awayTeam,
   tips,
+  isLoading,
 }: {
   game: AflGame;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tips: AflGroupTipEntry[];
+  isLoading: boolean;
 }) {
   const hasStarted = useGameStartTimer(game.unixTime);
   const queryClient = useQueryClient();
@@ -215,7 +235,9 @@ function GameGroupTipCard({
           </div>
         </div>
 
-        {hasStarted ? (
+        {isLoading ? (
+          <TipsSkeleton />
+        ) : hasStarted ? (
           <PostGameTips
             tips={tipped}
             homeTeam={homeTeam}
@@ -238,7 +260,7 @@ export function GroupTipsList() {
   const { data: teams } = useQuery({
     ...aflQueries.teams(),
   });
-  const { data: groupTips } = useQuery({
+  const { data: groupTips, isPending: isGroupTipsPending } = useQuery({
     ...aflQueries.groupTips(currentRound),
   });
 
@@ -292,6 +314,7 @@ export function GroupTipsList() {
                         createUnknownAflTeam(game.awayTeamId)
                       }
                       tips={gameTips}
+                      isLoading={isGroupTipsPending}
                     />
                   );
                 })}

@@ -222,6 +222,21 @@ export const ManyTippers = meta.story({
   },
 });
 
+// Loading state: skeleton badges shown while tips are fetching
+export const Loading = meta.story({
+  parameters: {
+    services: {
+      squiggleService: {
+        getGames: () => Promise.resolve([startedGame, upcomingGame]),
+        getAllCurrentTeams: () => Promise.resolve(teams),
+      },
+      aflService: {
+        getGroupTips: () => new Promise(() => {}), // never resolves
+      },
+    },
+  },
+});
+
 export const NoGames = meta.story({
   parameters: {
     services: buildServices([], []),
