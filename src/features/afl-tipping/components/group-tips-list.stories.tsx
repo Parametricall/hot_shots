@@ -236,7 +236,6 @@ export const Loading = meta.story({
     },
   },
 });
-
 export const NoGames = meta.story({
   parameters: {
     services: buildServices([], []),
