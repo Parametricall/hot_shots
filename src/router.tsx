@@ -7,9 +7,11 @@ import { QueryClient } from "@tanstack/react-query";
 import serviceRegistry from "~/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
+import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 
 serviceRegistry.registerService("squiggleService", squiggleService);
 serviceRegistry.registerService("aflService", aflService);
+serviceRegistry.registerService("tipsRepository", tipsRepository);
 
 // QueryClient setup is taken from docs, but is experimental and will likely change
 // https://tanstack.com/start/latest/docs/framework/react/examples/start-basic-react-query?path=examples%2Freact%2Fstart-basic-react-query%2Fsrc%2Frouter.tsx

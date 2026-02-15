@@ -5,7 +5,7 @@ import { AflUserTip, AflGame, AflLeaderboardEntry } from "~/features/afl-tipping
 import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/service-registry";
 import { GameRules } from "./game-rules";
-import { getSupabaseServerClient } from "~/utils/supabase";
+import type { AllTipsRow } from "./tips.repository";
 
 const SubmitTipSchema = z.object({
   gameId: z.number(), // Squiggle game id
@@ -15,11 +15,6 @@ const SubmitTipSchema = z.object({
 const GetTipsSchema = z.object({
   gameIds: z.array(z.number()),
 });
-
-interface TipRow {
-  game_id: number;
-  tip: number;
-}
 
 async function ensureUserAuthenticated(): Promise<string> {
   const { userId } = await auth();
@@ -47,15 +42,9 @@ export const submitTip = createServerFn({ method: "POST" })
     if (!GameRules.canSubmitTip({ game })) {
       throw new Error("Cannot submit tip after the game has started");
     }
-    // Save tip directly to Supabase
-    const supabaseClient = await getSupabaseServerClient();
 
-    const { error } = await supabaseClient
-      .from("afl_tipping")
-      .upsert({ game_id: gameId, user_id: userId, tip: teamId }, { onConflict: "game_id,user_id" });
-    if (error) {
-      throw new Error(error.message || "Failed to submit tip");
-    }
+    const repo = serviceRegistry.getService("tipsRepository");
+    await repo.saveTip(gameId, userId, teamId);
     return { success: true };
   });
 
@@ -65,39 +54,16 @@ export const getTips = createServerFn({ method: "GET" })
     const { gameIds } = data;
     const userId = await ensureUserAuthenticated();
 
-    const supabaseClient = await getSupabaseServerClient();
-    const { data: tips, error } = await supabaseClient
-      .from("afl_tipping")
-      .select("game_id, tip")
-      .eq("user_id", userId)
-      .in("game_id", gameIds);
-    if (error) {
-      throw new Error(error.message || "Failed to fetch tips");
-    }
-    // Map to AflUserTip[]
-    const result: AflUserTip[] = (tips || []).map((row: TipRow) => ({
-      gameId: row.game_id,
-      tipTeamId: row.tip,
-    }));
+    const repo = serviceRegistry.getService("tipsRepository");
+    const result: AflUserTip[] = await repo.getTipsByUser(userId, gameIds);
     return result;
   });
-
-interface AllTipsRow {
-  game_id: number;
-  user_id: string;
-  tip: number;
-}
 
 export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
   await ensureUserAuthenticated();
 
-  const supabaseClient = await getSupabaseServerClient();
-  const { data: allTips, error } = await supabaseClient
-    .from("afl_tipping")
-    .select("game_id, user_id, tip");
-  if (error) {
-    throw new Error(error.message || "Failed to fetch all tips");
-  }
+  const repo = serviceRegistry.getService("tipsRepository");
+  const allTips: AllTipsRow[] = await repo.getAllTips();
 
   const { getGames } = serviceRegistry.getService("squiggleService");
   const games: AflGame[] = await getGames();
@@ -109,7 +75,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   }
 
   const userStats = new Map<string, { correct: number; total: number }>();
-  for (const tip of (allTips ?? []) as AllTipsRow[]) {
+  for (const tip of allTips) {
     if (!userStats.has(tip.user_id)) {
       userStats.set(tip.user_id, { correct: 0, total: 0 });
     }

@@ -1,9 +1,11 @@
 import type { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import type { service as aflService } from "~/features/afl-tipping/api/tips";
+import type { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 
 export interface ServiceTypes {
   squiggleService: typeof squiggleService;
   aflService: typeof aflService;
+  tipsRepository: typeof tipsRepository;
 }
 
 class ServiceRegistry {
