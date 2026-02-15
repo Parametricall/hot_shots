@@ -7,13 +7,15 @@ import {
   fetchStandings,
   fetchTips,
 } from "~/features/afl-tipping/api/squiggle/api";
+import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
+import { withCache } from "~/features/afl-tipping/api/cache";
 
 export const getTeamsServerFn = createServerFn({ method: "GET" }).handler(async () => {
-  return fetchAllCurrentTeams();
+  return withCache("teams", CACHE_DURATIONS.TEAMS, () => fetchAllCurrentTeams());
 });
 
 export const getStandingsServerFn = createServerFn({ method: "GET" }).handler(async () => {
-  return fetchStandings();
+  return withCache("standings", CACHE_DURATIONS.STANDINGS, () => fetchStandings());
 });
 
 const GetGamesSchema = z.object({
@@ -23,11 +25,15 @@ const GetGamesSchema = z.object({
 export const getGamesServerFn = createServerFn({ method: "GET" })
   .inputValidator(GetGamesSchema)
   .handler(async ({ data }) => {
-    return fetchGames(data.round);
+    return withCache(`games:${data.round ?? "all"}`, CACHE_DURATIONS.GAMES, () =>
+      fetchGames(data.round),
+    );
   });
 
 export const getIncompleteGamesServerFn = createServerFn({ method: "GET" }).handler(async () => {
-  return fetchIncompleteGames();
+  return withCache("incompleteGames", CACHE_DURATIONS.INCOMPLETE_GAMES, () =>
+    fetchIncompleteGames(),
+  );
 });
 
 const GetModelTipsSchema = z.object({
@@ -37,5 +43,7 @@ const GetModelTipsSchema = z.object({
 export const getModelTipsServerFn = createServerFn({ method: "GET" })
   .inputValidator(GetModelTipsSchema)
   .handler(async ({ data }) => {
-    return fetchTips(data.round);
+    return withCache(`modelTips:${data.round}`, CACHE_DURATIONS.MODEL_TIPS, () =>
+      fetchTips(data.round),
+    );
   });
