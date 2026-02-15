@@ -83,10 +83,7 @@ describe("withCache", () => {
   });
 
   it("does not cache failed requests", async () => {
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValueOnce("success");
+    const fn = vi.fn().mockRejectedValueOnce(new Error("fail")).mockResolvedValueOnce("success");
 
     await expect(withCache("key", 1000, fn)).rejects.toThrow("fail");
 
