@@ -39,11 +39,13 @@ npm run storybook        # Storybook dev server (port 6006)
 
 ### Service Registry Pattern
 
-All API calls go through `src/service-registry.ts`. This centralizes:
+All third-party API calls must go through `src/service-registry.ts`. This centralizes:
 
 - Service instantiation and dependency injection
 - DTO-to-domain type mapping (only place this should happen)
 - Easy mocking for tests
+
+**Important:** When creating or updating any third-party API integration, always use the service registry pattern. Never import and call third-party fetch functions directly — wrap them in a service and access them via `serviceRegistry.getService()`. This ensures all external calls can be easily mocked in tests.
 
 ### Server Functions
 
