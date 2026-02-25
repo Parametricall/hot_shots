@@ -29,6 +29,10 @@ export const Route = createRootRouteWithContext<{
         description:
           "Your go-to platform for AFL tipping, live scores, and comprehensive statistics.",
       }),
+      {
+        name: "theme-color",
+        content: "#f9fafb",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -44,7 +48,12 @@ export const Route = createRootRouteWithContext<{
         sizes: "16x16",
         href: "/dummy-footy-logo.png",
       },
-      { rel: "manifest", href: "/site.webmanifest", color: "#fffff" },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/dummy-footy-logo.png",
+      },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   pendingComponent: AppLoadingScreen,
