@@ -2,6 +2,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { auth } from "@clerk/tanstack-react-start/server";
+import { AppLoadingScreen } from "~/components/AppLoadingScreen";
 
 const authStateFn = createServerFn({ method: "GET" }).handler(async () => {
   const { isAuthenticated, userId } = await auth();
@@ -15,5 +16,6 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     await authStateFn();
   },
+  pendingComponent: AppLoadingScreen,
   component: () => <Outlet />,
 });
