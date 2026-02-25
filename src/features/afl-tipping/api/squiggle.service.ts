@@ -4,7 +4,7 @@ import {
   getGamesServerFn,
   getIncompleteGamesServerFn,
   getModelTipsServerFn,
-} from "~/features/afl-tipping/api/squiggle.server";
+} from "~/features/afl-tipping/api/squiggle.serverfns";
 
 export const service = {
   getAllCurrentTeams: () => getTeamsServerFn(),
