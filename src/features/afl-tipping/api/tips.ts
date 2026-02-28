@@ -15,6 +15,7 @@ import type { AllTipsRow } from "./tips.repository";
 const SubmitTipSchema = z.object({
   gameId: z.number(), // Squiggle game id
   teamId: z.number(), // Squiggle team id
+  margin: z.number().min(0).max(200).optional(),
 });
 
 const GetTipsSchema = z.object({
@@ -64,7 +65,7 @@ async function fetchAllClerkUsers(): Promise<
 export const submitTip = createServerFn({ method: "POST" })
   .inputValidator(SubmitTipSchema)
   .handler(async ({ data }) => {
-    const { gameId, teamId } = data;
+    const { gameId, teamId, margin } = data;
     const userId = await ensureUserAuthenticated();
 
     const { getGames } = serviceRegistry.getService("squiggleService");
@@ -81,7 +82,7 @@ export const submitTip = createServerFn({ method: "POST" })
     }
 
     const repo = serviceRegistry.getService("tipsRepository");
-    await repo.saveTip(gameId, userId, teamId);
+    await repo.saveTip(gameId, userId, teamId, margin);
     return { success: true };
   });
 

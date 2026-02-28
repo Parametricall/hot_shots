@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Minus, Plus } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
@@ -29,6 +29,9 @@ interface GameCardContextValue {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
+  isMarginGame?: boolean;
+  margin?: number;
+  onMarginChange?: (margin: number | undefined) => void;
   onTipSelect: (gameId: number, teamId: number) => void;
 }
 
@@ -50,6 +53,9 @@ interface GameCardRootProps extends PropsWithChildren {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
+  isMarginGame?: boolean;
+  margin?: number;
+  onMarginChange?: (margin: number | undefined) => void;
   onTipSelect: (gameId: number, teamId: number) => void;
   className?: string;
 }
@@ -62,12 +68,26 @@ function GameCardRoot({
   tip,
   prediction,
   predictionLoading,
+  isMarginGame,
+  margin,
+  onMarginChange,
   onTipSelect,
   className,
 }: GameCardRootProps) {
   return (
     <GameCardContext.Provider
-      value={{ game, homeTeam, awayTeam, tip, prediction, predictionLoading, onTipSelect }}
+      value={{
+        game,
+        homeTeam,
+        awayTeam,
+        tip,
+        prediction,
+        predictionLoading,
+        isMarginGame,
+        margin,
+        onMarginChange,
+        onTipSelect,
+      }}
     >
       <Card className={cn("p-0 transition-all overflow-hidden rounded-lg", className)}>
         <CardContent className="p-0">{children}</CardContent>
@@ -221,6 +241,67 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
   );
 }
 
+// Margin input for the first game of the round
+function GameCardMarginInput() {
+  const { game, tip, isMarginGame, margin, onMarginChange } = useGameCard();
+  const isGameStarted = useGameStartTimer(game.unixTime);
+
+  if (!isMarginGame || isGameStarted || !tip || !onMarginChange) return null;
+
+  const handleChange = (value: string) => {
+    const num = parseInt(value, 10);
+    if (value === "" || isNaN(num)) {
+      onMarginChange(undefined);
+    } else {
+      onMarginChange(Math.min(200, Math.max(0, num)));
+    }
+  };
+
+  const handleStep = (delta: number) => {
+    const current = margin ?? 0;
+    const next = Math.min(200, Math.max(0, current + delta));
+    onMarginChange(next);
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
+      <span className="text-xs font-medium text-gray-600">Margin</span>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => handleStep(-1)}
+          disabled={margin === undefined || margin <= 0}
+        >
+          <Minus className="h-3 w-3" />
+        </Button>
+        <input
+          type="number"
+          min={0}
+          max={200}
+          value={margin ?? ""}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="0"
+          className="w-16 h-7 text-center text-sm border rounded-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => handleStep(1)}
+          disabled={margin !== undefined && margin >= 200}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+      </div>
+      <span className="text-xs text-gray-500">pts</span>
+    </div>
+  );
+}
+
 // Last 5 result indicators with round numbers, innermost = most recent
 function Last5Indicators({
   results,
@@ -321,6 +402,9 @@ interface GameCardProps {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
+  isMarginGame?: boolean;
+  margin?: number;
+  onMarginChange?: (margin: number | undefined) => void;
   onTipSelect: (gameId: number, teamId: number) => void;
 }
 
@@ -331,6 +415,9 @@ export function GameCard({
   prediction,
   predictionLoading,
   tip,
+  isMarginGame,
+  margin,
+  onMarginChange,
   onTipSelect,
 }: GameCardProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -343,6 +430,9 @@ export function GameCard({
       prediction={prediction}
       predictionLoading={predictionLoading}
       tip={tip}
+      isMarginGame={isMarginGame}
+      margin={margin}
+      onMarginChange={onMarginChange}
       onTipSelect={onTipSelect}
     >
       <Accordion type="single" collapsible onValueChange={(value) => setIsOpen(value === "item-1")}>
@@ -356,6 +446,7 @@ export function GameCard({
               </AccordionTrigger>
             </GameCardSeparator>
           </GameCardMatchup>
+          <GameCardMarginInput />
           <AccordionContent>
             <GameCardStats enabled={isOpen} />
           </AccordionContent>

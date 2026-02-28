@@ -57,6 +57,10 @@ export const AflGame = {
 
     return Math.min(...incompleteGames.map((g) => g.round));
   },
+  getFirstGameOfRound(games: AflGame[]): AflGame | undefined {
+    if (games.length === 0) return undefined;
+    return games.reduce((earliest, game) => (game.unixTime < earliest.unixTime ? game : earliest));
+  },
   groupByRound(games: AflGame[]): Record<number, AflGame[]> {
     return games.reduce(
       (acc, game) => {
@@ -91,6 +95,7 @@ export type AflModelTip = {
 export type AflUserTip = {
   gameId: number;
   tipTeamId: number;
+  margin?: number;
 };
 
 export type AflGroupTipEntry = {

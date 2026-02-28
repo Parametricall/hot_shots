@@ -14,7 +14,7 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
   return useMutation({
     mutationKey: ["submitTip"],
     mutationFn: submitTip,
-    onMutate: async ({ data: { gameId, teamId } }) => {
+    onMutate: async ({ data: { gameId, teamId, margin } }) => {
       if (!gameIds) return { previousTips: undefined };
 
       const tipsQuery = aflQueries.getTips(gameIds);
@@ -34,10 +34,11 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
           updatedTips[existingTipIndex] = {
             ...updatedTips[existingTipIndex],
             tipTeamId: teamId,
+            margin,
           };
           return updatedTips;
         } else {
-          return [...old, { gameId, tipTeamId: teamId }];
+          return [...old, { gameId, tipTeamId: teamId, margin }];
         }
       });
 

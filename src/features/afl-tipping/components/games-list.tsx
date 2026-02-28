@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCard } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
 import { AflGame } from "~/features/afl-tipping/types";
@@ -48,11 +49,76 @@ export function GamesList() {
     enabled: !!gameIds,
   });
 
+  const firstGameId = useMemo(
+    () => (games ? AflGame.getFirstGameOfRound(games)?.id : undefined),
+    [games],
+  );
+
+  const [margin, setMargin] = useState<number | undefined>(() => {
+    const firstTip = tip?.find((t) => t.gameId === firstGameId);
+    return firstTip?.margin;
+  });
+
+  // Sync margin from server when tips load
+  const serverMargin = tip?.find((t) => t.gameId === firstGameId)?.margin;
+  const [lastSyncedMargin, setLastSyncedMargin] = useState<number | undefined>(undefined);
+  if (serverMargin !== lastSyncedMargin) {
+    setLastSyncedMargin(serverMargin);
+    if (serverMargin !== undefined) {
+      setMargin(serverMargin);
+    }
+  }
+
   const submitTipMutation = useTipMutation({ gameIds });
 
-  const handleTipSelect = (gameId: number, teamId: number) => {
-    submitTipMutation.mutate({ data: { gameId, teamId } });
-  };
+  const handleTipSelect = useCallback(
+    (gameId: number, teamId: number) => {
+      submitTipMutation.mutate({
+        data: {
+          gameId,
+          teamId,
+          margin: gameId === firstGameId ? margin : undefined,
+        },
+      });
+    },
+    [submitTipMutation, firstGameId, margin],
+  );
+
+  const marginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Save margin to server (called directly or after debounce)
+  const saveMargin = useCallback(
+    (marginValue: number | undefined) => {
+      if (!firstGameId) return;
+      const existingTip = tip?.find((t) => t.gameId === firstGameId);
+      if (existingTip) {
+        submitTipMutation.mutate({
+          data: {
+            gameId: firstGameId,
+            teamId: existingTip.tipTeamId,
+            margin: marginValue,
+          },
+        });
+      }
+    },
+    [firstGameId, tip, submitTipMutation],
+  );
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
+    };
+  }, []);
+
+  const handleMarginChange = useCallback(
+    (newMargin: number | undefined) => {
+      setMargin(newMargin);
+      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
+      marginTimerRef.current = setTimeout(() => saveMargin(newMargin), 500);
+    },
+    [saveMargin],
+  );
 
   if (!games || !teams || games.length === 0) {
     return (
@@ -89,6 +155,8 @@ export function GamesList() {
                     );
                   }
 
+                  const isMarginGame = game.id === firstGameId;
+
                   return (
                     <GameCard
                       key={game.id}
@@ -104,6 +172,9 @@ export function GamesList() {
                       prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
                       predictionLoading={isPredictionsLoading}
                       tip={tip?.find((t) => t.gameId === game.id)}
+                      isMarginGame={isMarginGame}
+                      margin={isMarginGame ? margin : undefined}
+                      onMarginChange={isMarginGame ? handleMarginChange : undefined}
                       onTipSelect={handleTipSelect}
                     />
                   );
