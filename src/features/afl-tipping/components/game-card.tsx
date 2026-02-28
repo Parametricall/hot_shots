@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Clock, MapPin, Minus, Plus } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
@@ -243,10 +243,12 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
 
 // Margin input for the first game of the round
 function GameCardMarginInput() {
-  const { game, tip, isMarginGame, margin, onMarginChange } = useGameCard();
+  const { game, homeTeam, awayTeam, tip, isMarginGame, margin, onMarginChange } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
 
   if (!isMarginGame || isGameStarted || !tip || !onMarginChange) return null;
+
+  const tippedTeam = tip.tipTeamId === homeTeam.id ? homeTeam : awayTeam;
 
   const handleChange = (value: string) => {
     const num = parseInt(value, 10);
@@ -263,19 +265,32 @@ function GameCardMarginInput() {
     onMarginChange(next);
   };
 
+  const atMin = margin === undefined || margin <= 0;
+  const atMax = margin !== undefined && margin >= 200;
+
   return (
     <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
-      <span className="text-xs font-medium text-gray-600">Margin</span>
+      <span className="text-xs font-medium text-gray-600">{tippedTeam.abbrev} by</span>
       <div className="flex items-center gap-1">
         <Button
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7"
-          onClick={() => handleStep(-1)}
-          disabled={margin === undefined || margin <= 0}
+          className="h-7 w-7 text-xs"
+          onClick={() => handleStep(-5)}
+          disabled={atMin}
         >
-          <Minus className="h-3 w-3" />
+          -5
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 text-xs"
+          onClick={() => handleStep(-1)}
+          disabled={atMin}
+        >
+          -1
         </Button>
         <input
           type="number"
@@ -290,11 +305,21 @@ function GameCardMarginInput() {
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 text-xs"
           onClick={() => handleStep(1)}
-          disabled={margin !== undefined && margin >= 200}
+          disabled={atMax}
         >
-          <Plus className="h-3 w-3" />
+          +1
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 text-xs"
+          onClick={() => handleStep(5)}
+          disabled={atMax}
+        >
+          +5
         </Button>
       </div>
       <span className="text-xs text-gray-500">pts</span>
