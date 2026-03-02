@@ -12,6 +12,7 @@ export interface AllTipsRow {
   user_id: string;
   tip: number;
   margin: number | null;
+  created_at: string;
 }
 
 export const tipsRepository = {
@@ -49,8 +50,9 @@ export const tipsRepository = {
     const supabaseClient = await getSupabaseServerClient();
     const { data: tips, error } = await supabaseClient
       .from("afl_tipping")
-      .select("game_id, user_id, tip, margin")
-      .in("game_id", gameIds);
+      .select("game_id, user_id, tip, margin, created_at")
+      .in("game_id", gameIds)
+      .order("created_at", { ascending: true });
     if (error) {
       throw new Error(error.message || "Failed to fetch tips by game IDs");
     }
