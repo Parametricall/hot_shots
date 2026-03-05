@@ -113,6 +113,6 @@ export type AflLeaderboardEntry = {
   displayName: string;
   avatarUrl: string | null;
   correctTips: number;
-  totalTips: number;
-  accuracy: number;
+  totalMarginDiff: number;
+  score: number;
 };

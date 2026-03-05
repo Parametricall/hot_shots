@@ -51,16 +51,12 @@ function LeaderboardRow({ entry, rank, isCurrentUser }: LeaderboardRowProps) {
 
       <div className="flex items-center gap-4 text-sm">
         <div className="text-center">
-          <div className="font-semibold">{entry.correctTips}</div>
-          <div className="text-xs text-muted-foreground">Correct</div>
-        </div>
-        <div className="text-center hidden sm:block">
-          <div className="font-semibold">{entry.totalTips}</div>
-          <div className="text-xs text-muted-foreground">Total</div>
+          <div className="font-semibold">{entry.score}</div>
+          <div className="text-xs text-muted-foreground">Score</div>
         </div>
         <div className="text-center">
-          <div className="font-semibold">{entry.accuracy}%</div>
-          <div className="text-xs text-muted-foreground">Accuracy</div>
+          <div className="font-semibold">{entry.totalMarginDiff}</div>
+          <div className="text-xs text-muted-foreground">Margin</div>
         </div>
       </div>
     </div>
@@ -89,8 +85,8 @@ export function Leaderboard() {
   for (let i = 0; i < leaderboard.length; i++) {
     if (
       i > 0 &&
-      leaderboard[i].correctTips === leaderboard[i - 1].correctTips &&
-      leaderboard[i].accuracy === leaderboard[i - 1].accuracy
+      leaderboard[i].score === leaderboard[i - 1].score &&
+      leaderboard[i].totalMarginDiff === leaderboard[i - 1].totalMarginDiff
     ) {
       ranks.push(ranks[i - 1]);
     } else {

@@ -43,8 +43,8 @@ export function createAflLeaderboardEntry(
     displayName: "John Smith",
     avatarUrl: null,
     correctTips: 10,
-    totalTips: 15,
-    accuracy: 66.7,
+    totalMarginDiff: 25,
+    score: 10,
     ...overrides,
   };
 }

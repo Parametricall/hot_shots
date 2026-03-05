@@ -112,19 +112,52 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     }
   }
 
-  const userStats = new Map<string, { correct: number; total: number }>();
+  // Build a map of round -> first game (for margin tips)
+  const gamesByRound = AflGame.groupByRound(games);
+  const firstGameByRound = new Map<number, AflGame>();
+  for (const [round, roundGames] of Object.entries(gamesByRound)) {
+    const firstGame = AflGame.getFirstGameOfRound(roundGames);
+    if (firstGame) {
+      firstGameByRound.set(Number(round), firstGame);
+    }
+  }
+
+  // Map game ID to its round number
+  const gameRoundMap = new Map<number, number>();
+  for (const game of games) {
+    gameRoundMap.set(game.id, game.round);
+  }
+
+  // Build a set of first-game IDs and their actual margins
+  const firstGameActualMargin = new Map<number, number>();
+  for (const [, firstGame] of firstGameByRound) {
+    if (
+      AflGame.isComplete(firstGame) &&
+      firstGame.homeScore !== null &&
+      firstGame.awayScore !== null
+    ) {
+      firstGameActualMargin.set(firstGame.id, Math.abs(firstGame.homeScore - firstGame.awayScore));
+    }
+  }
+
+  const userStats = new Map<string, { correct: number; marginDiff: number }>();
   for (const tip of allTips) {
     if (!userStats.has(tip.user_id)) {
-      userStats.set(tip.user_id, { correct: 0, total: 0 });
+      userStats.set(tip.user_id, { correct: 0, marginDiff: 0 });
     }
 
     const winner = completedGameWinners.get(tip.game_id);
     if (winner === undefined) continue;
 
     const stats = userStats.get(tip.user_id)!;
-    stats.total += 1;
     if (tip.tip === winner) {
       stats.correct += 1;
+    }
+
+    // Compute margin diff for first game of each round
+    const actualMargin = firstGameActualMargin.get(tip.game_id);
+    if (actualMargin !== undefined && tip.margin !== null) {
+      stats.marginDiff += Math.abs(tip.margin - actualMargin);
     }
   }
 
@@ -132,21 +165,21 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
 
   const leaderboard: AflLeaderboardEntry[] = Array.from(userMap.entries()).map(
     ([userId, userInfo]) => {
-      const stats = userStats.get(userId) ?? { correct: 0, total: 0 };
+      const stats = userStats.get(userId) ?? { correct: 0, marginDiff: 0 };
       return {
         userId,
         displayName: userInfo.displayName,
         avatarUrl: userInfo.avatarUrl,
         correctTips: stats.correct,
-        totalTips: stats.total,
-        accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 1000) / 10 : 0,
+        totalMarginDiff: stats.marginDiff,
+        score: stats.correct,
       };
     },
   );
 
   leaderboard.sort((a, b) => {
-    if (b.correctTips !== a.correctTips) return b.correctTips - a.correctTips;
-    return b.accuracy - a.accuracy;
+    if (b.score !== a.score) return b.score - a.score;
+    return a.totalMarginDiff - b.totalMarginDiff;
   });
 
   return leaderboard;
