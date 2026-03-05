@@ -167,6 +167,8 @@ export const getGroupTips = createServerFn({ method: "GET" })
 
     const gameIds = games.map((g) => g.id);
     const startedGameIds = new Set(games.filter((g) => AflGame.hasStarted(g)).map((g) => g.id));
+    const firstGame = AflGame.getFirstGameOfRound(games);
+    const marginGameId = firstGame?.id;
 
     const repo = serviceRegistry.getService("tipsRepository");
     const allTips = await repo.getTipsByGameIds(gameIds);
@@ -188,6 +190,7 @@ export const getGroupTips = createServerFn({ method: "GET" })
     for (const tip of allTips) {
       const userInfo = userMap.get(tip.user_id);
       const gameStarted = startedGameIds.has(tip.game_id);
+      const isMarginGame = tip.game_id === marginGameId && gameStarted;
 
       groupTips.push({
         userId: tip.user_id,
@@ -196,6 +199,7 @@ export const getGroupTips = createServerFn({ method: "GET" })
         gameId: tip.game_id,
         hasTipped: true,
         tipTeamId: gameStarted ? tip.tip : null,
+        margin: isMarginGame ? (tip.margin ?? 0) : undefined,
       });
     }
 

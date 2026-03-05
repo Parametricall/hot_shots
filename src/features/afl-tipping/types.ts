@@ -105,6 +105,7 @@ export type AflGroupTipEntry = {
   gameId: number;
   hasTipped: boolean;
   tipTeamId: number | null; // null if game hasn't started (server-enforced)
+  margin?: number | null; // only present for the first game of the round, after it starts
 };
 
 export type AflLeaderboardEntry = {

@@ -29,19 +29,21 @@ const groupedByDate = (games: AflGame[]) =>
     {} as Record<string, AflGame[]>,
   );
 
-function UserBadge({ tip, className }: { tip: AflGroupTipEntry; className?: string }) {
+function UserBadge({
+  tip,
+  showMargin,
+  className,
+}: {
+  tip: AflGroupTipEntry;
+  showMargin?: boolean;
+  className?: string;
+}) {
   return (
     <Badge variant="secondary" className={cn("gap-1.5 py-1", className)}>
-      {tip.avatarUrl ? (
-        <img
-          src={tip.avatarUrl}
-          alt={`${tip.displayName} avatar`}
-          className="w-4 h-4 rounded-full"
-        />
-      ) : (
-        <div className="w-4 h-4 rounded-full bg-gray-300" />
-      )}
       {tip.displayName}
+      {showMargin && tip.margin != null && (
+        <span className="text-muted-foreground font-normal">({tip.margin}pts)</span>
+      )}
     </Badge>
   );
 }
@@ -105,11 +107,13 @@ function PostGameTips({
   homeTeam,
   awayTeam,
   winnerTeamId,
+  isMarginGame,
 }: {
   tips: AflGroupTipEntry[];
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   winnerTeamId: number | null;
+  isMarginGame?: boolean;
 }) {
   const homeTips = tips.filter((t) => t.tipTeamId === homeTeam.id);
   const awayTips = tips.filter((t) => t.tipTeamId === awayTeam.id);
@@ -123,12 +127,14 @@ function PostGameTips({
         tips={homeTips}
         isCorrect={isComplete && winnerTeamId === homeTeam.id}
         isComplete={isComplete}
+        showMargin={isMarginGame}
       />
       <TeamTipGroup
         team={awayTeam}
         tips={awayTips}
         isCorrect={isComplete && winnerTeamId === awayTeam.id}
         isComplete={isComplete}
+        showMargin={isMarginGame}
       />
     </div>
   );
@@ -139,11 +145,13 @@ function TeamTipGroup({
   tips,
   isCorrect,
   isComplete,
+  showMargin,
 }: {
   team: AflTeam;
   tips: AflGroupTipEntry[];
   isCorrect: boolean;
   isComplete: boolean;
+  showMargin?: boolean;
 }) {
   return (
     <div
@@ -161,7 +169,7 @@ function TeamTipGroup({
       {tips.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {tips.map((tip) => (
-            <UserBadge key={tip.userId} tip={tip} />
+            <UserBadge key={tip.userId} tip={tip} showMargin={showMargin} />
           ))}
         </div>
       ) : (
@@ -177,12 +185,14 @@ function GameGroupTipCard({
   awayTeam,
   tips,
   isLoading,
+  isMarginGame,
 }: {
   game: AflGame;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tips: AflGroupTipEntry[];
   isLoading: boolean;
+  isMarginGame?: boolean;
 }) {
   const hasStarted = useGameStartTimer(game.unixTime);
   const queryClient = useQueryClient();
@@ -243,6 +253,7 @@ function GameGroupTipCard({
             homeTeam={homeTeam}
             awayTeam={awayTeam}
             winnerTeamId={AflGame.isComplete(game) ? game.winnerTeamId : null}
+            isMarginGame={isMarginGame}
           />
         ) : (
           <PreGameTips tipped={tipped} notTipped={notTipped} />
@@ -277,6 +288,7 @@ export function GroupTipsList() {
   }
 
   const gamesByDate = groupedByDate(games);
+  const firstGameId = AflGame.getFirstGameOfRound(games)?.id;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -315,6 +327,7 @@ export function GroupTipsList() {
                       }
                       tips={gameTips}
                       isLoading={isGroupTipsPending}
+                      isMarginGame={game.id === firstGameId}
                     />
                   );
                 })}
