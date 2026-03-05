@@ -246,9 +246,19 @@ function GameCardMarginInput() {
   const { game, homeTeam, awayTeam, tip, isMarginGame, margin, onMarginChange } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
 
-  if (!isMarginGame || isGameStarted || !tip || !onMarginChange) return null;
+  if (!isMarginGame || !tip || !onMarginChange) return null;
 
   const tippedTeam = tip.tipTeamId === homeTeam.id ? homeTeam : awayTeam;
+
+  if (isGameStarted) {
+    return (
+      <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
+        <span className="text-xs font-medium text-gray-600">{tippedTeam.abbrev} by</span>
+        <span className="text-sm font-semibold">{margin ?? 0}</span>
+        <span className="text-xs text-gray-500">pts</span>
+      </div>
+    );
+  }
 
   const handleChange = (value: string) => {
     const num = parseInt(value, 10);
