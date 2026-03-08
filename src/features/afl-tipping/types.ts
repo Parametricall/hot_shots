@@ -20,7 +20,7 @@ export type AflStanding = {
   wins: number;
   losses: number;
   draws: number;
-  points: number;
+  points: number; // 4 points for win, 2 points for draw, 0 points for loss
   goalsFor: number;
   goalsAgainst: number;
   behindsFor: number;
