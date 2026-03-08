@@ -69,7 +69,9 @@ describe("Standings", () => {
     queryClient.setQueryData(aflQueries.allStandingsKey(), [
       makeStanding({ id: 1, rank: 1, wins: 7, losses: 3, draws: 0, points: 28 }),
     ]);
-    queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1, name: "Richmond Tigers" })]);
+    queryClient.setQueryData(aflQueries.allTeamsKey(), [
+      makeTeam({ id: 1, name: "Richmond Tigers" }),
+    ]);
     renderWithClient(<Standings />, queryClient);
 
     expect(screen.getByText("Richmond Tigers")).toBeInTheDocument();

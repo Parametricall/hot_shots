@@ -39,9 +39,7 @@ describe("Leaderboard", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(aflQueries.allLeaderboardKey(), []);
     renderWithClient(<Leaderboard />, queryClient);
-    expect(
-      screen.getByText(/No tips have been submitted yet/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No tips have been submitted yet/)).toBeInTheDocument();
   });
 
   it("renders each entry's display name, score and margin diff", () => {
