@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { SignedIn, UserButton, useUser } from "@clerk/tanstack-react-start";
+import { Show, UserButton, useUser } from "@clerk/tanstack-react-start";
 import * as React from "react";
 import logo from "/dummy-footy-logo.png?url";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -32,7 +32,7 @@ export function Header() {
 
           {/* User */}
           <div className="flex items-center gap-3">
-            <SignedIn>
+            <Show when="signed-in">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-xs text-muted-foreground">Signed in as</span>
                 <span className="text-sm font-medium text-foreground">
@@ -57,7 +57,7 @@ export function Header() {
                   />
                 </div>
               </div>
-            </SignedIn>
+            </Show>
           </div>
         </div>
       </div>
