@@ -19,4 +19,5 @@ export const ClerkProvider = ({ children }: { children: ReactNode }) => children
 export const SignIn = () => null;
 export const SignUp = () => null;
 export const SignedIn = ({ children }: { children: ReactNode }) => children;
+export const Show = ({ children }: { when?: string; children: ReactNode }) => <>{children}</>;
 export const UserButton = () => null;

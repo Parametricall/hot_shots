@@ -16,7 +16,19 @@ export default defineConfig({
         test: {
           name: "unit",
           include: ["src/**/*.test.ts"],
+          exclude: ["src/**/*.stories.tsx"],
           environment: "node",
+        },
+      },
+      {
+        plugins: [viteTsConfigPaths({ projects: ["./tsconfig.json"] })],
+        test: {
+          name: "component",
+          include: ["src/**/*.test.tsx"],
+          exclude: ["src/**/*.stories.tsx"],
+          environment: "jsdom",
+          globals: true,
+          setupFiles: ["src/test/setup.ts"],
         },
       },
       {
