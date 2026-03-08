@@ -131,12 +131,9 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   // Build a set of first-game IDs and their actual margins
   const firstGameActualMargin = new Map<number, number>();
   for (const [, firstGame] of firstGameByRound) {
-    if (
-      AflGame.isComplete(firstGame) &&
-      firstGame.homeScore !== null &&
-      firstGame.awayScore !== null
-    ) {
-      firstGameActualMargin.set(firstGame.id, Math.abs(firstGame.homeScore - firstGame.awayScore));
+    const margin = GameRules.getActualMargin(firstGame);
+    if (margin !== null) {
+      firstGameActualMargin.set(firstGame.id, margin);
     }
   }
 
@@ -157,7 +154,11 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
     // Compute margin diff for first game of each round
     const actualMargin = firstGameActualMargin.get(tip.game_id);
     if (actualMargin !== undefined && tip.margin !== null) {
-      stats.marginDiff += Math.abs(tip.margin - actualMargin);
+      stats.marginDiff += GameRules.calculateMarginDiff(
+        tip.margin,
+        actualMargin,
+        tip.tip === winner,
+      );
     }
   }
 
