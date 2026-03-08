@@ -1,33 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Index } from "~/pages/afl-tipping/index";
-import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { AflGame } from "~/features/afl-tipping/types";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/afl-tipping/")({
-  component: RouteComponent,
-  loader: async ({ context: { queryClient } }) => {
-    const teams = queryClient.ensureQueryData(aflQueries.teams());
-    void queryClient.ensureQueryData(aflQueries.standings());
-    void queryClient.ensureQueryData(aflQueries.leaderboard());
-    const allGames = queryClient.ensureQueryData(aflQueries.allGames());
-
-    const [allGamesData] = await Promise.all([allGames, teams]);
-
-    const gamesByRound = AflGame.groupByRound(allGamesData);
-
-    // Populate cache for each round
-    Object.entries(gamesByRound).forEach(([round, roundGames]) => {
-      queryClient.setQueryData(aflQueries.games(parseInt(round, 10)).queryKey, roundGames);
-    });
-
-    await Promise.all(
-      Object.values(gamesByRound).map((games) =>
-        queryClient.ensureQueryData(aflQueries.getTips(games.map((g) => g.id))),
-      ),
-    );
+  beforeLoad: () => {
+    throw redirect({ to: "/afl-tipping/tips" });
   },
 });
-
-function RouteComponent() {
-  return <Index />;
-}
