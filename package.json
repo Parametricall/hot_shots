@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "test": "vitest run --project=!storybook"
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/tanstack-react-start": "^1.0.1",
