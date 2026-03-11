@@ -66,6 +66,10 @@ describe("GameRules.calculateMarginDiff", () => {
     it("returns the difference when predicted margin is too low", () => {
       expect(GameRules.calculateMarginDiff(5, 25, true)).toBe(20);
     });
+
+    it("returns actual margin when predicted margin is 0 (default for unset margin)", () => {
+      expect(GameRules.calculateMarginDiff(0, 30, true)).toBe(30);
+    });
   });
 
   describe("tipped team lost", () => {

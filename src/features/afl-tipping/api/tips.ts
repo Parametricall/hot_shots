@@ -151,11 +151,11 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
       stats.correct += 1;
     }
 
-    // Compute margin diff for first game of each round
+    // Compute margin diff for first game of each round (default to 0 if no margin set)
     const actualMargin = firstGameActualMargin.get(tip.game_id);
-    if (actualMargin !== undefined && tip.margin !== null) {
+    if (actualMargin !== undefined) {
       stats.marginDiff += GameRules.calculateMarginDiff(
-        tip.margin,
+        tip.margin ?? 0,
         actualMargin,
         tip.tip === winner,
       );

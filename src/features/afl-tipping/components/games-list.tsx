@@ -59,14 +59,16 @@ export function GamesList() {
     return firstTip?.margin;
   });
 
-  // Sync margin from server when tips load
+  // Sync margin from server when tips load or round changes
   const serverMargin = tip?.find((t) => t.gameId === firstGameId)?.margin;
   const [lastSyncedMargin, setLastSyncedMargin] = useState<number | undefined>(undefined);
-  if (serverMargin !== lastSyncedMargin) {
+  const [lastSyncedFirstGameId, setLastSyncedFirstGameId] = useState<number | undefined>(
+    undefined,
+  );
+  if (serverMargin !== lastSyncedMargin || firstGameId !== lastSyncedFirstGameId) {
     setLastSyncedMargin(serverMargin);
-    if (serverMargin !== undefined) {
-      setMargin(serverMargin);
-    }
+    setLastSyncedFirstGameId(firstGameId);
+    setMargin(serverMargin);
   }
 
   const submitTipMutation = useTipMutation({ gameIds });
