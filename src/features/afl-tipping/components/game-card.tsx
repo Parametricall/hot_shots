@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Minus, Plus } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
@@ -245,7 +245,6 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
 function GameCardMarginInput() {
   const { game, homeTeam, awayTeam, tip, isMarginGame, margin, onMarginChange } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
-
   if (!isMarginGame || !tip || !onMarginChange) return null;
 
   const tippedTeam = tip.tipTeamId === homeTeam.id ? homeTeam : awayTeam;
@@ -281,26 +280,16 @@ function GameCardMarginInput() {
   return (
     <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
       <span className="text-xs font-medium text-gray-600">{tippedTeam.abbrev} by</span>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center">
         <Button
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 text-xs"
-          onClick={() => handleStep(-5)}
-          disabled={atMin}
-        >
-          -5
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-7 w-7 text-xs"
+          className="h-7 w-7 rounded-r-none border-r-0"
           onClick={() => handleStep(-1)}
           disabled={atMin}
         >
-          -1
+          <Minus className="h-3 w-3" />
         </Button>
         <input
           type="number"
@@ -309,27 +298,17 @@ function GameCardMarginInput() {
           value={margin ?? ""}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="0"
-          className="w-16 h-7 text-center text-sm border rounded-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-14 h-7 text-center text-sm font-semibold border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <Button
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 text-xs"
+          className="h-7 w-7 rounded-l-none border-l-0"
           onClick={() => handleStep(1)}
           disabled={atMax}
         >
-          +1
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-7 w-7 text-xs"
-          onClick={() => handleStep(5)}
-          disabled={atMax}
-        >
-          +5
+          <Plus className="h-3 w-3" />
         </Button>
       </div>
       <span className="text-xs text-gray-500">pts</span>
