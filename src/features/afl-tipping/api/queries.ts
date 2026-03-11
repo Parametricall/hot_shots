@@ -92,15 +92,17 @@ export const aflQueries = {
 
         const completedBefore = allGames.filter((g) => AflGame.isComplete(g) && g.round < round);
 
+        // Get the most recent prior round numbers from actual data (handles round 0 / Opening Round)
+        const priorRounds = [...new Set(allGames.filter((g) => g.round < round).map((g) => g.round))]
+          .sort((a, b) => b - a)
+          .slice(0, 5)
+          .reverse();
+
         const getLast5 = (
           teamId: number | null,
         ): { round: number; result: "win" | "loss" | "draw" | "bye" }[] => {
           if (!teamId) return [];
-          const recentRounds = Array.from(
-            { length: Math.min(5, round - 1) },
-            (_, i) => round - 1 - i,
-          ).reverse();
-          return recentRounds.map((r) => {
+          return priorRounds.map((r) => {
             const game = completedBefore.find(
               (g) => g.round === r && (g.homeTeamId === teamId || g.awayTeamId === teamId),
             );

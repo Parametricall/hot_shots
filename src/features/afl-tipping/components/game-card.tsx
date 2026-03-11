@@ -388,11 +388,17 @@ function GameCardStats({ className, enabled = false }: { className?: string; ena
             <div className="text-sm font-semibold">{awayTeam.name}</div>
           </div>
 
-          <div className="flex flex-row justify-around gap-2 items-center">
-            <Last5Indicators results={stats.homeLast5} align="left" />
-            <div className="font-medium">Last 5 Games</div>
-            <Last5Indicators results={stats.awayLast5} align="right" />
-          </div>
+          {stats.homeLast5.length > 0 ? (
+            <div className="flex flex-row justify-around gap-2 items-center">
+              <Last5Indicators results={stats.homeLast5} align="left" />
+              <div className="font-medium">Last 5 Games</div>
+              <Last5Indicators results={stats.awayLast5} align="right" />
+            </div>
+          ) : (
+            <div className="text-center text-xs text-muted-foreground">
+              No prior games this season
+            </div>
+          )}
 
           <div className="flex flex-row justify-around gap-2 items-center">
             <div className="text-xs">{stats.h2h.homeWins}W</div>
