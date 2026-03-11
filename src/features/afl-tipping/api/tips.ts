@@ -224,7 +224,7 @@ export const getGroupTips = createServerFn({ method: "GET" })
     for (const tip of allTips) {
       const userInfo = userMap.get(tip.user_id);
       const gameStarted = startedGameIds.has(tip.game_id);
-      const isMarginGame = tip.game_id === marginGameId && gameStarted;
+      const isMarginGame = tip.game_id === marginGameId;
 
       groupTips.push({
         userId: tip.user_id,
@@ -233,7 +233,8 @@ export const getGroupTips = createServerFn({ method: "GET" })
         gameId: tip.game_id,
         hasTipped: true,
         tipTeamId: gameStarted ? tip.tip : null,
-        margin: isMarginGame ? (tip.margin ?? 0) : undefined,
+        margin: isMarginGame && gameStarted ? (tip.margin ?? 0) : undefined,
+        hasMargin: isMarginGame && !gameStarted ? tip.margin != null : undefined,
       });
     }
 

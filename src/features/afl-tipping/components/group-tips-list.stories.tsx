@@ -222,6 +222,46 @@ export const ManyTippers = meta.story({
   },
 });
 
+// Pre-game margin game: some users have set their margin, others haven't
+export const UpcomingMarginIndicators = meta.story({
+  parameters: {
+    services: buildServices(
+      [upcomingGame],
+      [
+        createAflGroupTipEntry({
+          ...mockUsers.alice,
+          gameId: 101,
+          hasTipped: true,
+          hasMargin: true,
+        }),
+        createAflGroupTipEntry({
+          ...mockUsers.bob,
+          gameId: 101,
+          hasTipped: true,
+          hasMargin: false,
+        }),
+        createAflGroupTipEntry({
+          ...mockUsers.charlie,
+          gameId: 101,
+          hasTipped: true,
+          hasMargin: false,
+        }),
+        createAflGroupTipEntry({
+          ...mockUsers.diana,
+          gameId: 101,
+          hasTipped: false,
+        }),
+        createAflGroupTipEntry({
+          ...mockUsers.eve,
+          gameId: 101,
+          hasTipped: true,
+          hasMargin: true,
+        }),
+      ],
+    ),
+  },
+});
+
 // Loading state: skeleton badges shown while tips are fetching
 export const Loading = meta.story({
   parameters: {

@@ -44,6 +44,11 @@ function UserBadge({
       {showMargin && tip.margin != null && (
         <span className="text-muted-foreground font-normal">({tip.margin}pts)</span>
       )}
+      {tip.hasMargin === false && (
+        <span className="text-red-500 font-normal text-xs" title="No margin set">
+          ! no margin
+        </span>
+      )}
     </Badge>
   );
 }
