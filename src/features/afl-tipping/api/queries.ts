@@ -93,7 +93,9 @@ export const aflQueries = {
         const completedBefore = allGames.filter((g) => AflGame.isComplete(g) && g.round < round);
 
         // Get the most recent prior round numbers from actual data (handles round 0 / Opening Round)
-        const priorRounds = [...new Set(allGames.filter((g) => g.round < round).map((g) => g.round))]
+        const priorRounds = [
+          ...new Set(allGames.filter((g) => g.round < round).map((g) => g.round)),
+        ]
           .sort((a, b) => b - a)
           .slice(0, 5)
           .reverse();

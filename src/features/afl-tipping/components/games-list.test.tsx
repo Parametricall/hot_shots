@@ -85,9 +85,7 @@ describe("GamesList margin reset on round navigation", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: user has tipped game 100 with margin 25
-    populateRoundData(queryClient, 1, round1Games, [
-      { gameId: 100, tipTeamId: 1, margin: 25 },
-    ]);
+    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     // Render round 1 — margin input should show 25
     const { rerender } = renderGamesListForRound(1, queryClient);
@@ -113,17 +111,13 @@ describe("GamesList margin reset on round navigation", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: margin 25
-    populateRoundData(queryClient, 1, round1Games, [
-      { gameId: 100, tipTeamId: 1, margin: 25 },
-    ]);
+    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     const { rerender } = renderGamesListForRound(1, queryClient);
     expect(screen.getByDisplayValue("25")).toBeInTheDocument();
 
     // Round 2: user previously tipped with margin 10
-    populateRoundData(queryClient, 2, round2Games, [
-      { gameId: 200, tipTeamId: 3, margin: 10 },
-    ]);
+    populateRoundData(queryClient, 2, round2Games, [{ gameId: 200, tipTeamId: 3, margin: 10 }]);
 
     rerender(
       <QueryClientProvider client={queryClient}>
@@ -141,17 +135,13 @@ describe("GamesList margin reset on round navigation", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: margin 25
-    populateRoundData(queryClient, 1, round1Games, [
-      { gameId: 100, tipTeamId: 1, margin: 25 },
-    ]);
+    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     const { rerender } = renderGamesListForRound(1, queryClient);
     expect(screen.getByDisplayValue("25")).toBeInTheDocument();
 
     // Round 2: user tipped but did not set margin
-    populateRoundData(queryClient, 2, round2Games, [
-      { gameId: 200, tipTeamId: 3 },
-    ]);
+    populateRoundData(queryClient, 2, round2Games, [{ gameId: 200, tipTeamId: 3 }]);
 
     rerender(
       <QueryClientProvider client={queryClient}>
