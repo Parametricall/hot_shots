@@ -69,6 +69,10 @@ function RootComponent() {
     if (splash) {
       splash.remove();
     }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
   }, []);
 
   return <Outlet />;
