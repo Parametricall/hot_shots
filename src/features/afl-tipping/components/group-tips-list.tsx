@@ -158,6 +158,8 @@ function TeamTipGroup({
   isComplete: boolean;
   showMargin?: boolean;
 }) {
+  const sortedTips = [...tips].sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+
   return (
     <div
       className={cn(
@@ -171,9 +173,9 @@ function TeamTipGroup({
         <span className="text-xs font-medium">{team.abbrev}</span>
         <span className="text-xs text-muted-foreground">({tips.length})</span>
       </div>
-      {tips.length > 0 ? (
+      {sortedTips.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
-          {tips.map((tip) => (
+          {sortedTips.map((tip) => (
             <UserBadge key={tip.userId} tip={tip} showMargin={showMargin} />
           ))}
         </div>
