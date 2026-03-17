@@ -14,10 +14,10 @@ const TABS = [
 export const Route = createFileRoute("/_authenticated/afl-tipping")({
   component: AflTippingLayout,
   loader: async ({ context: { queryClient } }) => {
-    const teams = queryClient.ensureQueryData(aflQueries.teams());
-    const allGames = queryClient.ensureQueryData(aflQueries.allGames());
-
-    const [allGamesData] = await Promise.all([allGames, teams]);
+    const [allGamesData] = await Promise.all([
+      queryClient.ensureQueryData(aflQueries.allGames()),
+      queryClient.ensureQueryData(aflQueries.teams()),
+    ]);
 
     const gamesByRound = AflGame.groupByRound(allGamesData);
 
@@ -25,11 +25,14 @@ export const Route = createFileRoute("/_authenticated/afl-tipping")({
       queryClient.setQueryData(aflQueries.games(parseInt(round, 10)).queryKey, roundGames);
     });
 
-    await Promise.all(
-      Object.values(gamesByRound).map((games) =>
-        queryClient.ensureQueryData(aflQueries.getTips(games.map((g) => g.id))),
-      ),
-    );
+    // Only prefetch tips for the active round — other rounds load on demand
+    const activeRound = AflGame.getActiveRound(allGamesData);
+    const activeRoundGames = gamesByRound[activeRound];
+    if (activeRoundGames) {
+      await queryClient.ensureQueryData(
+        aflQueries.getTips(activeRoundGames.map((g) => g.id)),
+      );
+    }
   },
 });
 

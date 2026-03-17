@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import * as React from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
@@ -8,9 +7,26 @@ import appCss from "~/styles/app.css?url";
 import { AppLoadingScreen } from "~/components/AppLoadingScreen";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { Toaster } from "~/components/ui/sonner";
+
+const TanStackRouterDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : React.lazy(() =>
+        import("@tanstack/react-router-devtools").then((res) => ({
+          default: res.TanStackRouterDevtools,
+        })),
+      );
+
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : React.lazy(() =>
+        import("@tanstack/react-query-devtools").then((res) => ({
+          default: res.ReactQueryDevtools,
+        })),
+      );
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -35,6 +51,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
     links: [
+      { rel: "preconnect", href: "https://api.squiggle.com.au" },
       { rel: "stylesheet", href: appCss },
       {
         rel: "icon",
@@ -133,8 +150,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           />
           {children}
           <Toaster />
-          <TanStackRouterDevtools position="bottom-right" />
-          <ReactQueryDevtools />
+          <React.Suspense>
+            <TanStackRouterDevtools position="bottom-left" />
+            <ReactQueryDevtools />
+          </React.Suspense>
           <Scripts />
         </body>
       </html>
