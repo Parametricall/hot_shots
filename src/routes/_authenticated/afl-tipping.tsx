@@ -29,9 +29,7 @@ export const Route = createFileRoute("/_authenticated/afl-tipping")({
     const activeRound = AflGame.getActiveRound(allGamesData);
     const activeRoundGames = gamesByRound[activeRound];
     if (activeRoundGames) {
-      await queryClient.ensureQueryData(
-        aflQueries.getTips(activeRoundGames.map((g) => g.id)),
-      );
+      await queryClient.ensureQueryData(aflQueries.getTips(activeRoundGames.map((g) => g.id)));
     }
   },
 });
