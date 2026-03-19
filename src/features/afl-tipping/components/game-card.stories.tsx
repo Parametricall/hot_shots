@@ -253,7 +253,7 @@ const finishedGame = completedGame({
   winnerTeamId: 1,
 });
 
-export const FinishedGame = meta.story({
+export const FinishedGameCorrectTip = meta.story({
   args: {
     game: finishedGame,
     tip: {
@@ -264,6 +264,88 @@ export const FinishedGame = meta.story({
   parameters: {
     services: {
       squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
+
+export const FinishedGameIncorrectTip = meta.story({
+  args: {
+    game: finishedGame,
+    tip: {
+      gameId: 100,
+      tipTeamId: 2,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
+
+const inProgressGame = createAflGame({
+  id: 100,
+  round: 10,
+  homeTeamId: 1,
+  awayTeamId: 2,
+  unixTime: Date.now() - 1000 * 60 * 60,
+  date: new Date(Date.now() - 1000 * 60 * 60),
+  timeStr: "Q2  12:30",
+  homeScore: 42,
+  awayScore: 35,
+  complete: 50,
+});
+
+export const InProgressWithTip = meta.story({
+  args: {
+    game: inProgressGame,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([inProgressGame]),
+    },
+  },
+});
+
+export const InProgressNoTip = meta.story({
+  args: {
+    game: inProgressGame,
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([inProgressGame]),
+    },
+  },
+});
+
+export const SelectedHomeTip = meta.story({
+  args: {
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([currentGame]),
+    },
+  },
+});
+
+export const SelectedAwayTip = meta.story({
+  args: {
+    tip: {
+      gameId: 100,
+      tipTeamId: 2,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([currentGame]),
     },
   },
 });

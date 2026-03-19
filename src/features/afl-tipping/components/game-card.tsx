@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Clock, MapPin, Minus, Plus } from "lucide-react";
+import { Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
@@ -136,9 +136,13 @@ interface TeamButtonProps {
 function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonProps) {
   const { game, prediction, predictionLoading, tip, onTipSelect } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
-  const disabled = isGameStarted;
+  const isComplete = AflGame.isComplete(game);
+  const isLocked = isGameStarted || isComplete;
 
   const isSelected = tip?.tipTeamId === team.id;
+  const tippedCorrectly = isComplete && isSelected && game.winnerTeamId === team.id;
+  const tippedIncorrectly = isComplete && isSelected && game.winnerTeamId !== team.id;
+
   const confidence = isAwayTeam
     ? (prediction?.awayConfidence ?? 0)
     : (prediction?.homeConfidence ?? 0);
@@ -154,21 +158,55 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
   return (
     <Button
       className={cn(
-        "flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-20 sm:min-h-22.5 bg-transparent hover:bg-inherit sm:hover:bg-blue-200 hover:cursor-pointer shadow-none",
+        "flex-1 text-black h-auto p-2 min-w-0 flex flex-row justify-between rounded-none transition-all min-h-20 sm:min-h-22.5 bg-transparent shadow-none",
+        isLocked
+          ? "hover:bg-transparent cursor-default"
+          : "hover:bg-inherit sm:hover:bg-blue-200 hover:cursor-pointer",
         isAwayTeam && "flex-row-reverse",
+        tippedCorrectly &&
+          (isAwayTeam
+            ? "shadow-[inset_-20px_0_28px_-6px_rgba(34,197,94,0.3)]"
+            : "shadow-[inset_20px_0_28px_-6px_rgba(34,197,94,0.3)]"),
+        tippedIncorrectly &&
+          (isAwayTeam
+            ? "shadow-[inset_-20px_0_28px_-6px_rgba(239,68,68,0.3)]"
+            : "shadow-[inset_20px_0_28px_-6px_rgba(239,68,68,0.3)]"),
+        !isComplete &&
+          isSelected &&
+          !tippedCorrectly &&
+          !tippedIncorrectly &&
+          (isAwayTeam
+            ? "shadow-[inset_-20px_0_28px_-6px_rgba(59,130,246,0.3)]"
+            : "shadow-[inset_20px_0_28px_-6px_rgba(59,130,246,0.3)]"),
         className,
       )}
-      onClick={() => onTipSelect(game.id, team.id)}
-      disabled={disabled}
+      onClick={() => !isLocked && onTipSelect(game.id, team.id)}
+      disabled={false}
     >
-      <div
-        className={cn(
-          `aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center`,
-          isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300",
-        )}
-      >
-        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
-      </div>
+      {tippedCorrectly ? (
+        <div className="flex w-4 h-4 rounded-full items-center justify-center bg-green-500">
+          <Check className="w-3 h-3 text-white" strokeWidth={3} />
+        </div>
+      ) : tippedIncorrectly ? (
+        <div className="flex w-4 h-4 rounded-full items-center justify-center bg-red-500">
+          <X className="w-3 h-3 text-white" strokeWidth={3} />
+        </div>
+      ) : isLocked && isSelected ? (
+        <div className="flex w-4 h-4 items-center justify-center text-blue-500">
+          <Lock className="w-3.5 h-3.5" />
+        </div>
+      ) : isLocked ? (
+        <div className="w-4 h-4" />
+      ) : (
+        <div
+          className={cn(
+            "aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center",
+            isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300",
+          )}
+        >
+          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+        </div>
+      )}
 
       <div className="flex flex-col items-center gap-2">
         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
