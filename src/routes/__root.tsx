@@ -82,11 +82,6 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   React.useEffect(() => {
-    const splash = document.getElementById("app-splash");
-    if (splash) {
-      splash.remove();
-    }
-
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js");
     }
