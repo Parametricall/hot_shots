@@ -1,4 +1,4 @@
-import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
+import preview from "#.storybook/preview";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
 
@@ -50,10 +50,9 @@ const leaderboardService = (data: ReturnType<typeof createAflLeaderboardEntry>[]
 const meta = preview.meta({
   component: Leaderboard,
   parameters: {
-    layout: "padded",
+    layout: "centered",
     services: leaderboardService(LEADERBOARD),
   },
-  decorators: [containerDecorator("max-w-xl"), centeredYDecorator],
 });
 
 export const Default = meta.story({

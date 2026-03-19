@@ -1,16 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Standings } from "./standings";
 import { createTestQueryClient, renderWithClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflStanding, AflTeam } from "~/features/afl-tipping/types";
 
+const mockGetStandings = vi.fn().mockResolvedValue([]);
+const mockGetAllCurrentTeams = vi.fn().mockResolvedValue([]);
+
 vi.mock("~/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
-      getStandings: vi.fn().mockResolvedValue([]),
-      getAllCurrentTeams: vi.fn().mockResolvedValue([]),
+      getStandings: (...args: unknown[]) => mockGetStandings(...args),
+      getAllCurrentTeams: (...args: unknown[]) => mockGetAllCurrentTeams(...args),
     }),
   },
 }));
@@ -48,20 +51,31 @@ function makeStanding(overrides: Partial<AflStanding> = {}): AflStanding {
 }
 
 describe("Standings", () => {
-  it("shows loading when standings data is missing", () => {
+  it("shows skeleton when standings data is missing", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam()]);
     renderWithClient(<Standings />, queryClient);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it("shows loading when teams data is missing", () => {
+  it("shows skeleton when teams data is missing", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(aflQueries.allStandingsKey(), [makeStanding()]);
     renderWithClient(<Standings />, queryClient);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(0);
+  });
+
+  it("shows error state with retry button when query fails", async () => {
+    mockGetStandings.mockRejectedValueOnce(new Error("Network error"));
+    renderWithClient(<Standings />);
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load standings/)).toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
   });
 
   it("renders a row for each team with rank, name, W/L/D and Pts", () => {

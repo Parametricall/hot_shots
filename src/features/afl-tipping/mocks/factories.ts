@@ -2,6 +2,7 @@ import {
   AflGame,
   AflGroupTipEntry,
   AflLeaderboardEntry,
+  AflStanding,
   AflTeam,
 } from "~/features/afl-tipping/types";
 import { VENUES } from "~/features/afl-tipping/constants";
@@ -59,6 +60,27 @@ export function createAflGroupTipEntry(
     gameId: 0,
     hasTipped: true,
     tipTeamId: null,
+    ...overrides,
+  };
+}
+
+export function createAflStanding(overrides: Partial<AflStanding> = {}): AflStanding {
+  return {
+    id: 1,
+    name: "Lions",
+    rank: 1,
+    played: 10,
+    wins: 7,
+    losses: 2,
+    draws: 1,
+    points: 30,
+    goalsFor: 120,
+    goalsAgainst: 90,
+    behindsFor: 80,
+    behindsAgainst: 70,
+    pointsFor: 800,
+    pointsAgainst: 610,
+    percentage: 131.1,
     ...overrides,
   };
 }

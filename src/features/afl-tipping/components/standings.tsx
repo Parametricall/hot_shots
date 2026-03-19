@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon } from "lucide-react";
+import { AlertCircle, ChevronDownIcon } from "lucide-react";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { cn } from "~/lib/utils";
+import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -13,17 +15,111 @@ import {
 } from "~/components/ui/table";
 import type { AflStanding, AflTeam } from "~/features/afl-tipping/types";
 
+function StandingsSkeletonRow() {
+  return (
+    <TableRow>
+      <TableCell className="w-12">
+        <Skeleton className="h-4 w-6" />
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-6 rounded-full" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+      </TableCell>
+      <TableCell className="text-center">
+        <Skeleton className="h-4 w-6 mx-auto" />
+      </TableCell>
+      <TableCell className="text-center">
+        <Skeleton className="h-4 w-6 mx-auto" />
+      </TableCell>
+      <TableCell className="text-center">
+        <Skeleton className="h-4 w-6 mx-auto" />
+      </TableCell>
+      <TableCell className="text-center">
+        <Skeleton className="h-4 w-8 mx-auto" />
+      </TableCell>
+      <TableCell className="w-8">
+        <Skeleton className="h-4 w-4" />
+      </TableCell>
+    </TableRow>
+  );
+}
+
+export function StandingsSkeleton() {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-12">#</TableHead>
+          <TableHead>Team</TableHead>
+          <TableHead className="text-center">W</TableHead>
+          <TableHead className="text-center">L</TableHead>
+          <TableHead className="text-center">D</TableHead>
+          <TableHead className="text-center">Pts</TableHead>
+          <TableHead className="w-8" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: 18 }).map((_, i) => (
+          <StandingsSkeletonRow key={i} />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 export function Standings() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const { data: standings } = useQuery({
+  const {
+    data: standings,
+    isLoading: isStandingsLoading,
+    isError: isStandingsError,
+    isFetching: isStandingsFetching,
+    refetch: refetchStandings,
+  } = useQuery({
     ...aflQueries.standings(),
   });
-  const { data: teams } = useQuery({
+  const {
+    data: teams,
+    isLoading: isTeamsLoading,
+    isError: isTeamsError,
+    isFetching: isTeamsFetching,
+    refetch: refetchTeams,
+  } = useQuery({
     ...aflQueries.teams(),
   });
 
-  if (!standings || !teams) return <div>Loading...</div>;
+  const isLoading =
+    isStandingsLoading ||
+    isTeamsLoading ||
+    (!standings && isStandingsFetching) ||
+    (!teams && isTeamsFetching);
+
+  if (isLoading) return <StandingsSkeleton />;
+
+  if (isStandingsError || isTeamsError) {
+    return (
+      <div className="py-8 text-center text-muted-foreground">
+        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
+        <p>Failed to load standings. Please try again later.</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={() => {
+            if (isStandingsError) refetchStandings();
+            if (isTeamsError) refetchTeams();
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  if (!standings || !teams) return null;
 
   return (
     <Table>
