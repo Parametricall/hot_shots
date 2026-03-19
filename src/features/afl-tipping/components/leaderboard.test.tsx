@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { Leaderboard } from "./leaderboard";
 import { createTestQueryClient, renderWithClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
@@ -9,10 +9,12 @@ vi.mock("@clerk/tanstack-react-start", () => ({
   useUser: () => ({ user: { id: "user-1" } }),
 }));
 
+const mockGetLeaderboard = vi.fn().mockResolvedValue([]);
+
 vi.mock("~/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
-      getLeaderboard: vi.fn().mockResolvedValue([]),
+      getLeaderboard: (...args: unknown[]) => mockGetLeaderboard(...args),
     }),
   },
 }));
@@ -30,9 +32,20 @@ function makeEntry(overrides: Partial<AflLeaderboardEntry> = {}): AflLeaderboard
 }
 
 describe("Leaderboard", () => {
-  it("shows loading when there is no cached data", () => {
+  it("shows loading skeleton when there is no cached data", () => {
     renderWithClient(<Leaderboard />);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Tipping Leaderboard")).toBeInTheDocument();
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(0);
+  });
+
+  it("shows error state when the query fails", async () => {
+    mockGetLeaderboard.mockRejectedValueOnce(new Error("Network error"));
+    renderWithClient(<Leaderboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load the leaderboard/)).toBeInTheDocument();
+    });
   });
 
   it("shows the empty state when the leaderboard has no entries", () => {

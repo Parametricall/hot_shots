@@ -66,6 +66,45 @@ export const Empty = meta.story({
   },
 });
 
+export const Loading = meta.story({
+  parameters: {
+    services: {
+      aflService: {
+        getLeaderboard: () => new Promise(() => {}),
+      },
+    },
+  },
+});
+
+export const Error = meta.story({
+  parameters: {
+    services: {
+      aflService: {
+        getLeaderboard: () => Promise.reject(new globalThis.Error("Network error")),
+      },
+    },
+  },
+});
+
+export const ErrorThenRetry = meta.story({
+  parameters: {
+    services: {
+      aflService: {
+        getLeaderboard: (() => {
+          let calls = 0;
+          return () => {
+            calls++;
+            if (calls <= 1) {
+              return Promise.reject(new globalThis.Error("Network error"));
+            }
+            return new Promise((resolve) => setTimeout(() => resolve(LEADERBOARD), 1500));
+          };
+        })(),
+      },
+    },
+  },
+});
+
 export const SingleUser = meta.story({
   parameters: {
     services: leaderboardService([
