@@ -242,3 +242,28 @@ export const PredictionLoading = meta.story({
     },
   },
 });
+
+const finishedGame = completedGame({
+  id: 100,
+  round: 10,
+  homeTeamId: 1,
+  awayTeamId: 2,
+  homeScore: 95,
+  awayScore: 72,
+  winnerTeamId: 1,
+});
+
+export const FinishedGame = meta.story({
+  args: {
+    game: finishedGame,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
