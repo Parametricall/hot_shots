@@ -1,6 +1,7 @@
 import preview from "#.storybook/preview";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
+import { expect, within, waitFor } from "storybook/test";
 
 const LEADERBOARD = [
   createAflLeaderboardEntry({
@@ -57,11 +58,30 @@ const meta = preview.meta({
 
 export const Default = meta.story({
   tags: ["demo"],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Wait for data to load, then verify entries
+    await waitFor(() => {
+      expect(canvas.getByText("Alice Johnson")).toBeInTheDocument();
+    });
+    expect(canvas.getByText("Tipping Leaderboard")).toBeInTheDocument();
+    expect(canvas.getByText("Diana Prince")).toBeInTheDocument();
+
+    // Current user should have "You" badge
+    expect(canvas.getByText("You")).toBeInTheDocument();
+  },
 });
 
 export const Empty = meta.story({
   parameters: {
     services: leaderboardService([]),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText(/No tips have been submitted/)).toBeInTheDocument();
+    });
   },
 });
 
@@ -82,6 +102,13 @@ export const Error = meta.story({
         getLeaderboard: () => Promise.reject(new globalThis.Error("Network error")),
       },
     },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText(/Failed to load the leaderboard/)).toBeInTheDocument();
+    });
+    expect(canvas.getByRole("button", { name: /try again/i })).toBeInTheDocument();
   },
 });
 

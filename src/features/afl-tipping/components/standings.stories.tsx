@@ -1,6 +1,7 @@
 import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
 import { Standings } from "~/features/afl-tipping/components/standings";
 import { createAflStanding, createAflTeam } from "~/features/afl-tipping/mocks/factories";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 const TEAMS = [
   createAflTeam({ id: 1, name: "Brisbane Lions", abbrev: "BRL" }),
@@ -92,6 +93,66 @@ const meta = preview.meta({
 
 export const Default = meta.story({
   tags: ["demo"],
+});
+
+export const ExpandRow = meta.story({
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(canvas.getByText("Brisbane Lions")).toBeInTheDocument();
+    });
+
+    // Click on Brisbane Lions row to expand it
+    const row = canvas.getByText("Brisbane Lions").closest("tr")!;
+    await userEvent.click(row);
+
+    // Should show expanded stats
+    expect(canvas.getByText("Percentage")).toBeInTheDocument();
+    expect(canvas.getByText("142.5%")).toBeInTheDocument();
+    expect(canvas.getByText("Goals For")).toBeInTheDocument();
+  },
+});
+
+export const ExpandThenCollapse = meta.story({
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(() => {
+      expect(canvas.getByText("Brisbane Lions")).toBeInTheDocument();
+    });
+
+    // Click to expand
+    const row = canvas.getByText("Brisbane Lions").closest("tr")!;
+    await userEvent.click(row);
+    expect(canvas.getByText("Percentage")).toBeInTheDocument();
+
+    // Click again to collapse
+    await userEvent.click(row);
+    expect(canvas.queryByText("Goals For")).not.toBeInTheDocument();
+  },
+});
+
+export const ExpandDifferentRow = meta.story({
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(() => {
+      expect(canvas.getByText("Brisbane Lions")).toBeInTheDocument();
+    });
+
+    // Expand Brisbane Lions
+    const brisbaneRow = canvas.getByText("Brisbane Lions").closest("tr")!;
+    await userEvent.click(brisbaneRow);
+    expect(canvas.getByText("142.5%")).toBeInTheDocument();
+
+    // Click Carlton — should close Brisbane and open Carlton
+    const carltonRow = canvas.getByText("Carlton Blues").closest("tr")!;
+    await userEvent.click(carltonRow);
+    expect(canvas.queryByText("142.5%")).not.toBeInTheDocument();
+    expect(canvas.getByText("125.3%")).toBeInTheDocument();
+  },
 });
 
 export const Loading = meta.story({
