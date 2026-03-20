@@ -97,46 +97,35 @@ export const getTips = createServerFn({ method: "GET" })
     return result;
   });
 
-export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
-  await ensureUserAuthenticated();
-
-  const repo = serviceRegistry.getService("tipsRepository");
-  const allTips: AllTipsRow[] = await repo.getAllTips();
-
-  const { getGames } = serviceRegistry.getService("squiggleService");
-  const games: AflGame[] = await getGames();
-  const completedGameWinners = new Map<number, number | null>();
+function buildCompletedGameWinners(games: AflGame[]): Map<number, number | null> {
+  const winners = new Map<number, number | null>();
   for (const game of games) {
     if (AflGame.isComplete(game)) {
-      completedGameWinners.set(game.id, game.winnerTeamId);
+      winners.set(game.id, game.winnerTeamId);
     }
   }
+  return winners;
+}
 
-  // Build a map of round -> first game (for margin tips)
+function buildFirstGameMargins(games: AflGame[]): Map<number, number> {
+  const margins = new Map<number, number>();
   const gamesByRound = AflGame.groupByRound(games);
-  const firstGameByRound = new Map<number, AflGame>();
-  for (const [round, roundGames] of Object.entries(gamesByRound)) {
+  for (const [, roundGames] of Object.entries(gamesByRound)) {
     const firstGame = AflGame.getFirstGameOfRound(roundGames);
-    if (firstGame) {
-      firstGameByRound.set(Number(round), firstGame);
-    }
-  }
-
-  // Map game ID to its round number
-  const gameRoundMap = new Map<number, number>();
-  for (const game of games) {
-    gameRoundMap.set(game.id, game.round);
-  }
-
-  // Build a set of first-game IDs and their actual margins
-  const firstGameActualMargin = new Map<number, number>();
-  for (const [, firstGame] of firstGameByRound) {
+    if (!firstGame) continue;
     const margin = GameRules.getActualMargin(firstGame);
     if (margin !== null) {
-      firstGameActualMargin.set(firstGame.id, margin);
+      margins.set(firstGame.id, margin);
     }
   }
+  return margins;
+}
 
+function scoreTips(
+  allTips: AllTipsRow[],
+  completedGameWinners: Map<number, number | null>,
+  firstGameMargins: Map<number, number>,
+): Map<string, { correct: number; marginDiff: number }> {
   const userStats = new Map<string, { correct: number; marginDiff: number }>();
   for (const tip of allTips) {
     if (!userStats.has(tip.user_id)) {
@@ -151,8 +140,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
       stats.correct += 1;
     }
 
-    // Compute margin diff for first game of each round (default to 0 if no margin set)
-    const actualMargin = firstGameActualMargin.get(tip.game_id);
+    const actualMargin = firstGameMargins.get(tip.game_id);
     if (actualMargin !== undefined) {
       stats.marginDiff += GameRules.calculateMarginDiff(
         tip.margin ?? 0,
@@ -161,9 +149,13 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
       );
     }
   }
+  return userStats;
+}
 
-  const userMap = await fetchAllClerkUsers();
-
+function assembleLeaderboard(
+  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+  userStats: Map<string, { correct: number; marginDiff: number }>,
+): AflLeaderboardEntry[] {
   const leaderboard: AflLeaderboardEntry[] = Array.from(userMap.entries()).map(
     ([userId, userInfo]) => {
       const stats = userStats.get(userId) ?? { correct: 0, marginDiff: 0 };
@@ -184,15 +176,88 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   });
 
   return leaderboard;
+}
+
+export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
+  await ensureUserAuthenticated();
+
+  const repo = serviceRegistry.getService("tipsRepository");
+  const allTips: AllTipsRow[] = await repo.getAllTips();
+
+  const { getGames } = serviceRegistry.getService("squiggleService");
+  const games: AflGame[] = await getGames();
+
+  const completedGameWinners = buildCompletedGameWinners(games);
+  const firstGameMargins = buildFirstGameMargins(games);
+  const userStats = scoreTips(allTips, completedGameWinners, firstGameMargins);
+  const userMap = await fetchAllClerkUsers();
+
+  return assembleLeaderboard(userMap, userStats);
 });
 
 const GetGroupTipsSchema = z.object({
   round: z.number(),
 });
 
+function buildTippedEntries(
+  allTips: AllTipsRow[],
+  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+  startedGameIds: Set<number>,
+  marginGameId: number | undefined,
+): AflGroupTipEntry[] {
+  return allTips.map((tip) => {
+    const userInfo = userMap.get(tip.user_id);
+    const gameStarted = startedGameIds.has(tip.game_id);
+    const isMarginGame = tip.game_id === marginGameId;
+
+    return {
+      userId: tip.user_id,
+      displayName: userInfo?.displayName ?? "Unknown User",
+      avatarUrl: userInfo?.avatarUrl ?? null,
+      gameId: tip.game_id,
+      hasTipped: true,
+      tipTeamId: gameStarted ? tip.tip : null,
+      margin: isMarginGame && gameStarted ? (tip.margin ?? 0) : undefined,
+      hasMargin: isMarginGame && !gameStarted ? tip.margin != null : undefined,
+    };
+  });
+}
+
+function buildUntippedEntries(
+  gameIds: number[],
+  allTips: AllTipsRow[],
+  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+): AflGroupTipEntry[] {
+  const tippedUsersByGame = new Map<number, Set<string>>();
+  for (const gameId of gameIds) {
+    tippedUsersByGame.set(gameId, new Set());
+  }
+  for (const tip of allTips) {
+    tippedUsersByGame.get(tip.game_id)?.add(tip.user_id);
+  }
+
+  const entries: AflGroupTipEntry[] = [];
+  for (const gameId of gameIds) {
+    const tippedUsers = tippedUsersByGame.get(gameId)!;
+    for (const [userId, userInfo] of userMap) {
+      if (!tippedUsers.has(userId)) {
+        entries.push({
+          userId,
+          displayName: userInfo.displayName,
+          avatarUrl: userInfo.avatarUrl,
+          gameId,
+          hasTipped: false,
+          tipTeamId: null,
+        });
+      }
+    }
+  }
+  return entries;
+}
+
 export const getGroupTips = createServerFn({ method: "GET" })
   .inputValidator(GetGroupTipsSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<AflGroupTipEntry[]> => {
     await ensureUserAuthenticated();
 
     const { round } = data;
@@ -201,61 +266,16 @@ export const getGroupTips = createServerFn({ method: "GET" })
 
     const gameIds = games.map((g) => g.id);
     const startedGameIds = new Set(games.filter((g) => AflGame.hasStarted(g)).map((g) => g.id));
-    const firstGame = AflGame.getFirstGameOfRound(games);
-    const marginGameId = firstGame?.id;
+    const marginGameId = AflGame.getFirstGameOfRound(games)?.id;
 
     const repo = serviceRegistry.getService("tipsRepository");
     const allTips = await repo.getTipsByGameIds(gameIds);
-
     const userMap = await fetchAllClerkUsers();
 
-    // Build set of user IDs who tipped each game
-    const tippedUsersByGame = new Map<number, Set<string>>();
-    for (const gameId of gameIds) {
-      tippedUsersByGame.set(gameId, new Set());
-    }
-    for (const tip of allTips) {
-      tippedUsersByGame.get(tip.game_id)?.add(tip.user_id);
-    }
-
-    const groupTips: AflGroupTipEntry[] = [];
-
-    // Add entries for users who tipped
-    for (const tip of allTips) {
-      const userInfo = userMap.get(tip.user_id);
-      const gameStarted = startedGameIds.has(tip.game_id);
-      const isMarginGame = tip.game_id === marginGameId;
-
-      groupTips.push({
-        userId: tip.user_id,
-        displayName: userInfo?.displayName ?? "Unknown User",
-        avatarUrl: userInfo?.avatarUrl ?? null,
-        gameId: tip.game_id,
-        hasTipped: true,
-        tipTeamId: gameStarted ? tip.tip : null,
-        margin: isMarginGame && gameStarted ? (tip.margin ?? 0) : undefined,
-        hasMargin: isMarginGame && !gameStarted ? tip.margin != null : undefined,
-      });
-    }
-
-    // Add entries for users who haven't tipped each game
-    for (const gameId of gameIds) {
-      const tippedUsers = tippedUsersByGame.get(gameId)!;
-      for (const [userId, userInfo] of userMap) {
-        if (!tippedUsers.has(userId)) {
-          groupTips.push({
-            userId,
-            displayName: userInfo.displayName,
-            avatarUrl: userInfo.avatarUrl,
-            gameId,
-            hasTipped: false,
-            tipTeamId: null,
-          });
-        }
-      }
-    }
-
-    return groupTips;
+    return [
+      ...buildTippedEntries(allTips, userMap, startedGameIds, marginGameId),
+      ...buildUntippedEntries(gameIds, allTips, userMap),
+    ];
   });
 
 export const service = {

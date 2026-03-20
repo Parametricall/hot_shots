@@ -8,26 +8,12 @@ import {
   createUnknownAflTeam,
   findAflTeamById,
   formatDateHeader,
+  groupGamesByDate,
 } from "~/features/afl-tipping/utils";
 import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
-
-const groupedByDate = (games: AflGame[]) =>
-  games.reduce(
-    (acc, item) => {
-      const key = item.date.toISOString().split("T")[0];
-
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
-
-      return acc;
-    },
-    {} as Record<string, AflGame[]>,
-  );
 
 export function GamesList() {
   const currentRound = useCurrentRound();
@@ -132,7 +118,7 @@ export function GamesList() {
     );
   }
 
-  const gamesByDate = groupedByDate(games);
+  const gamesByDate = groupGamesByDate(games);
 
   return (
     <div className="space-y-4 sm:space-y-6">

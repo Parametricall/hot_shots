@@ -84,55 +84,69 @@ export const aflQueries = {
       queryKey: [...aflQueries.aflKey(), "gameStats", { gameId }],
       queryFn: () => getSquiggleService().getGames(),
       staleTime: Infinity,
-      select: (allGames) => {
-        const thisGame = allGames.find((g) => g.id === gameId);
-        if (!thisGame) return null;
-
-        const { homeTeamId, awayTeamId, round } = thisGame;
-
-        const completedBefore = allGames.filter((g) => AflGame.isComplete(g) && g.round < round);
-
-        // Get the most recent prior round numbers from actual data (handles round 0 / Opening Round)
-        const priorRounds = [
-          ...new Set(allGames.filter((g) => g.round < round).map((g) => g.round)),
-        ]
-          .sort((a, b) => b - a)
-          .slice(0, 5)
-          .reverse();
-
-        const getLast5 = (
-          teamId: number | null,
-        ): { round: number; result: "win" | "loss" | "draw" | "bye" }[] => {
-          if (!teamId) return [];
-          return priorRounds.map((r) => {
-            const game = completedBefore.find(
-              (g) => g.round === r && (g.homeTeamId === teamId || g.awayTeamId === teamId),
-            );
-            if (!game) return { round: r, result: "bye" as const };
-            if (game.winnerTeamId === null) return { round: r, result: "draw" as const };
-            return {
-              round: r,
-              result: game.winnerTeamId === teamId ? ("win" as const) : ("loss" as const),
-            };
-          });
-        };
-
-        const h2hGames = completedBefore.filter(
-          (g) =>
-            (g.homeTeamId === homeTeamId && g.awayTeamId === awayTeamId) ||
-            (g.homeTeamId === awayTeamId && g.awayTeamId === homeTeamId),
-        );
-
-        const homeH2hWins = h2hGames.filter((g) => g.winnerTeamId === homeTeamId).length;
-        const awayH2hWins = h2hGames.filter((g) => g.winnerTeamId === awayTeamId).length;
-        const draws = h2hGames.filter((g) => g.winnerTeamId === null).length;
-
-        return {
-          homeLast5: getLast5(homeTeamId),
-          awayLast5: getLast5(awayTeamId),
-          h2h: { homeWins: homeH2hWins, awayWins: awayH2hWins, draws, total: h2hGames.length },
-        };
-      },
+      select: (allGames) => selectGameStats(allGames, gameId),
     });
   },
 };
+
+type FormResult = { round: number; result: "win" | "loss" | "draw" | "bye" };
+
+function getPriorRounds(allGames: AflGame[], beforeRound: number): number[] {
+  return [...new Set(allGames.filter((g) => g.round < beforeRound).map((g) => g.round))]
+    .sort((a, b) => b - a)
+    .slice(0, 5)
+    .reverse();
+}
+
+function getTeamLast5(
+  teamId: number | null,
+  priorRounds: number[],
+  completedBefore: AflGame[],
+): FormResult[] {
+  if (!teamId) return [];
+  return priorRounds.map((r) => {
+    const game = completedBefore.find(
+      (g) => g.round === r && (g.homeTeamId === teamId || g.awayTeamId === teamId),
+    );
+    if (!game) return { round: r, result: "bye" as const };
+    if (game.winnerTeamId === null) return { round: r, result: "draw" as const };
+    return {
+      round: r,
+      result: game.winnerTeamId === teamId ? ("win" as const) : ("loss" as const),
+    };
+  });
+}
+
+function getH2hRecord(
+  completedBefore: AflGame[],
+  homeTeamId: number | null,
+  awayTeamId: number | null,
+) {
+  const h2hGames = completedBefore.filter(
+    (g) =>
+      (g.homeTeamId === homeTeamId && g.awayTeamId === awayTeamId) ||
+      (g.homeTeamId === awayTeamId && g.awayTeamId === homeTeamId),
+  );
+
+  return {
+    homeWins: h2hGames.filter((g) => g.winnerTeamId === homeTeamId).length,
+    awayWins: h2hGames.filter((g) => g.winnerTeamId === awayTeamId).length,
+    draws: h2hGames.filter((g) => g.winnerTeamId === null).length,
+    total: h2hGames.length,
+  };
+}
+
+function selectGameStats(allGames: AflGame[], gameId: number) {
+  const thisGame = allGames.find((g) => g.id === gameId);
+  if (!thisGame) return null;
+
+  const { homeTeamId, awayTeamId, round } = thisGame;
+  const completedBefore = allGames.filter((g) => AflGame.isComplete(g) && g.round < round);
+  const priorRounds = getPriorRounds(allGames, round);
+
+  return {
+    homeLast5: getTeamLast5(homeTeamId, priorRounds, completedBefore),
+    awayLast5: getTeamLast5(awayTeamId, priorRounds, completedBefore),
+    h2h: getH2hRecord(completedBefore, homeTeamId, awayTeamId),
+  };
+}
