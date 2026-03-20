@@ -11,6 +11,7 @@ import { Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
 import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import { cn } from "~/lib/utils";
+import { formatTime } from "~/features/afl-tipping/utils";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import {
   Accordion,
@@ -100,13 +101,6 @@ function GameCardRoot({
 function GameCardHeader({ className }: { className?: string }) {
   const { game } = useGameCard();
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-AU", {
-      hour: "numeric",
-      minute: "numeric",
-    });
-  };
-
   return (
     <div className={cn("px-2 py-2 bg-gray-100", className)}>
       <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
@@ -122,6 +116,53 @@ function GameCardHeader({ className }: { className?: string }) {
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function TipStateIndicator({
+  isSelected,
+  isLocked,
+  tippedCorrectly,
+  tippedIncorrectly,
+}: {
+  isSelected: boolean;
+  isLocked: boolean;
+  tippedCorrectly: boolean;
+  tippedIncorrectly: boolean;
+}) {
+  if (tippedCorrectly) {
+    return (
+      <div className="flex w-4 h-4 rounded-full items-center justify-center bg-green-500">
+        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+      </div>
+    );
+  }
+  if (tippedIncorrectly) {
+    return (
+      <div className="flex w-4 h-4 rounded-full items-center justify-center bg-red-500">
+        <X className="w-3 h-3 text-white" strokeWidth={3} />
+      </div>
+    );
+  }
+  if (isLocked && isSelected) {
+    return (
+      <div className="flex w-4 h-4 items-center justify-center text-blue-500">
+        <Lock className="w-3.5 h-3.5" />
+      </div>
+    );
+  }
+  if (isLocked) {
+    return <div className="w-4 h-4" />;
+  }
+  return (
+    <div
+      className={cn(
+        "aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center",
+        isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300",
+      )}
+    >
+      {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
     </div>
   );
 }
@@ -183,30 +224,12 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
       onClick={() => !isLocked && onTipSelect(game.id, team.id)}
       disabled={false}
     >
-      {tippedCorrectly ? (
-        <div className="flex w-4 h-4 rounded-full items-center justify-center bg-green-500">
-          <Check className="w-3 h-3 text-white" strokeWidth={3} />
-        </div>
-      ) : tippedIncorrectly ? (
-        <div className="flex w-4 h-4 rounded-full items-center justify-center bg-red-500">
-          <X className="w-3 h-3 text-white" strokeWidth={3} />
-        </div>
-      ) : isLocked && isSelected ? (
-        <div className="flex w-4 h-4 items-center justify-center text-blue-500">
-          <Lock className="w-3.5 h-3.5" />
-        </div>
-      ) : isLocked ? (
-        <div className="w-4 h-4" />
-      ) : (
-        <div
-          className={cn(
-            "aspect-square flex sm:flex w-4 h-4 rounded-full border-2 items-center justify-center",
-            isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300",
-          )}
-        >
-          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
-        </div>
-      )}
+      <TipStateIndicator
+        isSelected={isSelected}
+        isLocked={isLocked}
+        tippedCorrectly={tippedCorrectly}
+        tippedIncorrectly={tippedIncorrectly}
+      />
 
       <div className="flex flex-col items-center gap-2">
         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">

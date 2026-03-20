@@ -7,6 +7,8 @@ import {
   findAflTeamById,
   createUnknownAflTeam,
   formatDateHeader,
+  groupGamesByDate,
+  formatTime,
 } from "~/features/afl-tipping/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
@@ -15,19 +17,6 @@ import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-t
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useEffect, useRef } from "react";
-
-const groupedByDate = (games: AflGame[]) =>
-  games.reduce(
-    (acc, item) => {
-      const key = item.date.toISOString().split("T")[0];
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
-      return acc;
-    },
-    {} as Record<string, AflGame[]>,
-  );
 
 function UserBadge({
   tip,
@@ -212,13 +201,6 @@ function GameGroupTipCard({
     prevHasStarted.current = hasStarted;
   }, [hasStarted, queryClient]);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-AU", {
-      hour: "numeric",
-      minute: "numeric",
-    });
-  };
-
   const tipped = tips.filter((t) => t.hasTipped);
   const notTipped = tips.filter((t) => !t.hasTipped);
 
@@ -294,7 +276,7 @@ export function GroupTipsList() {
     );
   }
 
-  const gamesByDate = groupedByDate(games);
+  const gamesByDate = groupGamesByDate(games);
   const firstGameId = AflGame.getFirstGameOfRound(games)?.id;
 
   return (
