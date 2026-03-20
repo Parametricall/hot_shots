@@ -8,7 +8,7 @@ import {
   AflGroupTipEntry,
 } from "~/features/afl-tipping/types";
 import { createClerkClient } from "@clerk/backend";
-import serviceRegistry from "~/service-registry";
+import serviceRegistry from "~/app/service-registry";
 import { GameRules } from "./game-rules";
 import type { AllTipsRow } from "./tips.repository";
 

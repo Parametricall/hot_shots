@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import ServiceRegistry from "~/service-registry";
+import ServiceRegistry from "~/app/service-registry";
 import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
 import { AflGame } from "~/features/afl-tipping/types";
 

@@ -9,7 +9,7 @@ import type { AflStanding, AflTeam } from "~/features/afl-tipping/types";
 const mockGetStandings = vi.fn().mockResolvedValue([]);
 const mockGetAllCurrentTeams = vi.fn().mockResolvedValue([]);
 
-vi.mock("~/service-registry", () => ({
+vi.mock("~/app/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
       getStandings: (...args: unknown[]) => mockGetStandings(...args),
