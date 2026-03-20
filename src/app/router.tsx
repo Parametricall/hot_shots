@@ -1,10 +1,10 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
-import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
-import { NotFound } from "./components/NotFound";
+import { routeTree } from "../routeTree.gen";
+import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
+import { NotFound } from "../components/NotFound";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { QueryClient } from "@tanstack/react-query";
-import serviceRegistry from "~/service-registry";
+import serviceRegistry from "~/app/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";

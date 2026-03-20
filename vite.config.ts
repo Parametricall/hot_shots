@@ -17,7 +17,10 @@ export default defineConfig(({ mode }) => ({
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tanstackStart(),
+    tanstackStart({
+      router: { entry: "./app/router" },
+      start: { entry: "./app/start" },
+    }),
     mode === "development" && devtools(),
     nitro(),
     viteReact(),

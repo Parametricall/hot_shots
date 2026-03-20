@@ -5,7 +5,7 @@ import { definePreview } from "@storybook/react-vite";
 import { HTMLProps } from "react";
 import { cn } from "~/lib/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ServiceRegistry, { ServiceTypes } from "~/service-registry";
+import ServiceRegistry, { ServiceTypes } from "~/app/service-registry";
 import {
   createMemoryHistory,
   createRootRoute,

@@ -14,7 +14,7 @@ vi.mock("@clerk/tanstack-react-start", () => ({
   useUser: () => ({ user: { id: "user-1" } }),
 }));
 
-vi.mock("~/service-registry", () => ({
+vi.mock("~/app/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
       getGames: vi.fn().mockResolvedValue([]),

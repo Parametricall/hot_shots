@@ -32,14 +32,18 @@ npm run storybook        # Storybook dev server (port 6006)
 
 ### Key Directories
 
+- `src/app/` - App bootstrap & configuration (router, start, service registry)
 - `src/routes/` - TanStack Router file-based routes (auto-generates `routeTree.gen.ts`)
-- `src/features/afl-tipping/` - Main feature module with components, API, providers
+- `src/features/afl-tipping/` - Main feature module with components, API, pages, providers
 - `src/features/afl-tipping/api/squiggle/` - Squiggle API integration with Zod schemas
+- `src/features/afl-tipping/pages/` - Page components for afl-tipping routes
+- `src/features/auth/` - Auth feature (sign-in page)
 - `src/components/ui/` - shadcn/ui components
+- `src/lib/` - Configured third-party libraries (utils, supabase client)
 
 ### Service Registry Pattern
 
-All third-party API calls must go through `src/service-registry.ts`. This centralizes:
+All third-party API calls must go through `src/app/service-registry.ts`. This centralizes:
 
 - Service instantiation and dependency injection
 - DTO-to-domain type mapping (only place this should happen)

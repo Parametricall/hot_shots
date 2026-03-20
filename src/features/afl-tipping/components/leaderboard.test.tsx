@@ -11,7 +11,7 @@ vi.mock("@clerk/tanstack-react-start", () => ({
 
 const mockGetLeaderboard = vi.fn().mockResolvedValue([]);
 
-vi.mock("~/service-registry", () => ({
+vi.mock("~/app/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
       getLeaderboard: (...args: unknown[]) => mockGetLeaderboard(...args),

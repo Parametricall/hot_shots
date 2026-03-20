@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "~/utils/supabase";
+import { getSupabaseServerClient } from "~/lib/supabase";
 import { AflUserTip } from "~/features/afl-tipping/types";
 
 interface TipRow {
