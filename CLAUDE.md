@@ -82,6 +82,17 @@ Key types in `src/features/afl-tipping/types.ts`:
 - `AflUserTip` - User's tip submission
 - `AflStanding` - Ladder position
 
+## Verification
+
+After making changes, always verify with the relevant commands:
+
+- **TypeScript changes**: `npm run typecheck`
+- **Any code changes**: `npm run build` (runs both vite build and tsc)
+- **Style/lint concerns**: `npm run lint`
+- **Test-adjacent changes**: `npm run test`
+
+Run `npm run format` before committing if you've created new files.
+
 ## Code Conventions
 
 - TypeScript for all files
@@ -90,3 +101,50 @@ Key types in `src/features/afl-tipping/types.ts`:
 - Constants: UPPER_SNAKE_CASE
 - Components: PascalCase files
 - Always handle loading/error states with TanStack Query
+
+## Code Patterns
+
+### Adding a New API Integration
+
+1. Create the fetch function in `src/features/<feature>/api/`
+2. Define Zod schemas for the response DTO
+3. Map DTO to domain types in the service
+4. Register the service in `src/app/service-registry.ts`
+5. Wire it up in `src/app/router.tsx`
+6. Create query options in the feature's `queries.ts`
+
+### Adding a New Page
+
+1. Create the page component in `src/features/<feature>/pages/`
+2. Create a route file in `src/routes/` (or `src/routes/_authenticated/` for protected routes)
+3. Import the page component from the feature module
+
+### Adding a New Component
+
+1. Place shared components in `src/components/`
+2. Place feature-specific components in `src/features/<feature>/components/`
+3. Co-locate stories next to the component: `component-name.stories.tsx`
+4. Co-locate tests next to the component: `component-name.test.tsx`
+
+### Writing Stories
+
+- Import preview decorators from `#.storybook/preview`
+- Use `containerDecorator` for width constraints, `centeredYDecorator` for centering
+- Use mock factories from `src/features/afl-tipping/mocks/factories` for test data
+- Configure services via `parameters.services` (the `withServices` decorator handles registration)
+- Use `withMockUser` decorator when the component needs Clerk user context
+- Use `withRouter` decorator when the component uses TanStack Router hooks
+
+### Writing Tests
+
+- Use Vitest + React Testing Library
+- Mock `~/app/service-registry` with `vi.mock()` to control API responses
+- Mock `@clerk/tanstack-react-start` when components use auth hooks
+- Use `createTestQueryClient()` and `renderWithClient()` from `~/test/render`
+- Use factories from `~/features/afl-tipping/mocks/factories` for test data
+
+### Styling
+
+- Use Tailwind CSS v4 utility classes
+- Use shadcn/ui components from `src/components/ui/` — add new ones with `npx shadcn@latest add <component>`
+- Use the `cn()` helper from `~/lib/utils` for conditional classes
