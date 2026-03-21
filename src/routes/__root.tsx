@@ -85,6 +85,13 @@ function RootComponent() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js");
     }
+
+    const splash = document.getElementById("app-splash");
+    if (splash) {
+      splash.style.transition = "opacity 0.2s ease-out";
+      splash.style.opacity = "0";
+      splash.addEventListener("transitionend", () => splash.remove(), { once: true });
+    }
   }, []);
 
   return <Outlet />;

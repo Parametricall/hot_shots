@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Header } from "~/components/header";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -38,15 +37,6 @@ export const Route = createFileRoute("/_authenticated/afl-tipping")({
 function AflTippingLayout() {
   const { location } = useRouterState();
   const activeTab = location.pathname.split("/").pop() ?? "tips";
-
-  useEffect(() => {
-    const splash = document.getElementById("app-splash");
-    if (splash) {
-      splash.style.transition = "opacity 0.2s ease-out";
-      splash.style.opacity = "0";
-      splash.addEventListener("transitionend", () => splash.remove(), { once: true });
-    }
-  }, []);
 
   return (
     <div className="px-2">
