@@ -11,6 +11,7 @@ import {
 } from "~/features/afl-tipping/mocks/factories";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense } from "react";
 
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
@@ -49,7 +50,7 @@ function populateData(
     groupTips?: ReturnType<typeof createAflGroupTipEntry>[];
   } = {},
 ) {
-  queryClient.setQueryData(aflQueries.games(1).queryKey, opts.games ?? games);
+  queryClient.setQueryData(aflQueries.allGames().queryKey, opts.games ?? games);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
   queryClient.setQueryData(aflQueries.groupTips(1).queryKey, opts.groupTips ?? []);
 }
@@ -57,9 +58,11 @@ function populateData(
 function renderGroupTips(queryClient: QueryClient) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <CurrentRoundProvider state={1}>
-        <GroupTipsList />
-      </CurrentRoundProvider>
+      <Suspense fallback={<div>Loading...</div>}>
+        <CurrentRoundProvider state={1}>
+          <GroupTipsList />
+        </CurrentRoundProvider>
+      </Suspense>
     </QueryClientProvider>,
   );
 }

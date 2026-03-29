@@ -6,7 +6,8 @@ import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { createAflGame, createAflTeam, fakeTeams } from "~/features/afl-tipping/mocks/factories";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import type { AflUserTip } from "~/features/afl-tipping/types";
+import type { AflGame, AflUserTip } from "~/features/afl-tipping/types";
+import { Suspense } from "react";
 
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
@@ -57,14 +58,15 @@ const round2Games = [
   }),
 ];
 
-function populateRoundData(
+function populateQueryData(
   queryClient: QueryClient,
+  allGames: AflGame[],
   round: number,
-  games: typeof round1Games,
   tips: AflUserTip[] = [],
 ) {
-  const gameIds = games.map((g) => g.id);
-  queryClient.setQueryData(aflQueries.games(round).queryKey, games);
+  const roundGames = allGames.filter((g) => g.round === round);
+  const gameIds = roundGames.map((g) => g.id);
+  queryClient.setQueryData(aflQueries.allGames().queryKey, allGames);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
   queryClient.setQueryData(aflQueries.modelTips(round).queryKey, []);
   queryClient.setQueryData(aflQueries.getTips(gameIds).queryKey, tips);
@@ -73,33 +75,39 @@ function populateRoundData(
 function renderGamesListForRound(round: number, queryClient: QueryClient) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <CurrentRoundProvider state={round}>
-        <GamesList />
-      </CurrentRoundProvider>
+      <Suspense fallback={<div>Loading...</div>}>
+        <CurrentRoundProvider state={round}>
+          <GamesList />
+        </CurrentRoundProvider>
+      </Suspense>
     </QueryClientProvider>,
   );
 }
+
+const allGames = [...round1Games, ...round2Games];
 
 describe("GamesList margin reset on round navigation", () => {
   it("does not carry over margin from round 1 when navigating to an untipped round 2", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: user has tipped game 100 with margin 25
-    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
+    populateQueryData(queryClient, allGames, 1, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     // Render round 1 — margin input should show 25
     const { rerender } = renderGamesListForRound(1, queryClient);
     expect(screen.getByDisplayValue("25")).toBeInTheDocument();
 
     // Populate round 2 data with no tips
-    populateRoundData(queryClient, 2, round2Games, []);
+    populateQueryData(queryClient, allGames, 2, []);
 
     // Navigate to round 2 by re-rendering with new round
     rerender(
       <QueryClientProvider client={queryClient}>
-        <CurrentRoundProvider state={2}>
-          <GamesList />
-        </CurrentRoundProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <CurrentRoundProvider state={2}>
+            <GamesList />
+          </CurrentRoundProvider>
+        </Suspense>
       </QueryClientProvider>,
     );
 
@@ -111,19 +119,21 @@ describe("GamesList margin reset on round navigation", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: margin 25
-    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
+    populateQueryData(queryClient, allGames, 1, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     const { rerender } = renderGamesListForRound(1, queryClient);
     expect(screen.getByDisplayValue("25")).toBeInTheDocument();
 
     // Round 2: user previously tipped with margin 10
-    populateRoundData(queryClient, 2, round2Games, [{ gameId: 200, tipTeamId: 3, margin: 10 }]);
+    populateQueryData(queryClient, allGames, 2, [{ gameId: 200, tipTeamId: 3, margin: 10 }]);
 
     rerender(
       <QueryClientProvider client={queryClient}>
-        <CurrentRoundProvider state={2}>
-          <GamesList />
-        </CurrentRoundProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <CurrentRoundProvider state={2}>
+            <GamesList />
+          </CurrentRoundProvider>
+        </Suspense>
       </QueryClientProvider>,
     );
 
@@ -135,19 +145,21 @@ describe("GamesList margin reset on round navigation", () => {
     const queryClient = createTestQueryClient();
 
     // Round 1: margin 25
-    populateRoundData(queryClient, 1, round1Games, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
+    populateQueryData(queryClient, allGames, 1, [{ gameId: 100, tipTeamId: 1, margin: 25 }]);
 
     const { rerender } = renderGamesListForRound(1, queryClient);
     expect(screen.getByDisplayValue("25")).toBeInTheDocument();
 
     // Round 2: user tipped but did not set margin
-    populateRoundData(queryClient, 2, round2Games, [{ gameId: 200, tipTeamId: 3 }]);
+    populateQueryData(queryClient, allGames, 2, [{ gameId: 200, tipTeamId: 3 }]);
 
     rerender(
       <QueryClientProvider client={queryClient}>
-        <CurrentRoundProvider state={2}>
-          <GamesList />
-        </CurrentRoundProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <CurrentRoundProvider state={2}>
+            <GamesList />
+          </CurrentRoundProvider>
+        </Suspense>
       </QueryClientProvider>,
     );
 
