@@ -1,17 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { GroupTipsList } from "./group-tips-list";
-import { createTestQueryClient, renderWithClient } from "~/test/render";
+import { createTestQueryClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import {
   createAflGame,
-  createAflTeam,
   createAflGroupTipEntry,
+  createAflTeam,
   fakeTeams,
 } from "~/features/afl-tipping/mocks/factories";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
-import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
@@ -52,10 +51,7 @@ function populateData(
 ) {
   queryClient.setQueryData(aflQueries.games(1).queryKey, opts.games ?? games);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
-  queryClient.setQueryData(
-    aflQueries.groupTips(1).queryKey,
-    opts.groupTips ?? [],
-  );
+  queryClient.setQueryData(aflQueries.groupTips(1).queryKey, opts.groupTips ?? []);
 }
 
 function renderGroupTips(queryClient: QueryClient) {

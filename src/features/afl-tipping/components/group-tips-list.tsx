@@ -10,13 +10,13 @@ import {
   groupGamesByDate,
   formatTime,
 } from "~/features/afl-tipping/utils";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 function UserBadge({
   tip,
@@ -254,17 +254,22 @@ function GameGroupTipCard({
 
 export function GroupTipsList() {
   const currentRound = useCurrentRound();
-  const { data: games } = useQuery({
-    ...aflQueries.games(currentRound),
+
+  const selectCurrentRoundGames = useCallback(
+    (games: AflGame[]) => games.filter((g) => g.round === currentRound),
+    [currentRound],
+  );
+
+  const { data: games } = useSuspenseQuery({
+    ...aflQueries.allGames(),
+    select: selectCurrentRoundGames,
   });
-  const { data: teams } = useQuery({
-    ...aflQueries.teams(),
-  });
+  const { data: teams } = useSuspenseQuery(aflQueries.teams());
   const { data: groupTips, isPending: isGroupTipsPending } = useQuery({
     ...aflQueries.groupTips(currentRound),
   });
 
-  if (!games || !teams || games.length === 0) {
+  if (games.length === 0) {
     return (
       <Card>
         <CardContent>

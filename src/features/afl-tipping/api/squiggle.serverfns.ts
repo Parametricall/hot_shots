@@ -25,9 +25,8 @@ const GetGamesSchema = z.object({
 export const getGamesServerFn = createServerFn({ method: "GET" })
   .inputValidator(GetGamesSchema)
   .handler(async ({ data }) => {
-    return withCache(`games:${data.round ?? "all"}`, CACHE_DURATIONS.GAMES, () =>
-      fetchGames(data.round),
-    );
+    const fet = () => fetchGames(data.round);
+    return withCache(`games:${data.round ?? "all"}`, CACHE_DURATIONS.GAMES, fet);
   });
 
 export const getIncompleteGamesServerFn = createServerFn({ method: "GET" }).handler(async () => {

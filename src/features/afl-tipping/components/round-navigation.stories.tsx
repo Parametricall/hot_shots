@@ -1,4 +1,4 @@
-import preview, { containerDecorator, centeredYDecorator, withRouter } from "#.storybook/preview";
+import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 import { useState } from "react";
 import type { AflRound } from "~/features/afl-tipping/types";
