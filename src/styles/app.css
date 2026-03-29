@@ -20,6 +20,13 @@
   .using-mouse * {
     outline: none !important;
   }
+
+  /* Hide splash screen once page content renders */
+  body:has([data-app-ready]) #app-splash {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+  }
 }
 
 @theme inline {

@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCard } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
@@ -10,19 +8,24 @@ import {
   formatDateHeader,
   groupGamesByDate,
 } from "~/features/afl-tipping/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
 
 export function GamesList() {
   const currentRound = useCurrentRound();
-  const { data: games } = useQuery({
-    ...aflQueries.games(currentRound),
+
+  const selectCurrentRoundGames = useCallback(
+    (games: AflGame[]) => games.filter((g) => g.round === currentRound),
+    [currentRound],
+  );
+
+  const { data: games } = useSuspenseQuery({
+    ...aflQueries.allGames(),
+    select: selectCurrentRoundGames,
   });
-  const { data: teams } = useQuery({
-    ...aflQueries.teams(),
-  });
+  const { data: teams } = useSuspenseQuery(aflQueries.teams());
 
   const { data: modelTips, isLoading: isPredictionsLoading } = useQuery({
     ...aflQueries.modelTips(currentRound),
@@ -106,7 +109,7 @@ export function GamesList() {
     [saveMargin],
   );
 
-  if (!games || !teams || games.length === 0) {
+  if (games.length === 0) {
     return (
       <Card>
         <CardContent>

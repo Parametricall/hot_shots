@@ -1,39 +1,59 @@
-import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
-import { useQuery } from "@tanstack/react-query";
-import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { aflGamesToRounds } from "~/features/afl-tipping/utils";
-import { useMemo, useState } from "react";
-import { AflGame } from "~/features/afl-tipping/types";
 import { GamesList } from "~/features/afl-tipping/components/games-list";
-import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Card, CardContent } from "~/components/ui/card";
+import {
+  TippingPageShell,
+  TippingPageSkeleton,
+} from "~/features/afl-tipping/components/tipping-page-shell";
 
 export function MyTips() {
-  const currentRoundState = useState<number>();
-  const [currentRound, setCurrentRound] = currentRoundState;
-
-  const { data: games } = useQuery({
-    ...aflQueries.allGames(),
-  });
-
-  const rounds = useMemo(() => (games ? aflGamesToRounds(games) : undefined), [games]);
-
-  if (currentRound == undefined && games) {
-    setCurrentRound(AflGame.getActiveRound(games));
-  }
-
-  if (currentRound == undefined) return "No round";
-  if (!rounds) return "No rounds data";
-
   return (
-    <CurrentRoundProvider state={currentRound}>
-      <div className="space-y-4 sm:space-y-6">
-        <RoundNavigation
-          rounds={rounds}
-          currentRound={currentRound}
-          onRoundChange={setCurrentRound}
-        />
-        <GamesList />
-      </div>
-    </CurrentRoundProvider>
+    <TippingPageShell
+      skeleton={
+        <TippingPageSkeleton>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <GameCardSkeleton key={i} showMargin={i === 0} />
+          ))}
+        </TippingPageSkeleton>
+      }
+    >
+      <GamesList />
+    </TippingPageShell>
+  );
+}
+
+export function GameCardSkeleton({ showMargin = false }: { showMargin?: boolean }) {
+  return (
+    <Card className="p-0 overflow-hidden rounded-lg">
+      <CardContent className="p-0">
+        {/* Header bar */}
+        <div className="px-2 py-2 bg-gray-100 flex items-center justify-between">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-3 w-32" />
+        </div>
+        {/* Team matchup */}
+        <div className="flex min-h-20 sm:min-h-22.5">
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-2">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="hidden sm:block h-3 w-16" />
+          </div>
+          <div className="flex flex-col items-center justify-center gap-2 p-2">
+            <Skeleton className="h-4 w-10" />
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-2">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="hidden sm:block h-3 w-16" />
+          </div>
+        </div>
+        {/* Margin input */}
+        {showMargin && (
+          <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
+            <Skeleton className="h-3 w-10" />
+            <Skeleton className="h-7 w-24" />
+            <Skeleton className="h-3 w-6" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

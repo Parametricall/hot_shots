@@ -28,7 +28,9 @@ describe("RoundNavigation", () => {
   it("calls onRoundChange with previous round when Prev is clicked", async () => {
     const user = userEvent.setup();
     const onRoundChange = vi.fn();
-    render(<RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />);
+    render(
+      <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
+    );
 
     await user.click(screen.getByRole("button", { name: /prev/i }));
     expect(onRoundChange).toHaveBeenCalledWith(1);
@@ -37,7 +39,9 @@ describe("RoundNavigation", () => {
   it("calls onRoundChange with next round when Next is clicked", async () => {
     const user = userEvent.setup();
     const onRoundChange = vi.fn();
-    render(<RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />);
+    render(
+      <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
+    );
 
     await user.click(screen.getByRole("button", { name: /next/i }));
     expect(onRoundChange).toHaveBeenCalledWith(3);
