@@ -42,7 +42,6 @@ const GetModelTipsSchema = z.object({
 export const getModelTipsServerFn = createServerFn({ method: "GET" })
   .inputValidator(GetModelTipsSchema)
   .handler(async ({ data }) => {
-    return withCache(`modelTips:${data.round}`, CACHE_DURATIONS.MODEL_TIPS, () =>
-      fetchTips(data.round),
-    );
+    const tipsFn = () => fetchTips(data.round);
+    return withCache(`modelTips:${data.round}`, CACHE_DURATIONS.MODEL_TIPS, tipsFn);
   });

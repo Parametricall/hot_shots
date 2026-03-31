@@ -56,6 +56,9 @@ export function useTipMutation({ gameIds }: UseTipMutationOptions) {
         // so earlier server responses don't overwrite newer optimistic state.
         if (queryClient.isMutating({ mutationKey: ["submitTip"] }) === 1) {
           queryClient.invalidateQueries(aflQueries.getTips(gameIds));
+          queryClient.invalidateQueries({
+            queryKey: aflQueries.allGroupTipsKey(),
+          });
         }
       }
     },

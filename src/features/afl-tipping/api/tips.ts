@@ -2,10 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { auth } from "@clerk/tanstack-react-start/server";
 import {
-  AflUserTip,
   AflGame,
-  AflLeaderboardEntry,
   AflGroupTipEntry,
+  AflLeaderboardEntry,
+  AflUserTip,
 } from "~/features/afl-tipping/types";
 import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/app/service-registry";
@@ -88,13 +88,13 @@ export const submitTip = createServerFn({ method: "POST" })
 
 export const getTips = createServerFn({ method: "GET" })
   .inputValidator(GetTipsSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<AflUserTip[]> => {
     const { gameIds } = data;
     const userId = await ensureUserAuthenticated();
 
-    const repo = serviceRegistry.getService("tipsRepository");
-    const result: AflUserTip[] = await repo.getTipsByUser(userId, gameIds);
-    return result;
+    const { getTipsByUser } = serviceRegistry.getService("tipsRepository");
+
+    return await getTipsByUser(userId, gameIds);
   });
 
 function buildCompletedGameWinners(games: AflGame[]): Map<number, number | null> {
