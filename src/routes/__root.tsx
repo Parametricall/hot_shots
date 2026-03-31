@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   React.useEffect(function onMount() {
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
       navigator.serviceWorker.register("/sw.js");
     }
   }, []);
