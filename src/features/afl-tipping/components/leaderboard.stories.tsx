@@ -13,7 +13,7 @@ const LEADERBOARD = [
   }),
   createAflLeaderboardEntry({
     userId: "user-2",
-    displayName: "Bob Williams",
+    displayName: "Ryan Suspicious",
     correctTips: 15,
     totalMarginDiff: 20,
     score: 15,
@@ -70,6 +70,9 @@ export const Default = meta.story({
 
     // Current user should have "You" badge
     expect(canvas.getByText("You")).toBeInTheDocument();
+
+    // Ryan should have a report button
+    expect(canvas.getByTitle("Report for cheating")).toBeInTheDocument();
   },
 });
 

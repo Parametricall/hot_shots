@@ -18,7 +18,7 @@ function AflTippingLayout() {
   const activeTab = location.pathname.split("/").pop() ?? "tips";
 
   return (
-    <div className="px-2">
+    <div className="min-h-screen px-2">
       <Header />
       <hr />
       <div className="h-full container mx-auto py-2">
