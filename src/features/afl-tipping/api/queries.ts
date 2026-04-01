@@ -86,14 +86,12 @@ export const aflQueries = {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "cheatingReports"],
       queryFn: () => checkCheatingReports(),
-      staleTime: 1000 * 60 * 5,
     });
   },
   featureFlag: (key: string) => {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "featureFlag", key],
       queryFn: () => getFeatureFlag({ data: { key } }),
-      staleTime: 1000 * 60 * 2,
     });
   },
   gameStats: (gameId: number) => {

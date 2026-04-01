@@ -26,7 +26,7 @@ const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
 export function getRouter() {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: 60 * 1000 } }, // 1 minute
+    defaultOptions: { queries: { staleTime: 60 * 1000 } },
   });
 
   if (typeof window !== "undefined") {
@@ -42,11 +42,15 @@ export function getRouter() {
         }),
     });
 
-    persistQueryClient({
+    const [, restorePromise] = persistQueryClient({
       queryClient,
       persister,
       maxAge: 1000 * 60 * 60 * 24, // 24 hours
     });
+
+    // After restoring persisted cache, mark all queries as stale
+    // so they refetch on first use while still showing cached data instantly
+    restorePromise.then(() => queryClient.invalidateQueries());
   }
 
   return routerWithQueryClient(
