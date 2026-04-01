@@ -225,7 +225,9 @@ export function Leaderboard() {
 
   const currentUserIsRyan =
     leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Ryan") ?? false;
-  const showMenuColumn = cheatingEnabled && !currentUserIsRyan;
+  const currentUserIsBrooke =
+    leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Brooke") ?? false;
+  const showMenuColumn = cheatingEnabled && !currentUserIsRyan && !currentUserIsBrooke;
 
   return (
     <Card>
