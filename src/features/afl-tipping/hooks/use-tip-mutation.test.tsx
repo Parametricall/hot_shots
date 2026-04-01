@@ -44,7 +44,7 @@ describe("useTipMutation", () => {
     const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
     queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
 
-    const { result } = renderHook(() => useTipMutation({ gameIds: GAME_IDS }), {
+    const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -57,7 +57,7 @@ describe("useTipMutation", () => {
   it("adds a new tip when the game has no existing tip", async () => {
     queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, []);
 
-    const { result } = renderHook(() => useTipMutation({ gameIds: GAME_IDS }), {
+    const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -85,7 +85,7 @@ describe("useTipMutation", () => {
 
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useTipMutation({ gameIds: GAME_IDS }), {
+    const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -110,7 +110,7 @@ describe("useTipMutation", () => {
     const originalTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
     queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, originalTips);
 
-    const { result } = renderHook(() => useTipMutation({ gameIds: GAME_IDS }), {
+    const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 

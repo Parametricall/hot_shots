@@ -61,7 +61,6 @@ const meta = preview.meta({
     game: currentGame,
     homeTeam,
     awayTeam,
-    onTipSelect: () => {},
   },
   parameters: { layout: "padded" },
   decorators: [containerDecorator("max-w-xl"), centeredYDecorator],

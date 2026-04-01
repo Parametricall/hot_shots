@@ -3,7 +3,10 @@ import React, {
   ComponentProps,
   createContext,
   PropsWithChildren,
+  useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
@@ -22,6 +25,7 @@ import {
 } from "~/components/ui/accordion";
 import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
 
 // Context for sharing game data across composed components
 interface GameCardContextValue {
@@ -31,10 +35,8 @@ interface GameCardContextValue {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
-  isMarginGame?: boolean;
-  margin?: number;
-  onMarginChange?: (margin: number | undefined) => void;
-  onTipSelect: (gameId: number, teamId: number) => void;
+  showMargin?: boolean;
+  submitTip: (gameId: number, teamId: number, margin?: number) => void;
 }
 
 const GameCardContext = createContext<GameCardContextValue | null>(null);
@@ -55,10 +57,7 @@ interface GameCardRootProps extends PropsWithChildren {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
-  isMarginGame?: boolean;
-  margin?: number;
-  onMarginChange?: (margin: number | undefined) => void;
-  onTipSelect: (gameId: number, teamId: number) => void;
+  showMargin?: boolean;
   className?: string;
 }
 
@@ -70,12 +69,17 @@ function GameCardRoot({
   tip,
   prediction,
   predictionLoading,
-  isMarginGame,
-  margin,
-  onMarginChange,
-  onTipSelect,
+  showMargin,
   className,
 }: GameCardRootProps) {
+  const mutation = useTipMutation();
+  const submitTip = useCallback(
+    (gameId: number, teamId: number, margin?: number) => {
+      mutation.mutate({ data: { gameId, teamId, margin } });
+    },
+    [mutation],
+  );
+
   return (
     <GameCardContext.Provider
       value={{
@@ -85,10 +89,8 @@ function GameCardRoot({
         tip,
         prediction,
         predictionLoading,
-        isMarginGame,
-        margin,
-        onMarginChange,
-        onTipSelect,
+        showMargin,
+        submitTip,
       }}
     >
       <Card className={cn("p-0 transition-all overflow-hidden rounded-lg", className)}>
@@ -176,7 +178,7 @@ interface TeamButtonProps {
 }
 
 function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonProps) {
-  const { game, prediction, predictionLoading, tip, onTipSelect } = useGameCard();
+  const { game, prediction, predictionLoading, tip, showMargin, submitTip } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
   const isComplete = AflGame.isComplete(game);
   const isLocked = isGameStarted || isComplete;
@@ -222,7 +224,7 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
             : "shadow-[inset_20px_0_28px_-6px_rgba(59,130,246,0.3)]"),
         className,
       )}
-      onClick={() => !isLocked && onTipSelect(game.id, team.id)}
+      onClick={() => !isLocked && submitTip(game.id, team.id, showMargin ? tip?.margin : undefined)}
       disabled={false}
     >
       <TipStateIndicator
@@ -305,9 +307,43 @@ function GameCardSeparator({ children, className }: PropsWithChildren<{ classNam
 
 // Margin input for the first game of the round
 function GameCardMarginInput() {
-  const { game, homeTeam, awayTeam, tip, isMarginGame, margin, onMarginChange } = useGameCard();
+  const { game, homeTeam, awayTeam, tip, showMargin, submitTip } = useGameCard();
   const isGameStarted = useGameStartTimer(game.unixTime);
-  if (!isMarginGame || !tip || !onMarginChange) return null;
+
+  // Own margin state, synced from server tip
+  const [margin, setMargin] = useState<number | undefined>(tip?.margin);
+  const [lastSyncedMargin, setLastSyncedMargin] = useState<number | undefined>(tip?.margin);
+  if (tip?.margin !== lastSyncedMargin) {
+    setLastSyncedMargin(tip?.margin);
+    setMargin(tip?.margin);
+  }
+
+  // Debounced save
+  const marginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
+    };
+  }, []);
+
+  const saveMargin = useCallback(
+    (marginValue: number | undefined) => {
+      if (!tip) return;
+      submitTip(game.id, tip.tipTeamId, marginValue);
+    },
+    [game.id, tip, submitTip],
+  );
+
+  const handleMarginChange = useCallback(
+    (newMargin: number | undefined) => {
+      setMargin(newMargin);
+      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
+      marginTimerRef.current = setTimeout(() => saveMargin(newMargin), 500);
+    },
+    [saveMargin],
+  );
+
+  if (!showMargin || !tip) return null;
 
   const tippedTeam = tip.tipTeamId === homeTeam.id ? homeTeam : awayTeam;
 
@@ -324,16 +360,16 @@ function GameCardMarginInput() {
   const handleChange = (value: string) => {
     const num = parseInt(value, 10);
     if (value === "" || isNaN(num)) {
-      onMarginChange(undefined);
+      handleMarginChange(undefined);
     } else {
-      onMarginChange(Math.min(200, Math.max(0, num)));
+      handleMarginChange(Math.min(200, Math.max(0, num)));
     }
   };
 
   const handleStep = (delta: number) => {
     const current = margin ?? 0;
     const next = Math.min(200, Math.max(0, current + delta));
-    onMarginChange(next);
+    handleMarginChange(next);
   };
 
   const atMin = margin === undefined || margin <= 0;
@@ -484,10 +520,7 @@ interface GameCardProps {
   tip?: AflUserTip;
   prediction?: AflModelTip;
   predictionLoading?: boolean;
-  isMarginGame?: boolean;
-  margin?: number;
-  onMarginChange?: (margin: number | undefined) => void;
-  onTipSelect: (gameId: number, teamId: number) => void;
+  showMargin?: boolean;
 }
 
 export function GameCard({
@@ -497,10 +530,7 @@ export function GameCard({
   prediction,
   predictionLoading,
   tip,
-  isMarginGame,
-  margin,
-  onMarginChange,
-  onTipSelect,
+  showMargin,
 }: GameCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -512,10 +542,7 @@ export function GameCard({
       prediction={prediction}
       predictionLoading={predictionLoading}
       tip={tip}
-      isMarginGame={isMarginGame}
-      margin={margin}
-      onMarginChange={onMarginChange}
-      onTipSelect={onTipSelect}
+      showMargin={showMargin}
     >
       <Accordion type="single" collapsible onValueChange={(value) => setIsOpen(value === "item-1")}>
         <AccordionItem value="item-1">
@@ -546,7 +573,6 @@ export function GameCardSimple({
   prediction,
   predictionLoading,
   tip,
-  onTipSelect,
 }: GameCardProps) {
   return (
     <GameCardRoot
@@ -556,7 +582,6 @@ export function GameCardSimple({
       prediction={prediction}
       predictionLoading={predictionLoading}
       tip={tip}
-      onTipSelect={onTipSelect}
     >
       <GameCardHeader />
       <GameCardMatchup>
@@ -565,6 +590,34 @@ export function GameCardSimple({
         </GameCardSeparator>
       </GameCardMatchup>
     </GameCardRoot>
+  );
+}
+
+// Placeholder for games where teams haven't been allocated yet (e.g. finals)
+export function GameCardTBD({ game }: { game: AflGame.Type }) {
+  return (
+    <Card className="p-0 overflow-hidden rounded-lg opacity-60">
+      <CardContent className="p-0">
+        <div className="px-2 py-2 bg-gray-100">
+          <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{formatTime(game.date)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>
+                <span>{game.venue.name}</span>
+                {game.venue.city && <span>, {game.venue.city}</span>}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-6 sm:py-8 text-sm sm:text-base text-muted-foreground font-medium">
+          TBD vs TBD
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

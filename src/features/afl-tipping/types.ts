@@ -46,7 +46,6 @@ export type AflGame = {
   complete: number;
 };
 
-
 export interface AflRound {
   id: number;
   name: string;

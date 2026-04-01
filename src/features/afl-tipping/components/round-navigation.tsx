@@ -8,11 +8,17 @@ import { cn } from "~/lib/utils";
 
 interface RoundNavigationProps {
   currentRound: number;
+  activeRound?: number;
   onRoundChange: Dispatch<SetStateAction<number | undefined>>;
   rounds: AflRound[];
 }
 
-export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNavigationProps) {
+export function RoundNavigation({
+  currentRound,
+  activeRound,
+  onRoundChange,
+  rounds,
+}: RoundNavigationProps) {
   const handlePrevious = () => {
     if (currentRound > 0) {
       onRoundChange(currentRound - 1);
@@ -49,6 +55,7 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
               {rounds.map((round, index) => (
                 <option key={index} value={index}>
                   {round.name}
+                  {index === activeRound ? " (Current)" : ""}
                 </option>
               ))}
             </select>
@@ -57,6 +64,9 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground inline-flex items-center gap-1">
               {currentRound + 1} of {rounds.length}
+              {currentRound === activeRound && (
+                <span className="ml-1 text-blue-500 font-medium">· Current</span>
+              )}
               <ChevronDown className="h-3 w-3" />
             </p>
           </label>
@@ -99,19 +109,21 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
 
           <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
             {rounds.map((round, index) => {
-              const isActive = index === currentRound;
+              const isSelected = index === currentRound;
+              const isUpcoming = index === activeRound;
               const isFinal = index >= REGULAR_SEASON_ROUNDS;
 
               return (
                 <Button
                   key={index}
-                  variant={isActive ? "default" : "outline"}
+                  variant={isSelected ? "default" : "outline"}
                   size="sm"
                   onClick={() => onRoundChange(index)}
                   className={cn(
-                    "text-xs px-2 py-1 h-auto min-h-[32px]",
+                    "relative text-xs px-2 py-1 h-auto min-h-[32px]",
                     isFinal && "bg-orange-50 border-orange-200 hover:bg-orange-100",
-                    isActive && isFinal && "bg-orange-500 hover:bg-orange-600",
+                    isSelected && isFinal && "bg-orange-500 hover:bg-orange-600",
+                    !isSelected && isUpcoming && "ring-2 ring-blue-400",
                   )}
                 >
                   {index === 0
@@ -119,6 +131,9 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
                     : index < REGULAR_SEASON_ROUNDS
                       ? `R${index}`
                       : round.name.split(" ")[0]}
+                  {isUpcoming && !isSelected && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full" />
+                  )}
                 </Button>
               );
             })}
@@ -134,6 +149,12 @@ export function RoundNavigation({ currentRound, onRoundChange, rounds }: RoundNa
               <div className="w-3 h-3 bg-orange-200 border border-orange-300 rounded"></div>
               <span>Finals</span>
             </div>
+            {activeRound !== undefined && (
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 ring-2 ring-blue-400 rounded"></div>
+                <span>Current</span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

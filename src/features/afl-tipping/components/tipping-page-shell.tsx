@@ -31,9 +31,10 @@ function TippingPageContent({ children }: PropsWithChildren) {
   const { data: games } = useSuspenseQuery(aflQueries.allGames());
 
   const rounds = useMemo(() => aflGamesToRounds(games), [games]);
+  const activeRound = useMemo(() => AflGame.getActiveRound(games), [games]);
 
   if (currentRound == undefined) {
-    setCurrentRound(AflGame.getActiveRound(games));
+    setCurrentRound(activeRound);
   }
 
   if (currentRound == undefined) return "No round";
@@ -44,6 +45,7 @@ function TippingPageContent({ children }: PropsWithChildren) {
         <RoundNavigation
           rounds={rounds}
           currentRound={currentRound}
+          activeRound={activeRound}
           onRoundChange={setCurrentRound}
         />
         {children}

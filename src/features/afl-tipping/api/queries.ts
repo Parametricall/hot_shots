@@ -58,9 +58,10 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.MODEL_TIPS,
     });
   },
+  allGetTipsKey: () => [...aflQueries.aflKey(), "getTips"] as const,
   getTips: (gameIds: number[]) => {
     return queryOptions({
-      queryKey: [...aflQueries.aflKey(), "getTips", { gameIds }],
+      queryKey: [...aflQueries.allGetTipsKey(), { gameIds }],
       queryFn: () => getAflService().getTips({ data: { gameIds } }),
       staleTime: CACHE_DURATIONS.USER_TIPS,
     });

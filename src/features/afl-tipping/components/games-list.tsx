@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GameCard } from "./game-card";
+import { useCallback, useMemo } from "react";
+import { GameCard, GameCardTBD } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import {
@@ -11,13 +11,12 @@ import {
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
-import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
 
 export function GamesList() {
   const currentRound = useCurrentRound();
 
   const selectCurrentRoundGames = useCallback(
-    (games: AflGame.Type[]) => games.filter((g) => g.round === currentRound),
+    (games: AflGame.Type[]) => games.filter(AflGame.byRound(currentRound)),
     [currentRound],
   );
 
@@ -38,76 +37,10 @@ export function GamesList() {
     enabled: !!gameIds,
   });
 
-  const firstGameId = useMemo(
-    () => (games ? AflGame.getFirstGameOfRound(games)?.id : undefined),
-    [games],
-  );
-
-  const [margin, setMargin] = useState<number | undefined>(() => {
-    const firstTip = tip?.find((t) => t.gameId === firstGameId);
-    return firstTip?.margin;
-  });
-
-  // Sync margin from server when tips load or round changes
-  const serverMargin = tip?.find((t) => t.gameId === firstGameId)?.margin;
-  const [lastSyncedMargin, setLastSyncedMargin] = useState<number | undefined>(undefined);
-  const [lastSyncedFirstGameId, setLastSyncedFirstGameId] = useState<number | undefined>(undefined);
-  if (serverMargin !== lastSyncedMargin || firstGameId !== lastSyncedFirstGameId) {
-    setLastSyncedMargin(serverMargin);
-    setLastSyncedFirstGameId(firstGameId);
-    setMargin(serverMargin);
-  }
-
-  const submitTipMutation = useTipMutation({ gameIds });
-
-  const handleTipSelect = useCallback(
-    (gameId: number, teamId: number) => {
-      submitTipMutation.mutate({
-        data: {
-          gameId,
-          teamId,
-          margin: gameId === firstGameId ? margin : undefined,
-        },
-      });
-    },
-    [submitTipMutation, firstGameId, margin],
-  );
-
-  const marginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Save margin to server (called directly or after debounce)
-  const saveMargin = useCallback(
-    (marginValue: number | undefined) => {
-      if (!firstGameId) return;
-      const existingTip = tip?.find((t) => t.gameId === firstGameId);
-      if (existingTip) {
-        submitTipMutation.mutate({
-          data: {
-            gameId: firstGameId,
-            teamId: existingTip.tipTeamId,
-            margin: marginValue,
-          },
-        });
-      }
-    },
-    [firstGameId, tip, submitTipMutation],
-  );
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
-    };
-  }, []);
-
-  const handleMarginChange = useCallback(
-    (newMargin: number | undefined) => {
-      setMargin(newMargin);
-      if (marginTimerRef.current) clearTimeout(marginTimerRef.current);
-      marginTimerRef.current = setTimeout(() => saveMargin(newMargin), 500);
-    },
-    [saveMargin],
-  );
+  const isFirstGame = useMemo(() => {
+    const firstGameId = games ? AflGame.getFirstGameOfRound(games)?.id : undefined;
+    return AflGame.byId(firstGameId);
+  }, [games]);
 
   if (games.length === 0) {
     return (
@@ -133,41 +66,30 @@ export function GamesList() {
               {formatDateHeader(date)}
             </h3>
             <div className="space-y-2 sm:space-y-3">
-              {dateGames
-                .sort((a, b) => a.date.getTime() - b.date.getTime())
-                .map((game) => {
-                  if (!game.homeTeamId || !game.awayTeamId) {
-                    return (
-                      <div key={game.id} className="text-red-500 text-sm sm:text-base">
-                        Game {game.id} is missing team IDs.
-                      </div>
-                    );
-                  }
+              {AflGame.sortByDate(dateGames).map((game) => {
+                if (!game.homeTeamId || !game.awayTeamId) {
+                  return <GameCardTBD key={game.id} game={game} />;
+                }
 
-                  const isMarginGame = game.id === firstGameId;
-
-                  return (
-                    <GameCard
-                      key={game.id}
-                      game={game}
-                      homeTeam={
-                        findAflTeamById(teams, game.homeTeamId) ??
-                        createUnknownAflTeam(game.homeTeamId)
-                      }
-                      awayTeam={
-                        findAflTeamById(teams, game.awayTeamId) ??
-                        createUnknownAflTeam(game.awayTeamId)
-                      }
-                      prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
-                      predictionLoading={isPredictionsLoading}
-                      tip={tip?.find((t) => t.gameId === game.id)}
-                      isMarginGame={isMarginGame}
-                      margin={isMarginGame ? margin : undefined}
-                      onMarginChange={isMarginGame ? handleMarginChange : undefined}
-                      onTipSelect={handleTipSelect}
-                    />
-                  );
-                })}
+                return (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    homeTeam={
+                      findAflTeamById(teams, game.homeTeamId) ??
+                      createUnknownAflTeam(game.homeTeamId)
+                    }
+                    awayTeam={
+                      findAflTeamById(teams, game.awayTeamId) ??
+                      createUnknownAflTeam(game.awayTeamId)
+                    }
+                    prediction={modelTips?.find((t) => t.gameId === game.id) || undefined}
+                    predictionLoading={isPredictionsLoading}
+                    tip={tip?.find((t) => t.gameId === game.id)}
+                    showMargin={isFirstGame(game)}
+                  />
+                );
+              })}
             </div>
           </div>
         ))}

@@ -102,7 +102,6 @@ function StickyDatesLayout() {
                 game={game}
                 homeTeam={teams.find((t) => t.id === game.homeTeamId) ?? teams[0]}
                 awayTeam={teams.find((t) => t.id === game.awayTeamId) ?? teams[1]}
-                onTipSelect={() => {}}
               />
             ))}
           </div>
