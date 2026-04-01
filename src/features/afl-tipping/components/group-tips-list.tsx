@@ -2,14 +2,15 @@
 
 import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { AflGame, AflGroupTipEntry, AflTeam } from "~/features/afl-tipping/types";
+import type { AflGroupTipEntry, AflTeam } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import {
   findAflTeamById,
   createUnknownAflTeam,
   formatDateHeader,
   groupGamesByDate,
   formatTime,
-} from "~/features/afl-tipping/utils";
+} from "~/features/afl-tipping/utils/afl-tipping";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
@@ -183,7 +184,7 @@ function GameGroupTipCard({
   isLoading,
   isMarginGame,
 }: {
-  game: AflGame;
+  game: AflGame.Type;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tips: AflGroupTipEntry[];
@@ -256,7 +257,7 @@ export function GroupTipsList() {
   const currentRound = useCurrentRound();
 
   const selectCurrentRoundGames = useCallback(
-    (games: AflGame[]) => games.filter((g) => g.round === currentRound),
+    (games: AflGame.Type[]) => games.filter((g) => g.round === currentRound),
     [currentRound],
   );
 

@@ -1,9 +1,9 @@
 // Abstraction for AFL tipping game rules
 
-import { AflGame } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 
 export interface CanSubmitTipParams {
-  game: AflGame;
+  game: AflGame.Type;
 }
 
 export const GameRules = {
@@ -15,7 +15,7 @@ export const GameRules = {
    * Returns the actual winning margin for a completed game, or null if the game
    * is not complete or scores are unavailable.
    */
-  getActualMargin(game: AflGame): number | null {
+  getActualMargin(game: AflGame.Type): number | null {
     if (!AflGame.isComplete(game) || game.homeScore === null || game.awayScore === null) {
       return null;
     }

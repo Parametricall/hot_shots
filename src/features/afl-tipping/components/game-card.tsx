@@ -9,9 +9,10 @@ import React, {
 import { Button } from "~/components/ui/button";
 import { Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
 import logo from "/dummy-footy-logo.png?url";
-import { AflGame, AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
+import type { AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { cn } from "~/lib/utils";
-import { formatTime } from "~/features/afl-tipping/utils";
+import { formatTime } from "~/features/afl-tipping/utils/afl-tipping";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import {
   Accordion,
@@ -24,7 +25,7 @@ import { aflQueries } from "~/features/afl-tipping/api/queries";
 
 // Context for sharing game data across composed components
 interface GameCardContextValue {
-  game: AflGame;
+  game: AflGame.Type;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tip?: AflUserTip;
@@ -48,7 +49,7 @@ const useGameCard = () => {
 
 // Root component
 interface GameCardRootProps extends PropsWithChildren {
-  game: AflGame;
+  game: AflGame.Type;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tip?: AflUserTip;
@@ -477,7 +478,7 @@ function GameCardStats({ className, enabled = false }: { className?: string; ena
 
 // Default composed GameCard WITH accordion
 interface GameCardProps {
-  game: AflGame;
+  game: AflGame.Type;
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tip?: AflUserTip;

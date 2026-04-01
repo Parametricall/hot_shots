@@ -1,7 +1,7 @@
 import preview, { containerDecorator } from "#.storybook/preview";
 import { GameCard } from "~/features/afl-tipping/components/game-card";
 import { createAflGame, createAflTeam, fakeTeams } from "~/features/afl-tipping/mocks/factories";
-import { formatDateHeader } from "~/features/afl-tipping/utils";
+import { formatDateHeader } from "~/features/afl-tipping/utils/afl-tipping";
 import { AflGame } from "~/features/afl-tipping/types";
 
 const teams = [

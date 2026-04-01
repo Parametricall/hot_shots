@@ -6,7 +6,7 @@ import {
   groupGamesByDate,
   formatTime,
   aflGamesToRounds,
-} from "~/features/afl-tipping/utils";
+} from "~/features/afl-tipping/utils/afl-tipping";
 import { createAflTeam, createAflGame } from "~/features/afl-tipping/mocks/factories";
 
 describe("findAflTeamById", () => {

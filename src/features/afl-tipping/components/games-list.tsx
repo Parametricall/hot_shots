@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCard } from "./game-card";
 import { Card, CardContent } from "~/components/ui/card";
-import { AflGame } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import {
   createUnknownAflTeam,
   findAflTeamById,
   formatDateHeader,
   groupGamesByDate,
-} from "~/features/afl-tipping/utils";
+} from "~/features/afl-tipping/utils/afl-tipping";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
@@ -17,7 +17,7 @@ export function GamesList() {
   const currentRound = useCurrentRound();
 
   const selectCurrentRoundGames = useCallback(
-    (games: AflGame[]) => games.filter((g) => g.round === currentRound),
+    (games: AflGame.Type[]) => games.filter((g) => g.round === currentRound),
     [currentRound],
   );
 

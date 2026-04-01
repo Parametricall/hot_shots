@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { AflGame } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { createAflGame } from "~/features/afl-tipping/mocks/factories";
 
 afterEach(() => {

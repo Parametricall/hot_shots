@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import ServiceRegistry from "~/app/service-registry";
 import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
-import { AflGame } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { checkCheatingReports } from "./cheating-reports";
 import { getFeatureFlag } from "./feature-flags";
 
@@ -107,7 +107,7 @@ export const aflQueries = {
 
 type FormResult = { round: number; result: "win" | "loss" | "draw" | "bye" };
 
-function getPriorRounds(allGames: AflGame[], beforeRound: number): number[] {
+function getPriorRounds(allGames: AflGame.Type[], beforeRound: number): number[] {
   return [...new Set(allGames.filter((g) => g.round < beforeRound).map((g) => g.round))]
     .sort((a, b) => b - a)
     .slice(0, 5)
@@ -117,7 +117,7 @@ function getPriorRounds(allGames: AflGame[], beforeRound: number): number[] {
 function getTeamLast5(
   teamId: number | null,
   priorRounds: number[],
-  completedBefore: AflGame[],
+  completedBefore: AflGame.Type[],
 ): FormResult[] {
   if (!teamId) return [];
   return priorRounds.map((r) => {
@@ -134,7 +134,7 @@ function getTeamLast5(
 }
 
 function getH2hRecord(
-  completedBefore: AflGame[],
+  completedBefore: AflGame.Type[],
   homeTeamId: number | null,
   awayTeamId: number | null,
 ) {
@@ -152,7 +152,7 @@ function getH2hRecord(
   };
 }
 
-function selectGameStats(allGames: AflGame[], gameId: number) {
+function selectGameStats(allGames: AflGame.Type[], gameId: number) {
   const thisGame = allGames.find((g) => g.id === gameId);
   if (!thisGame) return null;
 

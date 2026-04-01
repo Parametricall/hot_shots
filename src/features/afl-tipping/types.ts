@@ -46,34 +46,6 @@ export type AflGame = {
   complete: number;
 };
 
-export const AflGame = {
-  hasStarted: (game: AflGame) => Date.now() >= game.unixTime,
-  isComplete: (game: AflGame): boolean => game.complete === 100,
-  getActiveRound: (games: AflGame[]): number => {
-    const incompleteGames = games.filter((game) => !AflGame.isComplete(game));
-    if (incompleteGames.length === 0) {
-      return 0;
-    }
-
-    return Math.min(...incompleteGames.map((g) => g.round));
-  },
-  getFirstGameOfRound(games: AflGame[]): AflGame | undefined {
-    if (games.length === 0) return undefined;
-    return games.reduce((earliest, game) => (game.unixTime < earliest.unixTime ? game : earliest));
-  },
-  groupByRound(games: AflGame[]): Record<number, AflGame[]> {
-    return games.reduce(
-      (acc, game) => {
-        if (!acc[game.round]) {
-          acc[game.round] = [];
-        }
-        acc[game.round].push(game);
-        return acc;
-      },
-      {} as Record<number, AflGame[]>,
-    );
-  },
-};
 
 export interface AflRound {
   id: number;

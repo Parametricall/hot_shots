@@ -1,12 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { auth } from "@clerk/tanstack-react-start/server";
-import {
-  AflGame,
+import type {
   AflGroupTipEntry,
   AflLeaderboardEntry,
   AflUserTip,
 } from "~/features/afl-tipping/types";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/app/service-registry";
 import { GameRules } from "./game-rules";
@@ -69,7 +69,7 @@ export const submitTip = createServerFn({ method: "POST" })
     const userId = await ensureUserAuthenticated();
 
     const { getGames } = serviceRegistry.getService("squiggleService");
-    const games: AflGame[] = await getGames();
+    const games: AflGame.Type[] = await getGames();
     const game = games.find((g) => g.id === gameId);
     // Use 'date' as the start time property (Squiggle API)
     const startTime = game?.date as string | undefined;
@@ -97,7 +97,7 @@ export const getTips = createServerFn({ method: "GET" })
     return await getTipsByUser(userId, gameIds);
   });
 
-function buildCompletedGameWinners(games: AflGame[]): Map<number, number | null> {
+function buildCompletedGameWinners(games: AflGame.Type[]): Map<number, number | null> {
   const winners = new Map<number, number | null>();
   for (const game of games) {
     if (AflGame.isComplete(game)) {
@@ -107,7 +107,7 @@ function buildCompletedGameWinners(games: AflGame[]): Map<number, number | null>
   return winners;
 }
 
-function buildFirstGameMargins(games: AflGame[]): Map<number, number> {
+function buildFirstGameMargins(games: AflGame.Type[]): Map<number, number> {
   const margins = new Map<number, number>();
   const gamesByRound = AflGame.groupByRound(games);
   for (const [, roundGames] of Object.entries(gamesByRound)) {
@@ -185,7 +185,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   const allTips: AllTipsRow[] = await repo.getAllTips();
 
   const { getGames } = serviceRegistry.getService("squiggleService");
-  const games: AflGame[] = await getGames();
+  const games: AflGame.Type[] = await getGames();
 
   const completedGameWinners = buildCompletedGameWinners(games);
   const firstGameMargins = buildFirstGameMargins(games);
@@ -262,7 +262,7 @@ export const getGroupTips = createServerFn({ method: "GET" })
 
     const { round } = data;
     const { getGames } = serviceRegistry.getService("squiggleService");
-    const games: AflGame[] = await getGames(round);
+    const games: AflGame.Type[] = await getGames(round);
 
     const gameIds = games.map((g) => g.id);
     const startedGameIds = new Set(games.filter((g) => AflGame.hasStarted(g)).map((g) => g.id));

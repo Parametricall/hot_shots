@@ -1,8 +1,8 @@
 import { PropsWithChildren, ReactNode, Suspense, useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { aflGamesToRounds } from "~/features/afl-tipping/utils";
-import { AflGame } from "~/features/afl-tipping/types";
+import { aflGamesToRounds } from "~/features/afl-tipping/utils/afl-tipping";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { RoundNavigation } from "~/features/afl-tipping/components/round-navigation";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 import { QueryErrorBoundary } from "~/components/QueryErrorResetBoundary";
