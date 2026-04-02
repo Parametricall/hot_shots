@@ -42,8 +42,7 @@ export const Route = createRootRouteWithContext<{
       },
       ...seo({
         title: "Hot Shots - AFL",
-        description:
-          "Your go-to platform for AFL tipping, live scores, and comprehensive statistics.",
+        description: "Your go-to platform for AFL tipping.",
       }),
       {
         name: "theme-color",
