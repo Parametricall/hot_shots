@@ -158,6 +158,8 @@ export function Leaderboard() {
 
   const { data: cheatingFlag } = useQuery(aflQueries.featureFlag("cheating_report"));
   const cheatingEnabled = cheatingFlag?.enabled ?? false;
+  const { data: judyFlag } = useQuery(aflQueries.featureFlag("judy_report"));
+  const judyReportEnabled = judyFlag?.enabled ?? false;
 
   const reportMutation = useMutation({
     mutationFn: reportCheating,
@@ -209,11 +211,15 @@ export function Leaderboard() {
     }
   }
 
-  const currentUserIsRyan =
-    leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Ryan") ?? false;
-  const currentUserIsBrooke =
-    leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Brooke") ?? false;
-  const showMenuColumn = cheatingEnabled && !currentUserIsRyan && !currentUserIsBrooke;
+  const currentUser = leaderboard.find((e) => e.userId === user?.id);
+  const currentUserIsRyan = currentUser?.displayName.startsWith("Ryan") ?? false;
+  const currentUserIsBrooke = currentUser?.displayName.startsWith("Brooke") ?? false;
+  const currentUserIsJudy = currentUser?.displayName.startsWith("Judy") ?? false;
+  const showMenuColumn =
+    (cheatingEnabled || judyReportEnabled) &&
+    !currentUserIsRyan &&
+    !currentUserIsBrooke &&
+    !currentUserIsJudy;
 
   return (
     <Card>
@@ -227,7 +233,10 @@ export function Leaderboard() {
         {leaderboard.map((entry, index) => {
           const isCurrentUser = entry.userId === user?.id;
           const canReport =
-            showMenuColumn && entry.displayName.startsWith("Ryan") && !isCurrentUser;
+            showMenuColumn &&
+            !isCurrentUser &&
+            ((cheatingEnabled && entry.displayName.startsWith("Ryan")) ||
+              (judyReportEnabled && entry.displayName.startsWith("Judy")));
           return (
             <LeaderboardRow
               key={entry.userId}
