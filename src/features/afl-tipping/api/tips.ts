@@ -1,14 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
-import { auth } from "@clerk/tanstack-react-start/server";
 import type {
   AflGroupTipEntry,
   AflLeaderboardEntry,
   AflUserTip,
 } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
-import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/app/service-registry";
+import { ensureAuthenticated } from "~/lib/auth";
+import { fetchAllClerkUsers } from "~/lib/clerk";
 import { GameRules } from "./game-rules";
 import type { AllTipsRow } from "./tips.repository";
 
@@ -22,51 +22,11 @@ const GetTipsSchema = z.object({
   gameIds: z.array(z.number()),
 });
 
-async function ensureUserAuthenticated(): Promise<string> {
-  const { userId } = await auth();
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
-  return userId;
-}
-
-async function fetchAllClerkUsers(): Promise<
-  Map<string, { displayName: string; avatarUrl: string | null }>
-> {
-  const clerkClient = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY!,
-  });
-
-  const BATCH_SIZE = 100;
-  const userMap = new Map<string, { displayName: string; avatarUrl: string | null }>();
-  let offset = 0;
-  let hasMore = true;
-  while (hasMore) {
-    const { data: users } = await clerkClient.users.getUserList({
-      limit: BATCH_SIZE,
-      offset,
-    });
-    for (const user of users) {
-      userMap.set(user.id, {
-        displayName:
-          [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-          user.emailAddresses[0]?.emailAddress ||
-          "Unknown User",
-        avatarUrl: user.imageUrl ?? null,
-      });
-    }
-    hasMore = users.length === BATCH_SIZE;
-    offset += BATCH_SIZE;
-  }
-
-  return userMap;
-}
-
 export const submitTip = createServerFn({ method: "POST" })
   .inputValidator(SubmitTipSchema)
   .handler(async ({ data }) => {
     const { gameId, teamId, margin } = data;
-    const userId = await ensureUserAuthenticated();
+    const userId = await ensureAuthenticated();
 
     const { getGames } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames();
@@ -90,7 +50,7 @@ export const getTips = createServerFn({ method: "GET" })
   .inputValidator(GetTipsSchema)
   .handler(async ({ data }): Promise<AflUserTip[]> => {
     const { gameIds } = data;
-    const userId = await ensureUserAuthenticated();
+    const userId = await ensureAuthenticated();
 
     const { getTipsByUser } = serviceRegistry.getService("tipsRepository");
 
@@ -179,7 +139,7 @@ function assembleLeaderboard(
 }
 
 export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
-  await ensureUserAuthenticated();
+  await ensureAuthenticated();
 
   const repo = serviceRegistry.getService("tipsRepository");
   const allTips: AllTipsRow[] = await repo.getAllTips();
@@ -258,7 +218,7 @@ function buildUntippedEntries(
 export const getGroupTips = createServerFn({ method: "GET" })
   .inputValidator(GetGroupTipsSchema)
   .handler(async ({ data }): Promise<AflGroupTipEntry[]> => {
-    await ensureUserAuthenticated();
+    await ensureAuthenticated();
 
     const { round } = data;
     const { getGames } = serviceRegistry.getService("squiggleService");

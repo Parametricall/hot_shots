@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
-import { auth } from "@clerk/tanstack-react-start/server";
 import serviceRegistry from "~/app/service-registry";
-
-const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
+import { ensureUserHasRole } from "./user-roles.repository";
 
 export const getFeatureFlag = createServerFn({ method: "GET" })
   .inputValidator(z.object({ key: z.string() }))
@@ -15,11 +13,14 @@ export const getFeatureFlag = createServerFn({ method: "GET" })
 export const setFeatureFlag = createServerFn({ method: "POST" })
   .inputValidator(z.object({ key: z.string(), enabled: z.boolean() }))
   .handler(async ({ data }) => {
-    const { userId } = await auth();
-    if (!userId || userId !== ADMIN_USER_ID) {
-      throw new Error("Unauthorized");
-    }
+    await ensureUserHasRole("admin");
     const repo = serviceRegistry.getService("featureFlagsRepository");
     await repo.setEnabled(data.key, data.enabled);
     return { success: true };
   });
+
+export const listAllFeatureFlags = createServerFn({ method: "GET" }).handler(async () => {
+  await ensureUserHasRole("admin");
+  const repo = serviceRegistry.getService("featureFlagsRepository");
+  return repo.listAll();
+});

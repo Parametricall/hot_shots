@@ -3,7 +3,8 @@ import ServiceRegistry from "~/app/service-registry";
 import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { checkCheatingReports } from "./cheating-reports";
-import { getFeatureFlag } from "./feature-flags";
+import { getFeatureFlag, listAllFeatureFlags } from "./feature-flags";
+import { listAllUsersWithRoles } from "./user-roles";
 
 // Lazy-initialize services to ensure they're registered before access
 const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
@@ -92,6 +93,18 @@ export const aflQueries = {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "featureFlag", key],
       queryFn: () => getFeatureFlag({ data: { key } }),
+    });
+  },
+  allFeatureFlags: () => {
+    return queryOptions({
+      queryKey: [...aflQueries.aflKey(), "featureFlags", "all"],
+      queryFn: () => listAllFeatureFlags(),
+    });
+  },
+  usersWithRoles: () => {
+    return queryOptions({
+      queryKey: [...aflQueries.aflKey(), "usersWithRoles"],
+      queryFn: () => listAllUsersWithRoles(),
     });
   },
   gameStats: (gameId: number) => {

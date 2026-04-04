@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
 import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authenticated/afl-tipping/tips'
 import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
@@ -48,6 +49,11 @@ const SignInSplatRoute = SignInSplatRouteImport.update({
 const AuthenticatedAflTippingRoute = AuthenticatedAflTippingRouteImport.update({
   id: '/afl-tipping',
   path: '/afl-tipping',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAflTippingIndexRoute =
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
   '/afl-tipping/leaderboard': typeof AuthenticatedAflTippingLeaderboardRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/sign-in/$': typeof SignInSplatRoute
   '/_authenticated/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/admin'
     | '/afl-tipping'
     | '/sign-in/$'
     | '/afl-tipping/group-tips'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/admin'
     | '/sign-in/$'
     | '/afl-tipping/group-tips'
     | '/afl-tipping/leaderboard'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/sign-in'
     | '/sign-up'
+    | '/_authenticated/admin'
     | '/_authenticated/afl-tipping'
     | '/sign-in/$'
     | '/_authenticated/afl-tipping/group-tips'
@@ -206,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/afl-tipping'
       fullPath: '/afl-tipping'
       preLoaderRoute: typeof AuthenticatedAflTippingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/afl-tipping/': {
@@ -272,10 +291,12 @@ const AuthenticatedAflTippingRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAflTippingRoute: typeof AuthenticatedAflTippingRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAflTippingRoute: AuthenticatedAflTippingRouteWithChildren,
 }
 

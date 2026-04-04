@@ -12,12 +12,14 @@ import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import { cheatingReportsRepository } from "~/features/afl-tipping/api/cheating-reports.repository";
 import { featureFlagsRepository } from "~/features/afl-tipping/api/feature-flags.repository";
+import { userRolesRepository } from "~/features/afl-tipping/api/user-roles.repository";
 
 serviceRegistry.registerService("squiggleService", squiggleService);
 serviceRegistry.registerService("aflService", aflService);
 serviceRegistry.registerService("tipsRepository", tipsRepository);
 serviceRegistry.registerService("cheatingReportsRepository", cheatingReportsRepository);
 serviceRegistry.registerService("featureFlagsRepository", featureFlagsRepository);
+serviceRegistry.registerService("userRolesRepository", userRolesRepository);
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 

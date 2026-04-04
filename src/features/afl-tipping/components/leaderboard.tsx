@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/tanstack-react-start";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { reportCheating } from "~/features/afl-tipping/api/cheating-reports";
-import { setFeatureFlag } from "~/features/afl-tipping/api/feature-flags";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -17,8 +16,6 @@ import { Trophy, Medal, Award, AlertCircle, Flag, MoreVertical } from "lucide-re
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
-
-const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
 function getRankIcon(rank: number) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
@@ -158,20 +155,9 @@ export function Leaderboard() {
   });
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const isAdmin = user?.id === ADMIN_USER_ID;
 
   const { data: cheatingFlag } = useQuery(aflQueries.featureFlag("cheating_report"));
   const cheatingEnabled = cheatingFlag?.enabled ?? false;
-
-  const toggleMutation = useMutation({
-    mutationFn: () =>
-      setFeatureFlag({ data: { key: "cheating_report", enabled: !cheatingEnabled } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: aflQueries.featureFlag("cheating_report").queryKey,
-      });
-    },
-  });
 
   const reportMutation = useMutation({
     mutationFn: reportCheating,
@@ -237,20 +223,6 @@ export function Leaderboard() {
           Tipping Leaderboard
         </CardTitle>
       </CardHeader>
-      {isAdmin && (
-        <div className="flex justify-end px-4 pb-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => toggleMutation.mutate()}
-            disabled={toggleMutation.isPending}
-            className="text-xs"
-          >
-            <Flag className={cn("h-3.5 w-3.5 mr-1", cheatingEnabled && "text-red-500")} />
-            {cheatingEnabled ? "Reporting on" : "Reporting off"}
-          </Button>
-        </div>
-      )}
       <CardContent className="p-0">
         {leaderboard.map((entry, index) => {
           const isCurrentUser = entry.userId === user?.id;

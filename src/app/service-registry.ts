@@ -3,6 +3,7 @@ import type { service as aflService } from "~/features/afl-tipping/api/tips";
 import type { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import type { cheatingReportsRepository } from "~/features/afl-tipping/api/cheating-reports.repository";
 import type { featureFlagsRepository } from "~/features/afl-tipping/api/feature-flags.repository";
+import type { userRolesRepository } from "~/features/afl-tipping/api/user-roles.repository";
 
 export interface ServiceTypes {
   squiggleService: typeof squiggleService;
@@ -10,6 +11,7 @@ export interface ServiceTypes {
   tipsRepository: typeof tipsRepository;
   cheatingReportsRepository: typeof cheatingReportsRepository;
   featureFlagsRepository: typeof featureFlagsRepository;
+  userRolesRepository: typeof userRolesRepository;
 }
 
 class ServiceRegistry {

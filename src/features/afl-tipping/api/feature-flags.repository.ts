@@ -21,4 +21,11 @@ export const featureFlagsRepository = {
       throw new Error(error.message || "Failed to update feature flag");
     }
   },
+
+  async listAll(): Promise<{ key: string; enabled: boolean }[]> {
+    const supabase = await getSupabaseServerClient();
+    const { data, error } = await supabase.from("feature_flags").select("key, enabled");
+    if (error) throw new Error(error.message || "Failed to fetch feature flags");
+    return data;
+  },
 };

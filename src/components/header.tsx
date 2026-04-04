@@ -3,6 +3,9 @@ import { Show, UserButton, useUser } from "@clerk/tanstack-react-start";
 import * as React from "react";
 import logo from "/dummy-footy-logo.png?url";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Settings } from "lucide-react";
+
+const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
 function getInitials(fullName: string | null | undefined): string {
   if (!fullName) return "?";
@@ -32,6 +35,11 @@ export function Header() {
 
           {/* User */}
           <div className="flex items-center gap-3">
+            {user?.id === ADMIN_USER_ID && (
+              <Link to="/admin" aria-label="Admin settings">
+                <Settings className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+              </Link>
+            )}
             <Show when="signed-in">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-xs text-muted-foreground">Signed in as</span>
