@@ -25,4 +25,6 @@ notes
 storybook-static
 
 # Claude Code
-.claude/
+.claude/*
+!.claude/skills/
+.claude/settings.local.json
