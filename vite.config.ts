@@ -28,18 +28,20 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          clerk: ["@clerk/tanstack-react-start", "@clerk/react", "@clerk/shared"],
-          router: [
-            "@tanstack/react-router",
-            "@tanstack/react-start",
-            "@tanstack/react-router-with-query",
-          ],
-          query: [
-            "@tanstack/react-query",
-            "@tanstack/react-query-persist-client",
-            "@tanstack/query-async-storage-persister",
-          ],
+        manualChunks(id) {
+          if (id.includes("node_modules/@clerk/")) return "clerk";
+          if (
+            id.includes("node_modules/@tanstack/react-router") ||
+            id.includes("node_modules/@tanstack/react-start") ||
+            id.includes("node_modules/@tanstack/router-core") ||
+            id.includes("node_modules/@tanstack/start-client-core")
+          )
+            return "router";
+          if (
+            id.includes("node_modules/@tanstack/react-query") ||
+            id.includes("node_modules/@tanstack/query-")
+          )
+            return "query";
         },
       },
     },
