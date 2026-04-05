@@ -25,6 +25,26 @@ export default defineConfig(({ mode }) => ({
     nitro(),
     viteReact(),
   ].filter(Boolean),
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          clerk: ["@clerk/tanstack-react-start", "@clerk/react", "@clerk/shared"],
+          router: [
+            "@tanstack/react-router",
+            "@tanstack/react-start",
+            "@tanstack/react-router-with-query",
+          ],
+          query: [
+            "@tanstack/react-query",
+            "@tanstack/react-query-persist-client",
+            "@tanstack/query-async-storage-persister",
+          ],
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ["cookie"],
   },
