@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Show, UserButton, useUser } from "@clerk/tanstack-react-start";
+import { useUser } from "@clerk/tanstack-react-start";
 import * as React from "react";
+
+const UserButton = React.lazy(() =>
+  import("@clerk/tanstack-react-start").then((m) => ({ default: m.UserButton })),
+);
 import logo from "/dummy-footy-logo.png?url";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
@@ -32,32 +36,36 @@ export function Header() {
 
           {/* User */}
           <div className="flex items-center gap-3">
-            <Show when="signed-in">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs text-muted-foreground">Signed in as</span>
-                <span className="text-sm font-medium text-foreground">
-                  {user?.fullName ?? user?.primaryEmailAddress?.emailAddress}
-                </span>
-              </div>
-              <div className="relative">
-                <Avatar size="lg" className="border-2 border-primary">
-                  <AvatarImage
-                    src={user?.hasImage ? user.imageUrl : undefined}
-                    alt={user?.fullName ?? "User"}
-                  />
-                  <AvatarFallback>{getInitials(user?.fullName)}</AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 opacity-0">
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        userButtonAvatarBox: "w-10! h-10!",
-                      },
-                    }}
-                  />
+            {user && (
+              <>
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-xs text-muted-foreground">Signed in as</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {user.fullName ?? user.primaryEmailAddress?.emailAddress}
+                  </span>
                 </div>
-              </div>
-            </Show>
+                <div className="relative">
+                  <Avatar size="lg" className="border-2 border-primary">
+                    <AvatarImage
+                      src={user.hasImage ? user.imageUrl : undefined}
+                      alt={user.fullName ?? "User"}
+                    />
+                    <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 opacity-0">
+                    <React.Suspense fallback={null}>
+                      <UserButton
+                        appearance={{
+                          elements: {
+                            userButtonAvatarBox: "w-10! h-10!",
+                          },
+                        }}
+                      />
+                    </React.Suspense>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
