@@ -50,7 +50,6 @@ export const Route = createRootRouteWithContext<{
       },
     ],
     links: [
-      { rel: "preconnect", href: "https://api.squiggle.com.au" },
       { rel: "stylesheet", href: appCss },
       {
         rel: "icon",

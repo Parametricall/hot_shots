@@ -4,7 +4,7 @@ export const Route = createFileRoute("/")({
   beforeLoad: async ({ location }) => {
     if (location.pathname === "/") {
       throw redirect({
-        to: "/afl-tipping",
+        to: "/afl-tipping/tips",
       });
     }
   },
