@@ -29,7 +29,6 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ["react", "react-dom"],
           clerk: ["@clerk/tanstack-react-start", "@clerk/react", "@clerk/shared"],
           router: [
             "@tanstack/react-router",
