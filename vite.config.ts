@@ -25,27 +25,6 @@ export default defineConfig(({ mode }) => ({
     nitro(),
     viteReact(),
   ].filter(Boolean),
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules/@clerk/")) return "clerk";
-          if (
-            id.includes("node_modules/@tanstack/react-router") ||
-            id.includes("node_modules/@tanstack/react-start") ||
-            id.includes("node_modules/@tanstack/router-core") ||
-            id.includes("node_modules/@tanstack/start-client-core")
-          )
-            return "router";
-          if (
-            id.includes("node_modules/@tanstack/react-query") ||
-            id.includes("node_modules/@tanstack/query-")
-          )
-            return "query";
-        },
-      },
-    },
-  },
   optimizeDeps: {
     include: ["cookie"],
   },
