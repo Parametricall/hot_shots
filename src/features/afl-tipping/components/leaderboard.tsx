@@ -14,22 +14,25 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Trophy, Medal, Award, AlertCircle, Flag, MoreVertical } from "lucide-react";
+import { WoodenSpoon } from "~/components/wooden-spoon";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
 
 const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
-function getRankIcon(rank: number) {
+function getRankIcon(rank: number, lastRank?: number) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
   if (rank === 3) return <Award className="h-5 w-5 text-amber-600" />;
+  if (lastRank != null && rank === lastRank) return <WoodenSpoon size={12} />;
   return <span className="text-sm font-medium text-muted-foreground w-5 text-center">{rank}</span>;
 }
 
 interface LeaderboardRowProps {
   entry: AflLeaderboardEntry;
   rank: number;
+  lastRank: number;
   isCurrentUser: boolean;
   onReport?: () => void;
   showMenuColumn?: boolean;
@@ -38,6 +41,7 @@ interface LeaderboardRowProps {
 function LeaderboardRow({
   entry,
   rank,
+  lastRank,
   isCurrentUser,
   onReport,
   showMenuColumn,
@@ -49,7 +53,7 @@ function LeaderboardRow({
         isCurrentUser && "bg-blue-50 border-blue-200",
       )}
     >
-      <div className="flex items-center justify-center w-8">{getRankIcon(rank)}</div>
+      <div className="flex items-center justify-center w-8">{getRankIcon(rank, lastRank)}</div>
 
       {entry.avatarUrl && (
         <img
@@ -261,6 +265,7 @@ export function Leaderboard() {
               key={entry.userId}
               entry={entry}
               rank={ranks[index]}
+              lastRank={ranks[ranks.length - 1]}
               isCurrentUser={isCurrentUser}
               showMenuColumn={showMenuColumn}
               onReport={

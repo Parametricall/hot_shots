@@ -69,7 +69,22 @@ describe("Leaderboard", () => {
     expect(screen.getByText("20")).toBeInTheDocument();
   });
 
-  it("shows a number label for rank 4 and above", () => {
+  it("shows a number label for rank 4 when it is not last place", () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+      makeEntry({ userId: "u1", displayName: "A", score: 10, totalMarginDiff: 0 }),
+      makeEntry({ userId: "u2", displayName: "B", score: 8, totalMarginDiff: 0 }),
+      makeEntry({ userId: "u3", displayName: "C", score: 6, totalMarginDiff: 0 }),
+      makeEntry({ userId: "u4", displayName: "D", score: 3, totalMarginDiff: 0 }),
+      makeEntry({ userId: "u5", displayName: "E", score: 1, totalMarginDiff: 0 }),
+    ]);
+    renderWithClient(<Leaderboard />, queryClient);
+
+    // Rank 4 is rendered as a text span (not a Trophy/Medal/Award icon)
+    expect(screen.getByText("4")).toBeInTheDocument();
+  });
+
+  it("shows a wooden spoon icon for the last place entry", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
       makeEntry({ userId: "u1", displayName: "A", score: 10, totalMarginDiff: 0 }),
@@ -79,8 +94,10 @@ describe("Leaderboard", () => {
     ]);
     renderWithClient(<Leaderboard />, queryClient);
 
-    // Rank 4 is rendered as a text span (not a Trophy/Medal/Award icon)
-    expect(screen.getByText("4")).toBeInTheDocument();
+    // Last place gets the wooden spoon SVG instead of a number
+    expect(screen.queryByText("4")).not.toBeInTheDocument();
+    const svg = document.querySelector('svg[viewBox="0 0 120 240"]');
+    expect(svg).toBeInTheDocument();
   });
 
   it("assigns the same rank to tied entries and skips ahead for the next distinct entry", () => {
