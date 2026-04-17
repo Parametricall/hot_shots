@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 const TABS = [
   { id: "tips", label: "My Tips" },
   { id: "group-tips", label: "Player Tips" },
-  { id: "standings", label: "Standings" },
+  { id: "standings", label: "Ladder" },
   { id: "leaderboard", label: "Leaderboard" },
 ] as const;
 
