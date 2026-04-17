@@ -310,6 +310,23 @@ export const InProgressWithTip = meta.story({
   },
 });
 
+export const InProgressWithMargin = meta.story({
+  args: {
+    game: inProgressGame,
+    showMargin: true,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      margin: 20,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([inProgressGame]),
+    },
+  },
+});
+
 export const InProgressNoTip = meta.story({
   args: {
     game: inProgressGame,

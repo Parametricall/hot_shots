@@ -379,11 +379,21 @@ function GameCardMarginInput() {
   }
 
   if (isGameStarted) {
+    const liveMargin =
+      game.homeScore != null && game.awayScore != null
+        ? Math.abs(game.homeScore - game.awayScore)
+        : null;
+    const tipMargin = margin ?? 0;
+
     return (
-      <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 border-t">
-        <span className="text-xs font-medium text-gray-600">{tippedTeam.abbrev} by</span>
-        <span className="text-sm font-semibold">{margin ?? 0}</span>
-        <span className="text-xs text-gray-500">pts</span>
+      <div className="flex items-center justify-center gap-3 px-3 py-2 bg-gray-50 border-t text-xs">
+        <span className="text-gray-500">
+          Margin: <span className="font-semibold text-gray-700">{liveMargin ?? "—"}</span> pts
+        </span>
+        <span className="text-gray-300">|</span>
+        <span className="text-gray-500">
+          Prediction: <span className="font-semibold text-gray-700">{tipMargin}</span> pts
+        </span>
       </div>
     );
   }
