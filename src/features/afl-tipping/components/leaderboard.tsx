@@ -55,14 +55,6 @@ function LeaderboardRow({
     >
       <div className="flex items-center justify-center w-8">{getRankIcon(rank, lastRank)}</div>
 
-      {entry.avatarUrl && (
-        <img
-          src={entry.avatarUrl}
-          alt={`${entry.displayName} avatar`}
-          className="w-8 h-8 rounded-full"
-        />
-      )}
-
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium truncate">{entry.displayName}</span>
@@ -114,7 +106,6 @@ function LeaderboardSkeletonRow() {
       <div className="flex items-center justify-center w-8">
         <Skeleton className="h-5 w-5 rounded-full" />
       </div>
-      <Skeleton className="w-8 h-8 rounded-full" />
       <div className="flex-1 min-w-0">
         <Skeleton className="h-4 w-28" />
       </div>
