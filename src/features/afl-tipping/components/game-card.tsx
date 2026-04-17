@@ -15,6 +15,7 @@ import logo from "/dummy-footy-logo.png?url";
 import type { AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { cn } from "~/lib/utils";
+import { GameRules } from "~/features/afl-tipping/api/game-rules";
 import { formatTime } from "~/features/afl-tipping/utils/afl-tipping";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import {
@@ -346,6 +347,36 @@ function GameCardMarginInput() {
   if (!showMargin || !tip) return null;
 
   const tippedTeam = tip.tipTeamId === homeTeam.id ? homeTeam : awayTeam;
+
+  const isComplete = AflGame.isComplete(game);
+
+  if (isComplete) {
+    const actualMargin = GameRules.getActualMargin(game);
+    const tippedTeamWon = game.winnerTeamId === tip.tipTeamId;
+    const tipMargin = margin ?? 0;
+    const marginDiff =
+      actualMargin != null
+        ? GameRules.calculateMarginDiff(tipMargin, actualMargin, tippedTeamWon)
+        : null;
+
+    return (
+      <div className="flex items-center justify-center gap-3 px-3 py-2 bg-gray-50 border-t text-xs">
+        <span className="text-gray-500">
+          Margin: <span className="font-semibold text-gray-700">{actualMargin}</span> pts
+        </span>
+        <span className="text-gray-300">|</span>
+        <span className="text-gray-500">
+          Prediction: <span className="font-semibold text-gray-700">{tipMargin}</span> pts
+        </span>
+        {marginDiff != null && (
+          <>
+            <span className="text-gray-300">|</span>
+            <span className="font-semibold text-gray-700">+{marginDiff} to total</span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (isGameStarted) {
     return (

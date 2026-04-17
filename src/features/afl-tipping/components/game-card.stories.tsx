@@ -335,6 +335,58 @@ export const SelectedHomeTip = meta.story({
   },
 });
 
+// Margin stories — finishedGame: home 95 - away 72, actual margin = 23, home (id:1) won
+export const FinishedCorrectTipWithMargin = meta.story({
+  args: {
+    game: finishedGame,
+    showMargin: true,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      margin: 15,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
+
+export const FinishedCorrectTipMarginExact = meta.story({
+  args: {
+    game: finishedGame,
+    showMargin: true,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      margin: 23,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
+
+export const FinishedWrongTipWithMargin = meta.story({
+  args: {
+    game: finishedGame,
+    showMargin: true,
+    tip: {
+      gameId: 100,
+      tipTeamId: 2,
+      margin: 10,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([finishedGame]),
+    },
+  },
+});
+
 export const SelectedAwayTip = meta.story({
   args: {
     tip: {
