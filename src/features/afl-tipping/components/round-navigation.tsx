@@ -1,7 +1,6 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { Dispatch, SetStateAction } from "react";
 import { AflRound } from "~/features/afl-tipping/types";
 import { REGULAR_SEASON_ROUNDS } from "~/features/afl-tipping/constants";
 import { cn } from "~/lib/utils";
@@ -9,7 +8,7 @@ import { cn } from "~/lib/utils";
 interface RoundNavigationProps {
   currentRound: number;
   activeRound?: number;
-  onRoundChange: Dispatch<SetStateAction<number | undefined>>;
+  onRoundChange: (round: number | undefined) => void;
   rounds: AflRound[];
 }
 

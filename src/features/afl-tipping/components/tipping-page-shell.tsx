@@ -1,5 +1,6 @@
-import { PropsWithChildren, ReactNode, Suspense, useMemo, useState } from "react";
+import { PropsWithChildren, ReactNode, Suspense, useCallback, useMemo } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils/afl-tipping";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
@@ -26,16 +27,27 @@ export function TippingPageShell({
 }
 
 function TippingPageContent({ children }: PropsWithChildren) {
-  const [currentRound, setCurrentRound] = useState<number>();
+  const search = useSearch({ strict: false }) as { round?: number };
+  const navigate = useNavigate();
 
   const { data: games } = useSuspenseQuery(aflQueries.allGames());
 
   const rounds = useMemo(() => aflGamesToRounds(games), [games]);
   const activeRound = useMemo(() => AflGame.getActiveRound(games), [games]);
 
-  if (currentRound == undefined) {
-    setCurrentRound(activeRound);
-  }
+  const currentRound = search.round ?? activeRound;
+
+  const handleRoundChange = useCallback(
+    (round: number | undefined) => {
+      if (round == undefined) return;
+      navigate({
+        to: ".",
+        search: (prev: Record<string, unknown>) => ({ ...prev, round }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
 
   if (currentRound == undefined) return "No round";
 
@@ -46,7 +58,7 @@ function TippingPageContent({ children }: PropsWithChildren) {
           rounds={rounds}
           currentRound={currentRound}
           activeRound={activeRound}
-          onRoundChange={setCurrentRound}
+          onRoundChange={handleRoundChange}
         />
         {children}
       </div>

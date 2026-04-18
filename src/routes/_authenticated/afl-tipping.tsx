@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { z } from "zod";
 import { Header } from "~/components/header";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
@@ -9,7 +10,12 @@ const TABS = [
   { id: "leaderboard", label: "Leaderboard" },
 ] as const;
 
+const aflTippingSearchSchema = z.object({
+  round: z.number().int().nonnegative().optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/afl-tipping")({
+  validateSearch: aflTippingSearchSchema,
   component: AflTippingLayout,
 });
 
@@ -26,7 +32,9 @@ function AflTippingLayout() {
           <TabsList className="w-full">
             {TABS.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} asChild>
-                <Link to={`/afl-tipping/${tab.id}`}>{tab.label}</Link>
+                <Link to={`/afl-tipping/${tab.id}`} search={(prev) => prev}>
+                  {tab.label}
+                </Link>
               </TabsTrigger>
             ))}
           </TabsList>
