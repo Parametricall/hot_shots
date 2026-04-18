@@ -38,6 +38,7 @@ export default defineConfig([
   tseslint.configs.recommended,
   {
     ...pluginReact.configs.flat.recommended,
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     settings: {
       react: {
         version: "detect",
