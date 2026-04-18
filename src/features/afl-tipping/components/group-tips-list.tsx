@@ -43,10 +43,7 @@ function UserBadge({
       {tip.displayName}
       {showMargin && tip.margin != null && (
         <span
-          className={cn(
-            "font-normal",
-            isCurrentUser ? "text-blue-700" : "text-muted-foreground",
-          )}
+          className={cn("font-normal", isCurrentUser ? "text-blue-700" : "text-muted-foreground")}
         >
           ({tip.margin}pts)
         </span>
@@ -94,11 +91,7 @@ function PreGameTips({
           <div className="text-xs text-muted-foreground mb-1">Tipped</div>
           <div className="flex flex-wrap gap-1.5">
             {tipped.map((tip) => (
-              <UserBadge
-                key={tip.userId}
-                tip={tip}
-                isCurrentUser={tip.userId === currentUserId}
-              />
+              <UserBadge key={tip.userId} tip={tip} isCurrentUser={tip.userId === currentUserId} />
             ))}
           </div>
         </div>
