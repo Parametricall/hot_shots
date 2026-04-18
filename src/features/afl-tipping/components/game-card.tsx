@@ -10,8 +10,8 @@ import React, {
   useState,
 } from "react";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import { Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
-import logo from "/dummy-footy-logo.png?url";
 import type { AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { cn } from "~/lib/utils";
@@ -244,9 +244,12 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
         </span>
       </div>
 
-      <div className="sm:hidden flex flex-col items-center">
+      <div className="sm:hidden flex flex-col items-center gap-1">
         {showLoading ? (
-          <img src={logo} alt="Loading" className="w-6 h-6 animate-spin" />
+          <>
+            <Skeleton className="h-6 w-10" aria-label="Loading prediction" />
+            <Skeleton className="h-2.5 w-14" />
+          </>
         ) : (
           <>
             <div className="font-semibold text-lg">{displayValue}</div>
@@ -254,9 +257,12 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
           </>
         )}
       </div>
-      <div className="hidden sm:flex flex-col items-center">
+      <div className="hidden sm:flex flex-col items-center gap-1">
         {showLoading ? (
-          <img src={logo} alt="Loading" className="w-8 h-8 animate-spin" />
+          <>
+            <Skeleton className="h-8 w-14" aria-label="Loading prediction" />
+            <Skeleton className="h-3 w-16" />
+          </>
         ) : (
           <>
             <div className="font-semibold text-2xl">{displayValue}</div>

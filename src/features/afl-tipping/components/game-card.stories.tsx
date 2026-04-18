@@ -2,6 +2,7 @@ import preview, { centeredYDecorator, containerDecorator } from "#.storybook/pre
 import { GameCard } from "~/features/afl-tipping/components/game-card";
 import { createAflGame, createAflTeam, fakeTeams } from "~/features/afl-tipping/mocks/factories";
 import { AflGame } from "~/features/afl-tipping/types";
+import { expect, within } from "storybook/test";
 
 const homeTeam = createAflTeam({ id: 1, ...fakeTeams.lions });
 const awayTeam = createAflTeam({ id: 2, ...fakeTeams.suns });
@@ -235,6 +236,23 @@ export const PredictionLoading = meta.story({
   args: {
     predictionLoading: true,
   },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService(gamesWithHistory),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const placeholders = await canvas.findAllByLabelText("Loading prediction");
+    expect(placeholders.length).toBeGreaterThan(0);
+  },
+});
+
+export const PredictionLoadingMobile = meta.story({
+  args: {
+    predictionLoading: true,
+  },
+  decorators: [containerDecorator("max-w-[360px]")],
   parameters: {
     services: {
       squiggleService: mockSquiggleService(gamesWithHistory),
