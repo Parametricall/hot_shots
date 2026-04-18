@@ -227,9 +227,15 @@ function GameGroupTipCard({
           <div className="flex items-center gap-2">
             <img src={homeTeam.logo} alt={homeTeam.name} className="w-8 h-8" />
             <span className="text-sm font-medium">{homeTeam.abbrev}</span>
+            {hasStarted && game.homeScore != null && (
+              <span className="text-base font-semibold tabular-nums">{game.homeScore}</span>
+            )}
           </div>
-          <span className="text-xs text-muted-foreground">vs</span>
+          <span className="text-xs text-muted-foreground">{hasStarted ? "–" : "vs"}</span>
           <div className="flex items-center gap-2">
+            {hasStarted && game.awayScore != null && (
+              <span className="text-base font-semibold tabular-nums">{game.awayScore}</span>
+            )}
             <span className="text-sm font-medium">{awayTeam.abbrev}</span>
             <img src={awayTeam.logo} alt={awayTeam.name} className="w-8 h-8" />
           </div>
