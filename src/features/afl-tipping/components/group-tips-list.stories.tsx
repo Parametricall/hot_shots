@@ -109,13 +109,14 @@ const meta = preview.meta({
   ],
 });
 
-// Before game starts: tipped vs not-yet-tipped badges
+// Before game starts: tipped vs not-yet-tipped badges — current user's badge stands out
 export const UpcomingGameTippedAndNot = meta.story({
   tags: ["demo"],
   parameters: {
     services: buildServices(
       [upcomingGame],
       [
+        createAflGroupTipEntry({ ...mockUsers.me, gameId: 101, hasTipped: true }),
         createAflGroupTipEntry({ ...mockUsers.alice, gameId: 101, hasTipped: true }),
         createAflGroupTipEntry({ ...mockUsers.bob, gameId: 101, hasTipped: true }),
         createAflGroupTipEntry({ ...mockUsers.charlie, gameId: 101, hasTipped: false }),

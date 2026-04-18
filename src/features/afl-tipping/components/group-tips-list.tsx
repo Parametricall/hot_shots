@@ -22,18 +22,34 @@ import { useUser } from "@clerk/tanstack-react-start";
 
 function UserBadge({
   tip,
+  isCurrentUser,
   showMargin,
   className,
 }: {
   tip: AflGroupTipEntry;
+  isCurrentUser?: boolean;
   showMargin?: boolean;
   className?: string;
 }) {
   return (
-    <Badge variant="secondary" className={cn("gap-1.5 py-1", className)}>
+    <Badge
+      variant="secondary"
+      className={cn(
+        "gap-1.5 py-1",
+        isCurrentUser && "bg-blue-100 text-blue-900 ring-1 ring-blue-300 font-semibold",
+        className,
+      )}
+    >
       {tip.displayName}
       {showMargin && tip.margin != null && (
-        <span className="text-muted-foreground font-normal">({tip.margin}pts)</span>
+        <span
+          className={cn(
+            "font-normal",
+            isCurrentUser ? "text-blue-700" : "text-muted-foreground",
+          )}
+        >
+          ({tip.margin}pts)
+        </span>
       )}
       {tip.hasMargin === false && (
         <span className="text-red-500 font-normal text-xs" title="No margin set">
@@ -65,9 +81,11 @@ function TipsSkeleton() {
 function PreGameTips({
   tipped,
   notTipped,
+  currentUserId,
 }: {
   tipped: AflGroupTipEntry[];
   notTipped: AflGroupTipEntry[];
+  currentUserId: string | undefined;
 }) {
   return (
     <div className="px-3 py-2 border-t space-y-2">
@@ -76,7 +94,11 @@ function PreGameTips({
           <div className="text-xs text-muted-foreground mb-1">Tipped</div>
           <div className="flex flex-wrap gap-1.5">
             {tipped.map((tip) => (
-              <UserBadge key={tip.userId} tip={tip} />
+              <UserBadge
+                key={tip.userId}
+                tip={tip}
+                isCurrentUser={tip.userId === currentUserId}
+              />
             ))}
           </div>
         </div>
@@ -86,7 +108,12 @@ function PreGameTips({
           <div className="text-xs text-muted-foreground mb-1">Not yet tipped</div>
           <div className="flex flex-wrap gap-1.5">
             {notTipped.map((tip) => (
-              <UserBadge key={tip.userId} tip={tip} className="opacity-50" />
+              <UserBadge
+                key={tip.userId}
+                tip={tip}
+                isCurrentUser={tip.userId === currentUserId}
+                className="opacity-50"
+              />
             ))}
           </div>
         </div>
@@ -103,17 +130,16 @@ function PostGameTips({
   homeTeam,
   awayTeam,
   winnerTeamId,
+  currentUserId,
   isMarginGame,
 }: {
   tips: AflGroupTipEntry[];
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   winnerTeamId: number | null;
+  currentUserId: string | undefined;
   isMarginGame?: boolean;
 }) {
-  const { user } = useUser();
-  const currentUserId = user?.id;
-
   const homeTips = tips.filter((t) => t.tipTeamId === homeTeam.id);
   const awayTips = tips.filter((t) => t.tipTeamId === awayTeam.id);
 
@@ -129,6 +155,7 @@ function PostGameTips({
         isCorrect={isComplete && winnerTeamId === homeTeam.id}
         isComplete={isComplete}
         highlightForCurrentUser={currentUserTippedHome}
+        currentUserId={currentUserId}
         showMargin={isMarginGame}
       />
       <TeamTipGroup
@@ -137,6 +164,7 @@ function PostGameTips({
         isCorrect={isComplete && winnerTeamId === awayTeam.id}
         isComplete={isComplete}
         highlightForCurrentUser={currentUserTippedAway}
+        currentUserId={currentUserId}
         showMargin={isMarginGame}
       />
     </div>
@@ -149,6 +177,7 @@ function TeamTipGroup({
   isCorrect,
   isComplete,
   highlightForCurrentUser,
+  currentUserId,
   showMargin,
 }: {
   team: AflTeam;
@@ -156,6 +185,7 @@ function TeamTipGroup({
   isCorrect: boolean;
   isComplete: boolean;
   highlightForCurrentUser: boolean;
+  currentUserId: string | undefined;
   showMargin?: boolean;
 }) {
   const sortedTips = [...tips].sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
@@ -176,7 +206,12 @@ function TeamTipGroup({
       {sortedTips.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {sortedTips.map((tip) => (
-            <UserBadge key={tip.userId} tip={tip} showMargin={showMargin} />
+            <UserBadge
+              key={tip.userId}
+              tip={tip}
+              isCurrentUser={tip.userId === currentUserId}
+              showMargin={showMargin}
+            />
           ))}
         </div>
       ) : (
@@ -204,6 +239,8 @@ function GameGroupTipCard({
   const hasStarted = useGameStartTimer(game.unixTime);
   const queryClient = useQueryClient();
   const prevHasStarted = useRef(hasStarted);
+  const { user } = useUser();
+  const currentUserId = user?.id;
 
   useEffect(() => {
     if (hasStarted && !prevHasStarted.current) {
@@ -259,10 +296,11 @@ function GameGroupTipCard({
             homeTeam={homeTeam}
             awayTeam={awayTeam}
             winnerTeamId={AflGame.isComplete(game) ? game.winnerTeamId : null}
+            currentUserId={currentUserId}
             isMarginGame={isMarginGame}
           />
         ) : (
-          <PreGameTips tipped={tipped} notTipped={notTipped} />
+          <PreGameTips tipped={tipped} notTipped={notTipped} currentUserId={currentUserId} />
         )}
       </CardContent>
     </Card>
