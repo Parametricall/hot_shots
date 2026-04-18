@@ -10,6 +10,7 @@ import { AflGame, AflGroupTipEntry } from "~/features/afl-tipping/types";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 import type { Decorator } from "@storybook/react-vite";
 import { VENUES } from "~/features/afl-tipping/constants";
+import { Suspense } from "react";
 
 const withCurrentRound = (round: number): Decorator => {
   return function Decorator(Story) {
@@ -20,6 +21,12 @@ const withCurrentRound = (round: number): Decorator => {
     );
   };
 };
+
+const withSuspense: Decorator = (Story) => (
+  <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+    <Story />
+  </Suspense>
+);
 
 const teams = [
   createAflTeam({ id: 1, ...fakeTeams.lions }),
@@ -69,6 +76,9 @@ const upcomingGame = createAflGame({
 });
 
 const mockUsers = {
+  // user-storybook matches the default Clerk mock id in .storybook/mocks/clerk.tsx,
+  // so this entry represents the current viewing user for highlight purposes.
+  me: { userId: "user-storybook", displayName: "Jane Doe", avatarUrl: null },
   alice: { userId: "user-1", displayName: "Alice Johnson", avatarUrl: "/dummy-footy-logo.png" },
   bob: { userId: "user-2", displayName: "Bob Williams", avatarUrl: "/dummy-footy-logo.png" },
   charlie: { userId: "user-3", displayName: "Charlie Brown", avatarUrl: null },
@@ -91,7 +101,12 @@ function buildServices(games: AflGame[], groupTips: AflGroupTipEntry[]) {
 const meta = preview.meta({
   component: GroupTipsList,
   parameters: { layout: "padded" },
-  decorators: [withCurrentRound(1), containerDecorator("max-w-xl"), centeredYDecorator],
+  decorators: [
+    withSuspense,
+    withCurrentRound(1),
+    containerDecorator("max-w-xl"),
+    centeredYDecorator,
+  ],
 });
 
 // Before game starts: tipped vs not-yet-tipped badges
@@ -127,8 +142,40 @@ export const StartedGameGroupedByTeam = meta.story({
   },
 });
 
-// Completed game: correct group highlighted in green, wrong group faded
-export const CompletedGameHomeWins = meta.story({
+// Completed game: current user tipped the winner — their group gets the green highlight
+export const CompletedGameCurrentUserCorrect = meta.story({
+  parameters: {
+    services: buildServices(
+      [completedGame],
+      [
+        createAflGroupTipEntry({ ...mockUsers.me, gameId: 100, tipTeamId: 1 }),
+        createAflGroupTipEntry({ ...mockUsers.alice, gameId: 100, tipTeamId: 1 }),
+        createAflGroupTipEntry({ ...mockUsers.bob, gameId: 100, tipTeamId: 2 }),
+        createAflGroupTipEntry({ ...mockUsers.charlie, gameId: 100, tipTeamId: 1 }),
+        createAflGroupTipEntry({ ...mockUsers.eve, gameId: 100, tipTeamId: 2 }),
+      ],
+    ),
+  },
+});
+
+// Completed game: current user tipped the loser — their group gets the red highlight
+export const CompletedGameCurrentUserIncorrect = meta.story({
+  parameters: {
+    services: buildServices(
+      [completedGame],
+      [
+        createAflGroupTipEntry({ ...mockUsers.me, gameId: 100, tipTeamId: 2 }),
+        createAflGroupTipEntry({ ...mockUsers.alice, gameId: 100, tipTeamId: 1 }),
+        createAflGroupTipEntry({ ...mockUsers.bob, gameId: 100, tipTeamId: 2 }),
+        createAflGroupTipEntry({ ...mockUsers.charlie, gameId: 100, tipTeamId: 1 }),
+        createAflGroupTipEntry({ ...mockUsers.diana, gameId: 100, tipTeamId: 1 }),
+      ],
+    ),
+  },
+});
+
+// Completed game: current user didn't tip — no highlights on either group
+export const CompletedGameCurrentUserMissing = meta.story({
   parameters: {
     services: buildServices(
       [completedGame],
@@ -190,12 +237,13 @@ export const UpcomingNoneTipped = meta.story({
   },
 });
 
-// One team gets all the tips
+// One team gets all the tips — current user is among them so their group is highlighted green
 export const CompletedGameUnanimous = meta.story({
   parameters: {
     services: buildServices(
       [completedGame],
       [
+        createAflGroupTipEntry({ ...mockUsers.me, gameId: 100, tipTeamId: 1 }),
         createAflGroupTipEntry({ ...mockUsers.alice, gameId: 100, tipTeamId: 1 }),
         createAflGroupTipEntry({ ...mockUsers.bob, gameId: 100, tipTeamId: 1 }),
         createAflGroupTipEntry({ ...mockUsers.charlie, gameId: 100, tipTeamId: 1 }),

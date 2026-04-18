@@ -18,6 +18,7 @@ import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-t
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useCallback, useEffect, useRef } from "react";
+import { useUser } from "@clerk/tanstack-react-start";
 
 function UserBadge({
   tip,
@@ -110,10 +111,15 @@ function PostGameTips({
   winnerTeamId: number | null;
   isMarginGame?: boolean;
 }) {
+  const { user } = useUser();
+  const currentUserId = user?.id;
+
   const homeTips = tips.filter((t) => t.tipTeamId === homeTeam.id);
   const awayTips = tips.filter((t) => t.tipTeamId === awayTeam.id);
 
   const isComplete = winnerTeamId !== null;
+  const currentUserTippedHome = homeTips.some((t) => t.userId === currentUserId);
+  const currentUserTippedAway = awayTips.some((t) => t.userId === currentUserId);
 
   return (
     <div className="px-3 py-2 border-t space-y-2">
@@ -122,6 +128,7 @@ function PostGameTips({
         tips={homeTips}
         isCorrect={isComplete && winnerTeamId === homeTeam.id}
         isComplete={isComplete}
+        highlightForCurrentUser={currentUserTippedHome}
         showMargin={isMarginGame}
       />
       <TeamTipGroup
@@ -129,6 +136,7 @@ function PostGameTips({
         tips={awayTips}
         isCorrect={isComplete && winnerTeamId === awayTeam.id}
         isComplete={isComplete}
+        highlightForCurrentUser={currentUserTippedAway}
         showMargin={isMarginGame}
       />
     </div>
@@ -140,12 +148,14 @@ function TeamTipGroup({
   tips,
   isCorrect,
   isComplete,
+  highlightForCurrentUser,
   showMargin,
 }: {
   team: AflTeam;
   tips: AflGroupTipEntry[];
   isCorrect: boolean;
   isComplete: boolean;
+  highlightForCurrentUser: boolean;
   showMargin?: boolean;
 }) {
   const sortedTips = [...tips].sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
@@ -154,8 +164,8 @@ function TeamTipGroup({
     <div
       className={cn(
         "rounded-md px-2 py-1.5",
-        isComplete && isCorrect && "bg-green-50 ring-1 ring-green-300",
-        isComplete && !isCorrect && "opacity-50",
+        isComplete && highlightForCurrentUser && isCorrect && "bg-green-50 ring-1 ring-green-300",
+        isComplete && highlightForCurrentUser && !isCorrect && "bg-red-50 ring-1 ring-red-300",
       )}
     >
       <div className="flex items-center gap-1.5 mb-1">
