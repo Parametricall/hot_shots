@@ -13,7 +13,6 @@
     "target": "ES2023",
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./",
     "paths": {
       "~/*": ["./src/*"]
     },
