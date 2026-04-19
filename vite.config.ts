@@ -13,10 +13,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     tailwindcss(),
-    // this is the plugin that enables path aliases
-    viteTsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
     tanstackStart({
       router: { entry: "./app/router" },
       start: { entry: "./app/start" },
@@ -29,6 +25,7 @@ export default defineConfig(({ mode }) => ({
     include: ["cookie"],
   },
   resolve: {
+    tsconfigPaths: true,
     alias: [
       {
         find: "use-sync-external-store/shim/index.js",
