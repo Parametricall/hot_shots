@@ -1,4 +1,8 @@
-import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
+import preview, {
+  centeredYDecorator,
+  containerDecorator,
+  withSuspense,
+} from "#.storybook/preview";
 import { GroupTipsList } from "~/features/afl-tipping/components/group-tips-list";
 import {
   createAflGame,
@@ -10,7 +14,6 @@ import { AflGame, AflGroupTipEntry } from "~/features/afl-tipping/types";
 import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-round-provider";
 import type { Decorator } from "@storybook/react-vite";
 import { VENUES } from "~/features/afl-tipping/constants";
-import { Suspense } from "react";
 
 const withCurrentRound = (round: number): Decorator => {
   return function Decorator(Story) {
@@ -21,12 +24,6 @@ const withCurrentRound = (round: number): Decorator => {
     );
   };
 };
-
-const withSuspense: Decorator = (Story) => (
-  <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
-    <Story />
-  </Suspense>
-);
 
 const teams = [
   createAflTeam({ id: 1, ...fakeTeams.lions }),

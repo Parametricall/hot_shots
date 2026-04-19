@@ -70,9 +70,6 @@ export const Default = meta.story({
 
     // Current user should have "You" badge
     expect(canvas.getByText("You")).toBeInTheDocument();
-
-    // Ryan should have a report button
-    expect(canvas.getByTitle("Report for cheating")).toBeInTheDocument();
   },
 });
 

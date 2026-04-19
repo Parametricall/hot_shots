@@ -2,7 +2,7 @@ import addonA11y from "@storybook/addon-a11y";
 import addonDocs from "@storybook/addon-docs";
 import type { Decorator } from "@storybook/react-vite";
 import { definePreview } from "@storybook/react-vite";
-import { HTMLProps } from "react";
+import { HTMLProps, Suspense, useState } from "react";
 import { cn } from "~/lib/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ServiceRegistry, { ServiceTypes } from "~/app/service-registry";
@@ -14,6 +14,11 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
+import {
+  ClerkMockContext,
+  DEFAULT_USER,
+  type MockUser,
+} from "./mocks/clerk-mock-user";
 
 import "~/styles/app.css";
 
@@ -34,77 +39,64 @@ export const centeredYDecorator: Decorator = (Story) => {
   );
 };
 
-export function withServices(queryClient: QueryClient): Decorator {
-  return function withServicesDecorator(Story, context) {
-    queryClient.clear();
-    ServiceRegistry.clearServices();
+export const withSuspense: Decorator = (Story) => (
+  <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+    <Story />
+  </Suspense>
+);
 
-    const services = (context.parameters.services || {}) as Record<
-      keyof ServiceTypes,
-      Partial<ServiceTypes[keyof ServiceTypes]>
-    >;
+export type StoryServices = {
+  [K in keyof ServiceTypes]?: Partial<ServiceTypes[K]>;
+};
 
-    Object.entries(services).forEach(([key, service]) => {
-      ServiceRegistry.registerService(
-        key as keyof typeof services,
-        service as ServiceTypes[keyof ServiceTypes],
-      );
+export const withQueryAndServices: Decorator = function WithQueryAndServices(Story, context) {
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { staleTime: 60 * 1000, retry: false } } }),
+  );
+
+  ServiceRegistry.clearServices();
+  const services = (context.parameters.services ?? {}) as StoryServices;
+  for (const key of Object.keys(services) as (keyof StoryServices)[]) {
+    const service = services[key];
+    if (service) {
+      ServiceRegistry.registerService(key, service as ServiceTypes[typeof key]);
+    }
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Story />
+    </QueryClientProvider>
+  );
+};
+
+export const withRouter: Decorator = function WithRouter(Story) {
+  const [router] = useState(() => {
+    const rootRoute = createRootRoute({ component: () => <Outlet /> });
+    const indexRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/",
+      component: () => <Story />,
     });
-
-    return <Story />;
-  };
-}
-
-export const withRouter: Decorator = (Story) => {
-  const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-  });
-
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/",
-    component: () => <Story />,
-  });
-
-  const router = createRouter({
-    history: createMemoryHistory({ initialEntries: ["/"] }),
-    routeTree: rootRoute.addChildren([indexRoute]),
+    return createRouter({
+      history: createMemoryHistory({ initialEntries: ["/"] }),
+      routeTree: rootRoute.addChildren([indexRoute]),
+    });
   });
 
   return <RouterProvider router={router} />;
 };
 
-type MockUser = {
-  id?: string;
-  fullName?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  imageUrl?: string | null;
-  primaryEmailAddress?: { emailAddress: string } | null;
-};
-
-declare global {
-  var __STORYBOOK_CLERK_USER__: MockUser | undefined;
-}
-
-export const withMockUser = (overrides: MockUser): Decorator => {
+export const withMockUser = (overrides: Partial<MockUser> = {}): Decorator => {
   return function WithMockUser(Story) {
-    globalThis.__STORYBOOK_CLERK_USER__ = {
-      id: "user-storybook",
-      fullName: "Jane Doe",
-      firstName: "Jane",
-      lastName: "Doe",
-      imageUrl: null,
-      primaryEmailAddress: { emailAddress: "jane.doe@example.com" },
-      ...overrides,
-    };
-    return <Story />;
+    const user: MockUser = { ...DEFAULT_USER, ...overrides };
+    return (
+      <ClerkMockContext.Provider value={user}>
+        <Story />
+      </ClerkMockContext.Provider>
+    );
   };
 };
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60 * 1000, retry: false } }, // 1 minute
-});
 
 export default definePreview({
   parameters: {
@@ -123,12 +115,5 @@ export default definePreview({
     },
   },
   addons: [addonDocs(), addonA11y()],
-  decorators: [
-    withServices(queryClient),
-    (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
+  decorators: [withQueryAndServices],
 });
