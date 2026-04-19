@@ -5,8 +5,9 @@ import * as React from "react";
 const UserButton = React.lazy(() =>
   import("@clerk/tanstack-react-start").then((m) => ({ default: m.UserButton })),
 );
-import logo from "/dummy-footy-logo.png?url";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+
+const logo = "/dummy-footy-logo.png";
 
 function getInitials(fullName: string | null | undefined): string {
   if (!fullName) return "?";
