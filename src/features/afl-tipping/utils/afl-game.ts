@@ -35,10 +35,9 @@ export function getFirstGameOfRound(games: AflGame[]): AflGame | undefined {
 export function groupByRound(games: AflGame[]): Record<number, AflGame[]> {
   return games.reduce(
     (acc, game) => {
-      if (!acc[game.round]) {
-        acc[game.round] = [];
-      }
-      acc[game.round].push(game);
+      const bucket = acc[game.round] ?? [];
+      bucket.push(game);
+      acc[game.round] = bucket;
       return acc;
     },
     {} as Record<number, AflGame[]>,

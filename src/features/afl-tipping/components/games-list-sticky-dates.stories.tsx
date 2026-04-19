@@ -82,9 +82,9 @@ const day3Games = [
 ];
 
 const allGames: Record<string, AflGame[]> = {
-  [day1.toISOString().split("T")[0]]: day1Games,
-  [day2.toISOString().split("T")[0]]: day2Games,
-  [day3.toISOString().split("T")[0]]: day3Games,
+  [day1.toISOString().split("T")[0]!]: day1Games,
+  [day2.toISOString().split("T")[0]!]: day2Games,
+  [day3.toISOString().split("T")[0]!]: day3Games,
 };
 
 function StickyDatesLayout() {
@@ -100,8 +100,8 @@ function StickyDatesLayout() {
               <GameCard
                 key={game.id}
                 game={game}
-                homeTeam={teams.find((t) => t.id === game.homeTeamId) ?? teams[0]}
-                awayTeam={teams.find((t) => t.id === game.awayTeamId) ?? teams[1]}
+                homeTeam={teams.find((t) => t.id === game.homeTeamId) ?? teams[0]!}
+                awayTeam={teams.find((t) => t.id === game.awayTeamId) ?? teams[1]!}
               />
             ))}
           </div>

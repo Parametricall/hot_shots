@@ -1,7 +1,11 @@
 {
-  "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx"],
+  "include": ["src", ".storybook", "vite.config.ts", "eslint.config.ts"],
   "compilerOptions": {
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "module": "ESNext",
@@ -11,7 +15,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ES2023",
-    "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "~/*": ["./src/*"]

@@ -207,12 +207,14 @@ export function Leaderboard() {
 
   const ranks: number[] = [];
   for (let i = 0; i < leaderboard.length; i++) {
+    const current = leaderboard[i]!;
+    const previous = leaderboard[i - 1];
     if (
-      i > 0 &&
-      leaderboard[i].score === leaderboard[i - 1].score &&
-      leaderboard[i].totalMarginDiff === leaderboard[i - 1].totalMarginDiff
+      previous &&
+      current.score === previous.score &&
+      current.totalMarginDiff === previous.totalMarginDiff
     ) {
-      ranks.push(ranks[i - 1]);
+      ranks.push(ranks[i - 1]!);
     } else {
       ranks.push(i + 1);
     }
@@ -255,8 +257,8 @@ export function Leaderboard() {
             <LeaderboardRow
               key={entry.userId}
               entry={entry}
-              rank={ranks[index]}
-              lastRank={ranks[ranks.length - 1]}
+              rank={ranks[index]!}
+              lastRank={ranks[ranks.length - 1]!}
               isCurrentUser={isCurrentUser}
               showMenuColumn={showMenuColumn}
               onReport={

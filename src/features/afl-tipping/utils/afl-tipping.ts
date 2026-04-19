@@ -28,11 +28,10 @@ export function formatDateHeader(dateString: string): string {
 export function groupGamesByDate(games: AflGame[]): Record<string, AflGame[]> {
   return games.reduce(
     (acc, item) => {
-      const key = item.date.toISOString().split("T")[0];
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
+      const key = item.date.toISOString().split("T")[0]!;
+      const bucket = acc[key] ?? [];
+      bucket.push(item);
+      acc[key] = bucket;
       return acc;
     },
     {} as Record<string, AflGame[]>,
@@ -51,14 +50,9 @@ export function aflGamesToRounds(games: AflGame[]): AflRound[] {
 
   games.forEach((game) => {
     const roundId = game.round;
-    if (!rounds[roundId]) {
-      rounds[roundId] = {
-        id: roundId,
-        name: game.roundName,
-        games: [],
-      };
-    }
-    rounds[roundId].games.push(game);
+    const round = rounds[roundId] ?? { id: roundId, name: game.roundName, games: [] };
+    round.games.push(game);
+    rounds[roundId] = round;
   });
 
   return Object.values(rounds);
