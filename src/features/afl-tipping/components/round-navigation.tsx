@@ -35,7 +35,6 @@ export function RoundNavigation({
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between md:hidden">
           <Button
-            aria-label="Prev"
             variant="outline"
             size="sm"
             onClick={handlePrevious}
@@ -72,7 +71,6 @@ export function RoundNavigation({
           </label>
 
           <Button
-            aria-label="Next"
             variant="outline"
             size="sm"
             onClick={handleNext}

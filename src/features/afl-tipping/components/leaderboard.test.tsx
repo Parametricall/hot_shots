@@ -96,7 +96,7 @@ describe("Leaderboard", () => {
 
     // Last place gets the wooden spoon SVG instead of a number
     expect(screen.queryByText("4")).not.toBeInTheDocument();
-    const svg = document.querySelector('svg[viewBox="0 0 120 240"]');
+    const svg = screen.getByTestId("wooden-spoon");
     expect(svg).toBeInTheDocument();
   });
 
@@ -111,8 +111,8 @@ describe("Leaderboard", () => {
     ]);
     renderWithClient(<Leaderboard />, queryClient);
 
-    // A, B, C are all rank 1 (Trophy icon). D should be rank 4, shown as text.
-    expect(screen.getByText("4")).toBeInTheDocument();
+    // A, B, C are all rank 1 (Trophy icon). D should be in last place and show the wooden-spoon.
+    expect(screen.getByTestId("wooden-spoon")).toBeInTheDocument();
   });
 
   it("shows a You badge on the current user's row", () => {

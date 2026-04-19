@@ -6,6 +6,7 @@ export function WoodenSpoon({ size = 24, className }: { size?: number; className
       height={size * 2}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
+      data-testid="wooden-spoon"
     >
       <defs>
         <linearGradient id="ws-bowl" x1="0%" y1="0%" x2="100%" y2="100%">

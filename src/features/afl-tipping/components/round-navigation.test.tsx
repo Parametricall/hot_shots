@@ -32,7 +32,9 @@ describe("RoundNavigation", () => {
       <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
     );
 
-    await user.click(screen.getByRole("button", { name: /prev/i }));
+    // Mobile and desktop each render a Prev button; either click should trigger the handler.
+    const [prevButton] = screen.getAllByRole("button", { name: /prev/i });
+    await user.click(prevButton!);
     expect(onRoundChange).toHaveBeenCalledWith(1);
   });
 
@@ -43,7 +45,8 @@ describe("RoundNavigation", () => {
       <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
     );
 
-    await user.click(screen.getByRole("button", { name: /next/i }));
+    const [nextButton] = screen.getAllByRole("button", { name: /next/i });
+    await user.click(nextButton!);
     expect(onRoundChange).toHaveBeenCalledWith(3);
   });
 
