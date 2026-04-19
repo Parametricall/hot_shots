@@ -14,11 +14,7 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import {
-  ClerkMockContext,
-  DEFAULT_USER,
-  type MockUser,
-} from "./mocks/clerk-mock-user";
+import { ClerkMockContext, DEFAULT_USER, type MockUser } from "./mocks/clerk-mock-user";
 
 import "~/styles/app.css";
 

@@ -1,8 +1,4 @@
-import preview, {
-  centeredYDecorator,
-  containerDecorator,
-  withSuspense,
-} from "#.storybook/preview";
+import preview, { centeredYDecorator, containerDecorator, withSuspense } from "#.storybook/preview";
 import { GroupTipsList } from "~/features/afl-tipping/components/group-tips-list";
 import {
   createAflGame,
