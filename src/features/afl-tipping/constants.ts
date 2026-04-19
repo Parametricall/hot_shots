@@ -22,7 +22,7 @@ export const CACHE_DURATIONS = {
 export const UNKNOWN_TEAM_ABBREV = "UNK";
 
 // venues collected from: https://www.afl.com.au/venues
-export const VENUES: Record<string, Venue> = {
+export const VENUES = {
   adelaideOval: {
     name: "Adelaide Oval",
     city: "Adelaide",
@@ -113,4 +113,4 @@ export const VENUES: Record<string, Venue> = {
     city: "Launceston",
     state: "TAS",
   },
-};
+} satisfies Record<string, Venue>;

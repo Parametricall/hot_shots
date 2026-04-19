@@ -62,8 +62,8 @@ describe("groupGamesByDate", () => {
     const grouped = groupGamesByDate(games);
     const keys = Object.keys(grouped);
     expect(keys).toHaveLength(2);
-    expect(grouped[keys[0]]).toHaveLength(2);
-    expect(grouped[keys[1]]).toHaveLength(1);
+    expect(grouped[keys[0]!]).toHaveLength(2);
+    expect(grouped[keys[1]!]).toHaveLength(1);
   });
 
   it("returns an empty object for empty input", () => {
@@ -88,6 +88,6 @@ describe("aflGamesToRounds", () => {
   it("preserves round name from the first game in each round", () => {
     const games = [createAflGame({ round: 0, roundName: "Opening Round" })];
     const rounds = aflGamesToRounds(games);
-    expect(rounds[0].name).toBe("Opening Round");
+    expect(rounds[0]!.name).toBe("Opening Round");
   });
 });

@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config";
-import viteTsConfigPaths from "vite-tsconfig-paths";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
 import path from "node:path";
@@ -9,10 +8,13 @@ const dirname =
   typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     projects: [
       {
-        plugins: [viteTsConfigPaths({ projects: ["./tsconfig.json"] })],
+        resolve: { tsconfigPaths: true },
         test: {
           name: "unit",
           include: ["src/**/*.test.ts"],
@@ -21,7 +23,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [viteTsConfigPaths({ projects: ["./tsconfig.json"] })],
+        resolve: { tsconfigPaths: true },
         test: {
           name: "component",
           include: ["src/**/*.test.tsx"],
@@ -32,8 +34,8 @@ export default defineConfig({
         },
       },
       {
+        resolve: { tsconfigPaths: true },
         plugins: [
-          viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
           // The plugin will run tests for the stories defined in your Storybook config
           // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
           storybookTest({

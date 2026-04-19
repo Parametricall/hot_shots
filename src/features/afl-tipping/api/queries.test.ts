@@ -61,9 +61,9 @@ describe("gameStats select", () => {
 
     // Prior rounds with games: 1, 2, 3 (only 3 distinct rounds exist before round 6)
     expect(result!.homeLast5).toHaveLength(3);
-    expect(result!.homeLast5[0].result).toBe("win");
-    expect(result!.homeLast5[1].result).toBe("loss");
-    expect(result!.homeLast5[2].result).toBe("win");
+    expect(result!.homeLast5[0]!.result).toBe("win");
+    expect(result!.homeLast5[1]!.result).toBe("loss");
+    expect(result!.homeLast5[2]!.result).toBe("win");
   });
 
   it("computes head-to-head record", () => {
@@ -98,7 +98,7 @@ describe("gameStats select", () => {
 
     // Should only include the 5 most recent prior rounds
     expect(result!.homeLast5).toHaveLength(5);
-    expect(result!.homeLast5[0].round).toBe(4); // most recent 5: rounds 4-8
-    expect(result!.homeLast5[4].round).toBe(8);
+    expect(result!.homeLast5[0]!.round).toBe(4); // most recent 5: rounds 4-8
+    expect(result!.homeLast5[4]!.round).toBe(8);
   });
 });

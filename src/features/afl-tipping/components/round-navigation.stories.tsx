@@ -59,7 +59,7 @@ export const NavigateForward = meta.story({
 
     // Click Next
     const nextButtons = canvas.getAllByRole("button", { name: /next/i });
-    await userEvent.click(nextButtons[0]);
+    await userEvent.click(nextButtons[0]!);
 
     // Should now show Round 4
     const updatedLabels = canvas.getAllByText("Round 4");
@@ -74,7 +74,7 @@ export const NavigateBackward = meta.story({
 
     // Click Prev
     const prevButtons = canvas.getAllByRole("button", { name: /prev/i });
-    await userEvent.click(prevButtons[0]);
+    await userEvent.click(prevButtons[0]!);
 
     // Should now show Round 2
     const updatedLabels = canvas.getAllByText("Round 2");

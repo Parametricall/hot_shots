@@ -7,7 +7,7 @@ import {
 } from "~/features/afl-tipping/types";
 import { VENUES } from "~/features/afl-tipping/constants";
 
-export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {
+export const fakeTeams = {
   lions: {
     name: "Lions",
     abbrev: "LIO",
@@ -24,7 +24,7 @@ export const fakeTeams: Record<string, Pick<AflTeam, "name" | "abbrev">> = {
     name: "Essendon",
     abbrev: "ESS",
   },
-};
+} satisfies Record<string, Pick<AflTeam, "name" | "abbrev">>;
 
 export function createAflTeam(overrides: Partial<AflTeam> = {}): AflTeam {
   return {

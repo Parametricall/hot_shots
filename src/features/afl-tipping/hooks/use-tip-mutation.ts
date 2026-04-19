@@ -27,7 +27,7 @@ export function useTipMutation() {
         if (existingTipIndex !== -1) {
           const updatedTips = [...old];
           updatedTips[existingTipIndex] = {
-            ...updatedTips[existingTipIndex],
+            ...updatedTips[existingTipIndex]!,
             tipTeamId: teamId,
             margin,
           };
