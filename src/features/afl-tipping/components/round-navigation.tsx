@@ -35,6 +35,7 @@ export function RoundNavigation({
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between md:hidden">
           <Button
+            aria-label="Prev"
             variant="outline"
             size="sm"
             onClick={handlePrevious}
@@ -71,6 +72,7 @@ export function RoundNavigation({
           </label>
 
           <Button
+            aria-label="Next"
             variant="outline"
             size="sm"
             onClick={handleNext}
@@ -88,6 +90,7 @@ export function RoundNavigation({
             <h2 className="text-xl font-semibold">{rounds?.[currentRound]?.name ?? "no round"}</h2>
             <div className="flex items-center gap-2">
               <Button
+                aria-label="Prev"
                 variant="outline"
                 size="sm"
                 onClick={handlePrevious}
@@ -96,6 +99,7 @@ export function RoundNavigation({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
+                aria-label="Next"
                 variant="outline"
                 size="sm"
                 onClick={handleNext}

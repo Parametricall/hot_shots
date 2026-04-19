@@ -6,7 +6,7 @@ const dirname =
   typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineMain({
-  stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   addons: [
     "@chromatic-com/storybook",
     "@storybook/addon-docs",
@@ -18,10 +18,42 @@ export default defineMain({
     options: {},
   },
   viteFinal: (config) => {
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...(config.resolve.alias as Record<string, string>),
-      "@clerk/tanstack-react-start": path.resolve(dirname, "./mocks/clerk.tsx"),
+    const resolve = config.resolve ?? {};
+    const existingAlias = resolve.alias;
+    const existingAliases = Array.isArray(existingAlias)
+      ? existingAlias
+      : existingAlias
+        ? Object.entries(existingAlias).map(([find, replacement]) => ({
+            find,
+            replacement: replacement as string,
+          }))
+        : [];
+    config.resolve = {
+      ...resolve,
+      tsconfigPaths: true,
+      // Use regex for exact match so `@clerk/tanstack-react-start/server` isn't
+      // prefix-matched into `./mocks/clerk.tsx/server`.
+      alias: [
+        ...existingAliases,
+        {
+          find: /^@clerk\/tanstack-react-start\/server$/,
+          replacement: path.resolve(dirname, "./mocks/clerk-server.ts"),
+        },
+        {
+          find: /^@clerk\/tanstack-react-start$/,
+          replacement: path.resolve(dirname, "./mocks/clerk.tsx"),
+        },
+        {
+          find: /^@tanstack\/react-start$/,
+          replacement: path.resolve(dirname, "./mocks/tanstack-start.ts"),
+        },
+      ],
+    };
+    // Server-oriented modules reach for `process.env` at module load. The browser
+    // has no `process`, so inject a safe empty replacement.
+    config.define = {
+      ...config.define,
+      "process.env": "({})",
     };
     return config;
   },
