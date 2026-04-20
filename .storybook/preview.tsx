@@ -1,3 +1,8 @@
+// Freeze Date.now so stories relying on it (factories, useGameStartTimer) render
+// deterministically in Chromatic. Must run before story modules evaluate.
+const FROZEN_NOW = new Date("2026-04-20T10:00:00+10:00").getTime();
+Date.now = () => FROZEN_NOW;
+
 import addonA11y from "@storybook/addon-a11y";
 import addonDocs from "@storybook/addon-docs";
 import type { Decorator } from "@storybook/react-vite";
