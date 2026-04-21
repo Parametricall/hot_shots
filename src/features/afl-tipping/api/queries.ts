@@ -2,12 +2,12 @@ import { queryOptions } from "@tanstack/react-query";
 import ServiceRegistry from "~/app/service-registry";
 import { CACHE_DURATIONS } from "~/features/afl-tipping/constants";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
-import { checkCheatingReports } from "./cheating-reports";
-import { getFeatureFlag } from "./feature-flags";
 
 // Lazy-initialize services to ensure they're registered before access
 const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
 const getAflService = () => ServiceRegistry.getService("aflService");
+const getFeatureFlagService = () => ServiceRegistry.getService("featureFlagsService");
+const getCheatingReportsService = () => ServiceRegistry.getService("cheatingReportsService");
 
 export const aflQueries = {
   aflKey: () => ["afl"] as const,
@@ -85,13 +85,13 @@ export const aflQueries = {
   cheatingReports: () => {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "cheatingReports"],
-      queryFn: () => checkCheatingReports(),
+      queryFn: () => getCheatingReportsService().checkCheatingReports(),
     });
   },
   featureFlag: (key: string) => {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "featureFlag", key],
-      queryFn: () => getFeatureFlag({ data: { key } }),
+      queryFn: () => getFeatureFlagService().getFeatureFlag({ data: { key } }),
     });
   },
   gameStats: (gameId: number) => {

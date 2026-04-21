@@ -7,14 +7,14 @@ const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
 
 export const getFeatureFlag = createServerFn({ method: "GET" })
   .inputValidator(z.object({ key: z.string() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ enabled: boolean }> => {
     const repo = serviceRegistry.getService("featureFlagsRepository");
     return { enabled: await repo.isEnabled(data.key) };
   });
 
 export const setFeatureFlag = createServerFn({ method: "POST" })
   .inputValidator(z.object({ key: z.string(), enabled: z.boolean() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ success: true }> => {
     const { userId } = await auth();
     if (!userId || userId !== ADMIN_USER_ID) {
       throw new Error("Unauthorized");
@@ -23,3 +23,8 @@ export const setFeatureFlag = createServerFn({ method: "POST" })
     await repo.setEnabled(data.key, data.enabled);
     return { success: true };
   });
+
+export const service = {
+  getFeatureFlag,
+  setFeatureFlag,
+};

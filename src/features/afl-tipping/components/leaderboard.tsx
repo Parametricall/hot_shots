@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/tanstack-react-start";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { reportCheating } from "~/features/afl-tipping/api/cheating-reports";
-import { setFeatureFlag } from "~/features/afl-tipping/api/feature-flags";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -18,6 +16,7 @@ import { WoodenSpoon } from "~/components/wooden-spoon";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
+import ServiceRegistry from "~/app/service-registry";
 
 const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
@@ -160,7 +159,9 @@ export function Leaderboard() {
 
   const toggleMutation = useMutation({
     mutationFn: () =>
-      setFeatureFlag({ data: { key: "cheating_report", enabled: !cheatingEnabled } }),
+      ServiceRegistry.getService("featureFlagsService").setFeatureFlag({
+        data: { key: "cheating_report", enabled: !cheatingEnabled },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: aflQueries.featureFlag("cheating_report").queryKey,
@@ -169,7 +170,7 @@ export function Leaderboard() {
   });
 
   const reportMutation = useMutation({
-    mutationFn: reportCheating,
+    mutationFn: ServiceRegistry.getService("cheatingReportsService").reportCheating,
     onSuccess: () => {
       toast.success("Report submitted. The authorities have been notified.");
       queryClient.invalidateQueries({ queryKey: aflQueries.cheatingReports().queryKey });
