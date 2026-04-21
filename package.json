@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:ci": "vitest run --project=unit --project=component",
     "test:watch": "vitest",
     "chromatic": "chromatic"
   },

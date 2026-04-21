@@ -6,8 +6,8 @@ import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflUserTip } from "~/features/afl-tipping/types";
 import type { ReactNode } from "react";
 
-vi.mock("~/features/afl-tipping/api/tips", () => ({
-  submitTip: vi.fn().mockResolvedValue({ success: true }),
+const { mockSubmitTip } = vi.hoisted(() => ({
+  mockSubmitTip: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 vi.mock("~/app/service-registry", () => ({
@@ -15,6 +15,7 @@ vi.mock("~/app/service-registry", () => ({
     getService: vi.fn().mockReturnValue({
       getTips: vi.fn().mockResolvedValue([]),
       getGroupTips: vi.fn().mockResolvedValue([]),
+      submitTip: mockSubmitTip,
     }),
   },
 }));
@@ -104,8 +105,7 @@ describe("useTipMutation", () => {
   });
 
   it("rolls back getTips cache on error", async () => {
-    const { submitTip } = await import("~/features/afl-tipping/api/tips");
-    vi.mocked(submitTip).mockRejectedValueOnce(new Error("Server error"));
+    mockSubmitTip.mockRejectedValueOnce(new Error("Server error"));
 
     const originalTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
     queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, originalTips);
