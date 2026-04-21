@@ -9,12 +9,16 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import serviceRegistry from "~/app/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
+import { service as featureFlagsService } from "~/features/afl-tipping/api/feature-flags";
+import { service as cheatingReportsService } from "~/features/afl-tipping/api/cheating-reports";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import { cheatingReportsRepository } from "~/features/afl-tipping/api/cheating-reports.repository";
 import { featureFlagsRepository } from "~/features/afl-tipping/api/feature-flags.repository";
 
 serviceRegistry.registerService("squiggleService", squiggleService);
 serviceRegistry.registerService("aflService", aflService);
+serviceRegistry.registerService("featureFlagsService", featureFlagsService);
+serviceRegistry.registerService("cheatingReportsService", cheatingReportsService);
 serviceRegistry.registerService("tipsRepository", tipsRepository);
 serviceRegistry.registerService("cheatingReportsRepository", cheatingReportsRepository);
 serviceRegistry.registerService("featureFlagsRepository", featureFlagsRepository);

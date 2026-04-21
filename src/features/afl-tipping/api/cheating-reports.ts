@@ -17,7 +17,7 @@ const ReportSchema = z.object({
 
 export const reportCheating = createServerFn({ method: "POST" })
   .inputValidator(ReportSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ success: true }> => {
     const reporterId = await ensureUserAuthenticated();
     if (reporterId === data.userId) {
       throw new Error("You cannot report yourself");
@@ -27,16 +27,26 @@ export const reportCheating = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-export const checkCheatingReports = createServerFn({ method: "GET" }).handler(async () => {
-  const userId = await ensureUserAuthenticated();
-  const repo = serviceRegistry.getService("cheatingReportsRepository");
-  const count = await repo.getReportCount(userId);
-  return { reported: count > 0, reportCount: count };
-});
+export const checkCheatingReports = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ reported: boolean; reportCount: number }> => {
+    const userId = await ensureUserAuthenticated();
+    const repo = serviceRegistry.getService("cheatingReportsRepository");
+    const count = await repo.getReportCount(userId);
+    return { reported: count > 0, reportCount: count };
+  },
+);
 
-export const dismissCheatingReport = createServerFn({ method: "POST" }).handler(async () => {
-  const userId = await ensureUserAuthenticated();
-  const repo = serviceRegistry.getService("cheatingReportsRepository");
-  await repo.dismissReports(userId);
-  return { success: true };
-});
+export const dismissCheatingReport = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ success: true }> => {
+    const userId = await ensureUserAuthenticated();
+    const repo = serviceRegistry.getService("cheatingReportsRepository");
+    await repo.dismissReports(userId);
+    return { success: true };
+  },
+);
+
+export const service = {
+  reportCheating,
+  checkCheatingReports,
+  dismissCheatingReport,
+};

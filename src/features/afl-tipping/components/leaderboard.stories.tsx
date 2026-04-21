@@ -52,7 +52,10 @@ const meta = preview.meta({
   component: Leaderboard,
   parameters: {
     layout: "centered",
-    services: leaderboardService(LEADERBOARD),
+    services: {
+      ...leaderboardService(LEADERBOARD),
+      cheatingReportsService: {},
+    },
   },
 });
 

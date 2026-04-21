@@ -6,6 +6,9 @@ const meta = preview.meta({
   component: CheatingPopup,
   parameters: {
     layout: "fullscreen",
+    services: {
+      cheatingReportsService: {},
+    },
   },
   decorators: [centeredYDecorator],
 });

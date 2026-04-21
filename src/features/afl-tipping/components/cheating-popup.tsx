@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { dismissCheatingReport } from "~/features/afl-tipping/api/cheating-reports";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { cn } from "~/lib/utils";
+import ServiceRegistry from "~/app/service-registry";
 
 type Step = "step1" | "step2" | "step3" | "guilty" | "innocent";
 
@@ -67,7 +67,7 @@ export function CheatingPopup({ reportCount }: CheatingPopupProps) {
   const queryClient = useQueryClient();
 
   const dismissMutation = useMutation({
-    mutationFn: dismissCheatingReport,
+    mutationFn: ServiceRegistry.getService("cheatingReportsService").dismissCheatingReport,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: aflQueries.cheatingReports().queryKey });
       setDismissed(true);

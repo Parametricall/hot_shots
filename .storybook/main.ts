@@ -43,17 +43,13 @@ export default defineMain({
           find: /^@clerk\/tanstack-react-start$/,
           replacement: path.resolve(dirname, "./mocks/clerk.tsx"),
         },
-        {
-          find: /^@tanstack\/react-start$/,
-          replacement: path.resolve(dirname, "./mocks/tanstack-start.ts"),
-        },
       ],
     };
     // Server-oriented modules reach for `process.env` at module load. The browser
     // has no `process`, so inject a safe empty replacement.
     config.define = {
       ...config.define,
-      "process.env": "({})",
+      // "process.env": "({})",
     };
     return config;
   },

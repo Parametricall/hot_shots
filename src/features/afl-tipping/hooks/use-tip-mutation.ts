@@ -1,15 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { submitTip } from "~/features/afl-tipping/api/tips";
+import ServiceRegistry from "~/app/service-registry";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflUserTip } from "~/features/afl-tipping/types";
 import { toast } from "sonner";
+
+const getAflService = () => ServiceRegistry.getService("aflService");
 
 export function useTipMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ["submitTip"],
-    mutationFn: submitTip,
+    mutationFn: (vars: Parameters<ReturnType<typeof getAflService>["submitTip"]>[0]) =>
+      getAflService().submitTip(vars),
     onMutate: async ({ data: { gameId, teamId, margin } }) => {
       await queryClient.cancelQueries({
         queryKey: aflQueries.allGetTipsKey(),
