@@ -47,16 +47,12 @@ export function GamesList() {
   const isFinals = games.length < 9;
 
   const underdogCount = useMemo(() => {
-    if (!tip || !modelTips) return 0;
-    return tip.filter((t) => {
-      const modelTip = modelTips.find((m) => m.gameId === t.gameId);
-      return modelTip?.tipTeamId != null && t.tipTeamId !== modelTip.tipTeamId;
-    }).length;
-  }, [tip, modelTips]);
+    if (!tip) return 0;
+    return tip.filter((t) => t.isUnderdog === true).length;
+  }, [tip]);
 
-  const tipsLoaded = !!tip && !!modelTips;
   const showUnderdogWarning =
-    tipsLoaded && !isFinals && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
+    !!tip && !isFinals && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
 
   if (games.length === 0) {
     return (
