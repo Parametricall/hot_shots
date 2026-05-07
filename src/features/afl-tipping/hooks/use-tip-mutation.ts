@@ -58,6 +58,9 @@ export function useTipMutation() {
         queryClient.invalidateQueries({
           queryKey: aflQueries.allGroupTipsKey(),
         });
+        queryClient.invalidateQueries({
+          queryKey: aflQueries.allUnderdogComplianceKey(),
+        });
       }
     },
   });
