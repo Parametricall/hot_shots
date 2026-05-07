@@ -54,7 +54,9 @@ export function GamesList() {
     }).length;
   }, [tip, modelTips]);
 
-  const showUnderdogWarning = !isFinals && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
+  const tipsLoaded = !!tip && !!modelTips;
+  const showUnderdogWarning =
+    tipsLoaded && !isFinals && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
 
   if (games.length === 0) {
     return (
