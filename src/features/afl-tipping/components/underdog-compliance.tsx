@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/tanstack-react-start";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
@@ -103,8 +103,8 @@ export function UnderdogCompliance() {
   } = useQuery(aflQueries.underdogCompliance());
   const { user } = useUser();
 
-  const { data: games } = useSuspenseQuery(aflQueries.allGames());
-  const activeRound = useMemo(() => AflGame.getActiveRound(games), [games]);
+  const { data: games } = useQuery(aflQueries.allGames());
+  const activeRound = useMemo(() => (games ? AflGame.getActiveRound(games) : 0), [games]);
 
   const availableRounds = compliance?.[0]?.rounds ?? [];
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
