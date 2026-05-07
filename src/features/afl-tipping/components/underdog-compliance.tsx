@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/tanstack-react-start";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -102,10 +103,19 @@ export function UnderdogCompliance() {
   } = useQuery(aflQueries.underdogCompliance());
   const { user } = useUser();
 
+  const { data: games } = useSuspenseQuery(aflQueries.allGames());
+  const activeRound = useMemo(() => AflGame.getActiveRound(games), [games]);
+
   const availableRounds = compliance?.[0]?.rounds ?? [];
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
 
-  const roundIndex = selectedRoundIndex ?? Math.max(0, availableRounds.length - 1);
+  // Default to the current active round, falling back to the last available round
+  const defaultRoundIndex = useMemo(() => {
+    const idx = availableRounds.findIndex((r) => r.round === activeRound);
+    return idx !== -1 ? idx : Math.max(0, availableRounds.length - 1);
+  }, [availableRounds, activeRound]);
+
+  const roundIndex = selectedRoundIndex ?? defaultRoundIndex;
 
   if (isLoading) return <ComplianceSkeleton />;
 

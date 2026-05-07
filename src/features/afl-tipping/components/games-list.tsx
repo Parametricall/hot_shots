@@ -45,7 +45,6 @@ export function GamesList() {
   }, [games]);
 
   const isFinals = games.length < 9;
-  const hasUntippedGames = !tip || tip.length < games.length;
 
   const underdogCount = useMemo(() => {
     if (!tip || !modelTips) return 0;
@@ -55,8 +54,7 @@ export function GamesList() {
     }).length;
   }, [tip, modelTips]);
 
-  const showUnderdogWarning =
-    !isFinals && hasUntippedGames && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
+  const showUnderdogWarning = !isFinals && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
 
   if (games.length === 0) {
     return (
