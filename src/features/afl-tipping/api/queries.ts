@@ -82,6 +82,14 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.LEADERBOARD,
     });
   },
+  allUnderdogComplianceKey: () => [...aflQueries.aflKey(), "underdogCompliance"] as const,
+  underdogCompliance: () => {
+    return queryOptions({
+      queryKey: aflQueries.allUnderdogComplianceKey(),
+      queryFn: () => getAflService().getUnderdogCompliance(),
+      staleTime: CACHE_DURATIONS.LEADERBOARD,
+    });
+  },
   cheatingReports: () => {
     return queryOptions({
       queryKey: [...aflQueries.aflKey(), "cheatingReports"],

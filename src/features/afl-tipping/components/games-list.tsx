@@ -11,6 +11,8 @@ import {
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
+import { GameRules } from "~/features/afl-tipping/api/game-rules";
+import { AlertTriangle } from "lucide-react";
 
 export function GamesList() {
   const currentRound = useCurrentRound();
@@ -42,6 +44,20 @@ export function GamesList() {
     return AflGame.byId(firstGameId);
   }, [games]);
 
+  const isFinals = games.length < 9;
+  const hasUntippedGames = !tip || tip.length < games.length;
+
+  const underdogCount = useMemo(() => {
+    if (!tip || !modelTips) return 0;
+    return tip.filter((t) => {
+      const modelTip = modelTips.find((m) => m.gameId === t.gameId);
+      return modelTip?.tipTeamId != null && t.tipTeamId !== modelTip.tipTeamId;
+    }).length;
+  }, [tip, modelTips]);
+
+  const showUnderdogWarning =
+    !isFinals && hasUntippedGames && underdogCount < GameRules.MINIMUM_UNDERDOGS_PER_ROUND;
+
   if (games.length === 0) {
     return (
       <Card>
@@ -58,6 +74,15 @@ export function GamesList() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {showUnderdogWarning && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>
+            You&apos;ve tipped {underdogCount} underdog{underdogCount !== 1 ? "s" : ""} this round.
+            The minimum is {GameRules.MINIMUM_UNDERDOGS_PER_ROUND}.
+          </span>
+        </div>
+      )}
       {Object.entries(gamesByDate)
         .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
         .map(([date, dateGames]) => (

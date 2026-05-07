@@ -67,6 +67,7 @@ export type AflUserTip = {
   gameId: number;
   tipTeamId: number;
   margin?: number;
+  isUnderdog?: boolean;
 };
 
 export type AflGroupTipEntry = {
@@ -87,4 +88,18 @@ export type AflLeaderboardEntry = {
   correctTips: number;
   totalMarginDiff: number;
   score: number;
+};
+
+export type AflUnderdogComplianceRound = {
+  round: number;
+  underdogCount: number;
+  meetsMinimum: boolean;
+  isFinals: boolean;
+};
+
+export type AflUnderdogComplianceEntry = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  rounds: AflUnderdogComplianceRound[];
 };

@@ -6,5 +6,6 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/leaderboard")(
   component: Leaderboard,
   loader: async ({ context: { queryClient } }) => {
     void queryClient.ensureQueryData(aflQueries.leaderboard());
+    void queryClient.ensureQueryData(aflQueries.underdogCompliance());
   },
 });

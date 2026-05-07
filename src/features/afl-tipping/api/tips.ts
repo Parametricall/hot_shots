@@ -4,6 +4,7 @@ import { auth } from "@clerk/tanstack-react-start/server";
 import type {
   AflGroupTipEntry,
   AflLeaderboardEntry,
+  AflUnderdogComplianceEntry,
   AflUserTip,
 } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
@@ -68,7 +69,7 @@ export const submitTip = createServerFn({ method: "POST" })
     const { gameId, teamId, margin } = data;
     const userId = await ensureUserAuthenticated();
 
-    const { getGames } = serviceRegistry.getService("squiggleService");
+    const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames();
     const game = games.find((g) => g.id === gameId);
     // Use 'date' as the start time property (Squiggle API)
@@ -81,8 +82,13 @@ export const submitTip = createServerFn({ method: "POST" })
       throw new Error("Cannot submit tip after the game has started");
     }
 
+    // Determine underdog status at submission time
+    const modelTips = await getModelTips(game.round);
+    const modelTip = modelTips.find((t) => t.gameId === gameId);
+    const isUnderdog = modelTip?.tipTeamId != null ? teamId !== modelTip.tipTeamId : undefined;
+
     const repo = serviceRegistry.getService("tipsRepository");
-    await repo.saveTip(gameId, userId, teamId, margin);
+    await repo.saveTip(gameId, userId, teamId, margin, isUnderdog);
     return { success: true };
   });
 
@@ -278,9 +284,81 @@ export const getGroupTips = createServerFn({ method: "GET" })
     ];
   });
 
+export const getUnderdogCompliance = createServerFn({ method: "GET" }).handler(
+  async (): Promise<AflUnderdogComplianceEntry[]> => {
+    await ensureUserAuthenticated();
+
+    const repo = serviceRegistry.getService("tipsRepository");
+    const allTips: AllTipsRow[] = await repo.getAllTips();
+
+    const { getGames } = serviceRegistry.getService("squiggleService");
+    const games: AflGame.Type[] = await getGames();
+
+    // Build gameId -> round lookup
+    const gameRoundMap = new Map<number, number>();
+    for (const game of games) {
+      gameRoundMap.set(game.id, game.round);
+    }
+
+    // Determine which rounds are finals
+    const gamesByRound = AflGame.groupByRound(games);
+    const finalsRounds = new Set<number>();
+    for (const [roundStr, roundGames] of Object.entries(gamesByRound)) {
+      if (GameRules.isFinals(roundGames)) {
+        finalsRounds.add(Number(roundStr));
+      }
+    }
+
+    // Group tips by (userId, round), only include tips with non-null is_underdog
+    const userRoundStats = new Map<string, Map<number, number>>();
+    const roundsWithTracking = new Set<number>();
+
+    for (const tip of allTips) {
+      if (tip.is_underdog == null) continue;
+
+      const round = gameRoundMap.get(tip.game_id);
+      if (round == null) continue;
+
+      roundsWithTracking.add(round);
+
+      if (!userRoundStats.has(tip.user_id)) {
+        userRoundStats.set(tip.user_id, new Map());
+      }
+      const roundMap = userRoundStats.get(tip.user_id)!;
+      const current = roundMap.get(round) ?? 0;
+      roundMap.set(round, current + (tip.is_underdog ? 1 : 0));
+    }
+
+    const userMap = await fetchAllClerkUsers();
+
+    // Build compliance entries for all users
+    const sortedRounds = [...roundsWithTracking].sort((a, b) => a - b);
+
+    return Array.from(userMap.entries()).map(([userId, userInfo]) => {
+      const roundMap = userRoundStats.get(userId);
+      return {
+        userId,
+        displayName: userInfo.displayName,
+        avatarUrl: userInfo.avatarUrl,
+        rounds: sortedRounds.map((round) => {
+          const underdogCount = roundMap?.get(round) ?? 0;
+          const isFinals = finalsRounds.has(round);
+          return {
+            round,
+            underdogCount,
+            meetsMinimum: isFinals || underdogCount >= GameRules.MINIMUM_UNDERDOGS_PER_ROUND,
+            isFinals,
+          };
+        }),
+      };
+    });
+  },
+);
+
 export const service = {
   submitTip,
   getTips,
   getLeaderboard,
   getGroupTips,
+  getUnderdogCompliance,
 };

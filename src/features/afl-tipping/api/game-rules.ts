@@ -33,4 +33,14 @@ export const GameRules = {
     }
     return actualMargin + tipMargin;
   },
+
+  /**
+   * A round is considered finals if it has fewer than 9 games.
+   * The underdog tipping rule is not applied during finals rounds.
+   */
+  isFinals(gamesInRound: AflGame.Type[]): boolean {
+    return gamesInRound.length < 9;
+  },
+
+  MINIMUM_UNDERDOGS_PER_ROUND: 2,
 };
