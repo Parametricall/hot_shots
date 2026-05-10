@@ -9,26 +9,33 @@ import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-r
 import { QueryErrorBoundary } from "~/components/QueryErrorResetBoundary";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Card, CardContent } from "~/components/ui/card";
+import { useIsMobile } from "~/lib/use-is-mobile";
 
 export function TippingPageShell({
   skeleton,
+  extraChrome,
   children,
 }: {
   skeleton: ReactNode;
+  extraChrome?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <QueryErrorBoundary>
       <Suspense fallback={skeleton}>
-        <TippingPageContent>{children}</TippingPageContent>
+        <TippingPageContent extraChrome={extraChrome}>{children}</TippingPageContent>
       </Suspense>
     </QueryErrorBoundary>
   );
 }
 
-function TippingPageContent({ children }: PropsWithChildren) {
+function TippingPageContent({
+  extraChrome,
+  children,
+}: PropsWithChildren<{ extraChrome?: ReactNode }>) {
   const search = useSearch({ strict: false }) as { round?: number };
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const { data: games } = useSuspenseQuery(aflQueries.allGames());
 
@@ -51,18 +58,59 @@ function TippingPageContent({ children }: PropsWithChildren) {
 
   if (currentRound == undefined) return "No round";
 
+  const roundNav = (
+    <RoundNavigation
+      rounds={rounds}
+      currentRound={currentRound}
+      activeRound={activeRound}
+      onRoundChange={handleRoundChange}
+    />
+  );
+
   return (
     <CurrentRoundProvider state={currentRound}>
-      <div className="space-y-4 sm:space-y-6" data-app-ready>
-        <RoundNavigation
-          rounds={rounds}
-          currentRound={currentRound}
-          activeRound={activeRound}
-          onRoundChange={handleRoundChange}
-        />
-        {children}
-      </div>
+      {isMobile ? (
+        <MobileTippingPageBody chrome={roundNav} extraChrome={extraChrome}>
+          {children}
+        </MobileTippingPageBody>
+      ) : (
+        <DesktopTippingPageBody chrome={roundNav} extraChrome={extraChrome}>
+          {children}
+        </DesktopTippingPageBody>
+      )}
     </CurrentRoundProvider>
+  );
+}
+
+function MobileTippingPageBody({
+  chrome,
+  extraChrome,
+  children,
+}: PropsWithChildren<{ chrome: ReactNode; extraChrome?: ReactNode }>) {
+  return (
+    <div className="flex-1 flex flex-col min-h-0" data-app-ready>
+      <div className="shrink-0 space-y-2 pb-2">
+        {chrome}
+        {extraChrome}
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
+    </div>
+  );
+}
+
+function DesktopTippingPageBody({
+  chrome,
+  extraChrome,
+  children,
+}: PropsWithChildren<{ chrome: ReactNode; extraChrome?: ReactNode }>) {
+  return (
+    <div className="space-y-4 sm:space-y-6" data-app-ready>
+      <div className="space-y-4">
+        {chrome}
+        {extraChrome}
+      </div>
+      {children}
+    </div>
   );
 }
 

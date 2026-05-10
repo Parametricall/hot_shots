@@ -336,7 +336,7 @@ export function GroupTipsList() {
         .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
         .map(([date, dateGames]) => (
           <div key={date} className="space-y-2 sm:space-y-3">
-            <h3 className="text-base sm:text-lg font-semibold text-muted-foreground border-b pb-1 sm:pb-2 sticky top-16 bg-background z-10 pt-2">
+            <h3 className="text-base sm:text-lg font-semibold text-muted-foreground border-b pb-1 sm:pb-2 sticky top-0 md:top-16 bg-background z-10 pt-2">
               {formatDateHeader(date)}
             </h3>
             <div className="space-y-2 sm:space-y-3">

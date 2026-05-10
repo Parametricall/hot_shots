@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   const isStorybook = process.env.STORYBOOK === "true";
   return {
     server: {
+      host: true,
       port: 3000,
     },
     plugins: [

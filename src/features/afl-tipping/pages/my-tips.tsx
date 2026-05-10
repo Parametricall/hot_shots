@@ -5,10 +5,12 @@ import {
   TippingPageShell,
   TippingPageSkeleton,
 } from "~/features/afl-tipping/components/tipping-page-shell";
+import { UnderdogWarning } from "~/features/afl-tipping/components/underdog-warning";
 
 export function MyTips() {
   return (
     <TippingPageShell
+      extraChrome={<UnderdogWarning />}
       skeleton={
         <TippingPageSkeleton>
           {Array.from({ length: 4 }).map((_, i) => (

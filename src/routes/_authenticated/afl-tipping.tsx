@@ -1,7 +1,11 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { z } from "zod";
-import { Header } from "~/components/header";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import {
+  DesktopTippingFrame,
+  MobileTippingFrame,
+} from "~/features/afl-tipping/components/tipping-frames";
+import { useIsMobile } from "~/lib/use-is-mobile";
 
 const TABS = [
   { id: "tips", label: "My Tips" },
@@ -22,27 +26,41 @@ export const Route = createFileRoute("/_authenticated/afl-tipping")({
 function AflTippingLayout() {
   const { location } = useRouterState();
   const activeTab = location.pathname.split("/").pop() ?? "tips";
+  const isMobile = useIsMobile();
 
-  return (
-    <div className="min-h-screen px-2">
-      <Header />
-      <hr />
-      <div className="h-full container mx-auto py-2">
-        <Tabs value={activeTab}>
-          <TabsList className="w-full">
-            {TABS.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} asChild>
-                <Link to={`/afl-tipping/${tab.id}`} search={(prev) => prev}>
-                  {tab.label}
-                </Link>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <div className="flex-1 pt-2">
+  const tabsList = (
+    <TabsList className="w-full mb-2 shrink-0 md:p-0.75 md:rounded-lg">
+      {TABS.map((tab) => (
+        <TabsTrigger key={tab.id} value={tab.id} asChild>
+          <Link to={`/afl-tipping/${tab.id}`} search={(prev) => prev}>
+            {tab.label}
+          </Link>
+        </TabsTrigger>
+      ))}
+    </TabsList>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileTippingFrame>
+        <Tabs value={activeTab} className="gap-0 flex-1 flex flex-col min-h-0">
+          {tabsList}
+          <div className="flex-1 flex flex-col min-h-0">
             <Outlet />
           </div>
         </Tabs>
-      </div>
-    </div>
+      </MobileTippingFrame>
+    );
+  }
+
+  return (
+    <DesktopTippingFrame>
+      <Tabs value={activeTab} className="gap-2">
+        {tabsList}
+        <div className="pt-2">
+          <Outlet />
+        </div>
+      </Tabs>
+    </DesktopTippingFrame>
   );
 }

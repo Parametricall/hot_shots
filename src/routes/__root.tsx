@@ -99,8 +99,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           {children}
           <Toaster />
           <React.Suspense>
-            <TanStackRouterDevtools position="bottom-left" />
-            <ReactQueryDevtools />
+            {/*<TanStackRouterDevtools position="bottom-left" />*/}
+            {/*<ReactQueryDevtools />*/}
           </React.Suspense>
           <Scripts />
         </body>

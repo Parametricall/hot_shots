@@ -31,7 +31,7 @@ export function RoundNavigation({
   };
 
   return (
-    <Card className="mb-2 sm:mb-4 py-2">
+    <Card className="py-2">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between md:hidden">
           <Button

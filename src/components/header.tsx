@@ -6,6 +6,8 @@ const UserButton = React.lazy(() =>
   import("@clerk/tanstack-react-start").then((m) => ({ default: m.UserButton })),
 );
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { ComponentProps } from "react";
+import { cn } from "~/lib/utils";
 
 const logo = "/dummy-footy-logo.png";
 
@@ -20,10 +22,14 @@ function getInitials(fullName: string | null | undefined): string {
     .toUpperCase();
 }
 
-export function Header() {
+export function Header(props: ComponentProps<"header">) {
   const { user } = useUser();
+  const { className, ...headerProps } = props;
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <header
+      className={cn("px-2 bg-background/80 backdrop-blur-lg border-b", className)}
+      {...headerProps}
+    >
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
