@@ -37,8 +37,8 @@ export function UnderdogWarning() {
     <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
       <AlertTriangle className="h-4 w-4 shrink-0" />
       <span>
-        You&apos;ve tipped {underdogCount} underdog{underdogCount !== 1 ? "s" : ""} this round. The
-        minimum is {GameRules.MINIMUM_UNDERDOGS_PER_ROUND}.
+        You&#39;ve tipped {underdogCount} underdog{underdogCount !== 1 ? "s" : ""} this round. The
+        minimum is {GameRules.MINIMUM_UNDERDOGS_PER_ROUND}. Don&#39;t be a shit bloke.
       </span>
     </div>
   );
