@@ -10,13 +10,14 @@ Goal: support three runtime data modes from the same codebase so we can run a pu
 
 ## Modes
 
-| Mode    | Auth          | Tips/feature-flags/cheating-reports store | Squiggle (AFL data) | Banner |
-|---------|---------------|-------------------------------------------|---------------------|--------|
-| `real`  | Clerk prod    | Supabase prod                             | Real Squiggle API   | off    |
-| `local` | Clerk dev     | localStorage                              | Real Squiggle API   | off    |
-| `demo`  | Bypassed      | localStorage                              | Real Squiggle API   | on     |
+| Mode    | Auth       | Tips/feature-flags/cheating-reports store | Squiggle (AFL data) | Banner |
+| ------- | ---------- | ----------------------------------------- | ------------------- | ------ |
+| `real`  | Clerk prod | Supabase prod                             | Real Squiggle API   | off    |
+| `local` | Clerk dev  | localStorage                              | Real Squiggle API   | off    |
+| `demo`  | Bypassed   | localStorage                              | Real Squiggle API   | on     |
 
 Vercel mapping:
+
 - Production → `real`
 - Preview (existing project) → `local`
 - New Vercel project, production branch = `demo` → `demo`
@@ -77,12 +78,12 @@ The right seam is the **service layer** that `queries.ts` already consumes via `
 
 Per-environment values for the same variable name. Existing prod vars must be edited to be **Production-only** before adding the dev/preview equivalents.
 
-| Variable                          | Production    | Preview + Development | Demo project |
-|-----------------------------------|---------------|------------------------|--------------|
-| `VITE_DATA_MODE`                  | `real`        | `local`                | `demo`       |
-| `VITE_CLERK_PUBLISHABLE_KEY`      | `pk_live_...` | `pk_test_...`          | unset/dummy  |
-| `CLERK_SECRET_KEY`                | `sk_live_...` | `sk_test_...` (rotated)| unset/dummy  |
-| `VITE_SUPABASE_URL`               | prod          | prod (read-only safe?) | unset        |
-| `VITE_SUPABASE_ANON_KEY`          | prod          | prod                   | unset        |
+| Variable                     | Production    | Preview + Development   | Demo project |
+| ---------------------------- | ------------- | ----------------------- | ------------ |
+| `VITE_DATA_MODE`             | `real`        | `local`                 | `demo`       |
+| `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_...` | `pk_test_...`           | unset/dummy  |
+| `CLERK_SECRET_KEY`           | `sk_live_...` | `sk_test_...` (rotated) | unset/dummy  |
+| `VITE_SUPABASE_URL`          | prod          | prod (read-only safe?)  | unset        |
+| `VITE_SUPABASE_ANON_KEY`     | prod          | prod                    | unset        |
 
 Note: in `local` mode the localStorage store means Supabase isn't actually called for tips, but env vars must still be defined to avoid build/runtime errors. Decide per service whether `local` mode keeps Supabase wired or fully shims it.
