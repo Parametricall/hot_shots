@@ -1,7 +1,14 @@
 import * as z from "zod";
 import { AflGame, AflStanding, AflTeam, AflModelTip, Venue } from "~/features/afl-tipping/types";
-import { SQUIGGLE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
 import { VENUES } from "~/features/afl-tipping/constants";
+
+// Squiggle returns paths like "/wp-content/themes/squiggle/assets/images/Adelaide.png".
+// We self-host these under /public/logos/squiggle/ so iOS/PWA loads don't fail on
+// flaky cross-origin requests routed through our service worker.
+const localLogoForSquigglePath = (squigglePath: string): string => {
+  const filename = squigglePath.split("/").pop() ?? "";
+  return filename ? `/logos/squiggle/${filename}` : "/dummy-footy-logo.png";
+};
 
 const squiggleTeamSchema = z.object({
   id: z.number().positive(), // Team id
@@ -15,7 +22,7 @@ const squiggleTeamDtoToDomain = squiggleTeamSchema.transform<AflTeam>((dto) => (
   id: dto.id,
   name: dto.name,
   abbrev: dto.abbrev,
-  logo: `${SQUIGGLE_HOST}${dto.logo}`,
+  logo: localLogoForSquigglePath(dto.logo),
   debut: dto.debut,
 }));
 
