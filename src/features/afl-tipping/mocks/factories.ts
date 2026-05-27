@@ -101,6 +101,8 @@ export function createAflGame(overrides: Partial<AflGame> = {}) {
     awayScore: null,
     winnerTeamId: null,
     complete: 0,
+    isFinals: false,
+    isGrandFinal: false,
     ...overrides,
   };
 }

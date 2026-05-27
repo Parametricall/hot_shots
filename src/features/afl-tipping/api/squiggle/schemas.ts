@@ -134,6 +134,8 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>((dto) => (
   awayScore: dto.ascore,
   winnerTeamId: dto.winnerteamid,
   complete: dto.complete,
+  isFinals: dto.is_final !== 0,
+  isGrandFinal: dto.is_grand_final !== 0,
 }));
 
 export const squiggleGamesDtoToDomain = z.object({

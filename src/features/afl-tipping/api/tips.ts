@@ -309,12 +309,11 @@ export const getUnderdogCompliance = createServerFn({ method: "GET" }).handler(
       gameRoundMap.set(game.id, game.round);
     }
 
-    // Determine which rounds are finals
-    const gamesByRound = AflGame.groupByRound(games);
+    // Determine which rounds are finals based on the per-game isFinals flag
     const finalsRounds = new Set<number>();
-    for (const [roundStr, roundGames] of Object.entries(gamesByRound)) {
-      if (GameRules.isFinals(roundGames)) {
-        finalsRounds.add(Number(roundStr));
+    for (const game of games) {
+      if (game.isFinals) {
+        finalsRounds.add(game.round);
       }
     }
 

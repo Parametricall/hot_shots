@@ -44,6 +44,8 @@ export type AflGame = {
   awayScore: number | null;
   winnerTeamId: number | null;
   complete: number;
+  isFinals: boolean;
+  isGrandFinal: boolean;
 };
 
 export interface AflRound {

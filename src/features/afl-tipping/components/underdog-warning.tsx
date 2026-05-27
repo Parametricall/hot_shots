@@ -21,7 +21,7 @@ export function UnderdogWarning() {
     enabled: gameIds.length > 0,
   });
 
-  const isFinals = (roundGames?.length ?? 0) > 0 && (roundGames?.length ?? 0) < 9;
+  const isFinals = roundGames?.some((g) => g.isFinals) ?? false;
 
   const underdogCount = useMemo(
     () => (tip ? tip.filter((t) => t.isUnderdog === true).length : 0),
