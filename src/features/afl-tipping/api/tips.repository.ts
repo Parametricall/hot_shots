@@ -25,19 +25,40 @@ export const tipsRepository = {
     margin?: number,
     isUnderdog?: boolean,
   ): Promise<void> {
+    console.log("[saveTip] start", {
+      gameId,
+      userId,
+      teamId,
+      margin,
+      isUnderdog,
+      supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+      hasKey: Boolean(
+        import.meta.env.VITE_SUPABASE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY,
+      ),
+    });
     const supabaseClient = await getSupabaseServerClient();
-    const { error } = await supabaseClient.from("afl_tipping").upsert(
-      {
-        game_id: gameId,
-        user_id: userId,
-        tip: teamId,
-        margin: margin ?? null,
-        is_underdog: isUnderdog ?? null,
-      },
-      { onConflict: "game_id,user_id" },
-    );
-    if (error) {
-      throw new Error(error.message || "Failed to submit tip");
+    try {
+      const { error } = await supabaseClient.from("afl_tipping").upsert(
+        {
+          game_id: gameId,
+          user_id: userId,
+          tip: teamId,
+          margin: margin ?? null,
+          is_underdog: isUnderdog ?? null,
+        },
+        { onConflict: "game_id,user_id" },
+      );
+      if (error) {
+        console.error("[saveTip] supabase returned error", error);
+        throw new Error(error.message || "Failed to submit tip");
+      }
+      console.log("[saveTip] success", { gameId, userId });
+    } catch (err) {
+      console.error("[saveTip] threw", {
+        message: err instanceof Error ? err.message : String(err),
+        cause: err instanceof Error ? (err.cause as unknown) : undefined,
+      });
+      throw err;
     }
   },
 

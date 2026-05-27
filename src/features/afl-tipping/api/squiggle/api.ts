@@ -8,12 +8,24 @@ import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants
 
 async function squiggleFetch(searchParams: URLSearchParams) {
   const url = new URL(`${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`);
-  const res = await fetch(url, {
-    headers: new Headers({
-      "User-Agent": "Alex's Tipping App - parametricall@users.noreply.github.com",
-    }),
-  });
-  return res;
+  try {
+    const res = await fetch(url, {
+      headers: new Headers({
+        "User-Agent": "Alex's Tipping App - parametricall@users.noreply.github.com",
+      }),
+    });
+    if (!res.ok) {
+      console.warn("[squiggleFetch] non-ok response", { url: url.toString(), status: res.status });
+    }
+    return res;
+  } catch (err) {
+    console.error("[squiggleFetch] fetch threw", {
+      url: url.toString(),
+      message: err instanceof Error ? err.message : String(err),
+      cause: err instanceof Error ? err.cause : undefined,
+    });
+    throw err;
+  }
 }
 
 type SquiggleSearchParams = {

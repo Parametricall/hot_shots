@@ -67,29 +67,38 @@ export const submitTip = createServerFn({ method: "POST" })
   .inputValidator(SubmitTipSchema)
   .handler(async ({ data }) => {
     const { gameId, teamId, margin } = data;
-    const userId = await ensureUserAuthenticated();
+    try {
+      const userId = await ensureUserAuthenticated();
 
-    const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
-    const games: AflGame.Type[] = await getGames();
-    const game = games.find((g) => g.id === gameId);
-    // Use 'date' as the start time property (Squiggle API)
-    const startTime = game?.date as string | undefined;
-    if (!game || !startTime) {
-      throw new Error("Game not found in Squiggle API");
+      const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
+      const games: AflGame.Type[] = await getGames();
+
+      const game = games.find((g) => g.id === gameId);
+      const startTime = game?.date as string | undefined;
+      if (!game || !startTime) {
+        console.error("[submitTip] game not found", { gameId });
+        throw new Error("Game not found in Squiggle API");
+      }
+      if (!GameRules.canSubmitTip({ game })) {
+        console.warn("[submitTip] game already started", { gameId, startTime });
+        throw new Error("Cannot submit tip after the game has started");
+      }
+
+      const modelTips = await getModelTips(game.round);
+      const modelTip = modelTips.find((t) => t.gameId === gameId);
+      const isUnderdog = modelTip?.tipTeamId != null ? teamId !== modelTip.tipTeamId : undefined;
+
+      const repo = serviceRegistry.getService("tipsRepository");
+      await repo.saveTip(gameId, userId, teamId, margin, isUnderdog);
+      return { success: true };
+    } catch (err) {
+      console.error("[submitTip] failed", {
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        cause: err instanceof Error ? err.cause : undefined,
+      });
+      throw err;
     }
-    // Use gameRules abstraction
-    if (!GameRules.canSubmitTip({ game })) {
-      throw new Error("Cannot submit tip after the game has started");
-    }
-
-    // Determine underdog status at submission time
-    const modelTips = await getModelTips(game.round);
-    const modelTip = modelTips.find((t) => t.gameId === gameId);
-    const isUnderdog = modelTip?.tipTeamId != null ? teamId !== modelTip.tipTeamId : undefined;
-
-    const repo = serviceRegistry.getService("tipsRepository");
-    await repo.saveTip(gameId, userId, teamId, margin, isUnderdog);
-    return { success: true };
   });
 
 export const getTips = createServerFn({ method: "GET" })

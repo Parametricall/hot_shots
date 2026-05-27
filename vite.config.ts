@@ -21,6 +21,9 @@ export default defineConfig(({ mode }) => {
         tanstackStart({
           router: { entry: "./app/router" },
           start: { entry: "./app/start" },
+          serverFns: {
+            disableCsrfMiddlewareWarning: true,
+          },
         }),
       mode === "development" && devtools(),
       !isStorybook && nitro(),

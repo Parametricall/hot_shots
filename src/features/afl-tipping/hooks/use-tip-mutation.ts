@@ -42,7 +42,13 @@ export function useTipMutation() {
 
       return { previousQueries };
     },
-    onError: (_err, _variables, context) => {
+    onError: (err, variables, context) => {
+      console.error("[submitTip] mutation failed", {
+        error: err,
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        variables,
+      });
       if (context?.previousQueries) {
         for (const [queryKey, data] of context.previousQueries) {
           queryClient.setQueryData(queryKey, data);
