@@ -32,9 +32,7 @@ export const tipsRepository = {
       margin,
       isUnderdog,
       supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-      hasKey: Boolean(
-        import.meta.env.VITE_SUPABASE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY,
-      ),
+      hasKey: Boolean(import.meta.env.VITE_SUPABASE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY),
     });
     const supabaseClient = await getSupabaseServerClient();
     try {

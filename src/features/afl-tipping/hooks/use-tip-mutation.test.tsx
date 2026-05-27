@@ -105,6 +105,7 @@ describe("useTipMutation", () => {
   });
 
   it("rolls back getTips cache on error", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mockSubmitTip.mockRejectedValueOnce(new Error("Server error"));
 
     const originalTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
@@ -124,5 +125,6 @@ describe("useTipMutation", () => {
 
     const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
     expect(cached).toEqual(originalTips);
+    consoleErrorSpy.mockRestore();
   });
 });
