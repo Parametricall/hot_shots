@@ -93,12 +93,25 @@ export const tipsRepository = {
 
   async getAllTips(): Promise<AllTipsRow[]> {
     const supabaseClient = await getSupabaseServerClient();
-    const { data: allTips, error } = await supabaseClient
-      .from("afl_tipping")
-      .select("game_id, user_id, tip, margin, is_underdog");
-    if (error) {
-      throw new Error(error.message || "Failed to fetch all tips");
+    // Supabase caps an unbounded select at 1000 rows, so page through explicitly —
+    // otherwise later rounds (highest game_ids) silently drop off once the table
+    // grows past 1000 tips. A stable order is required for correct pagination.
+    const PAGE_SIZE = 1000;
+    const allTips: AllTipsRow[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, error } = await supabaseClient
+        .from("afl_tipping")
+        .select("game_id, user_id, tip, margin, is_underdog")
+        .order("game_id", { ascending: true })
+        .order("user_id", { ascending: true })
+        .range(from, from + PAGE_SIZE - 1);
+      if (error) {
+        throw new Error(error.message || "Failed to fetch all tips");
+      }
+      if (!data || data.length === 0) break;
+      allTips.push(...(data as AllTipsRow[]));
+      if (data.length < PAGE_SIZE) break;
     }
-    return (allTips ?? []) as AllTipsRow[];
+    return allTips;
   },
 };
