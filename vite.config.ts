@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
       host: true,
       port: 3000,
     },
+    build: {
+      sourcemap: true,
+    },
     plugins: [
       tailwindcss(),
       !isStorybook &&
