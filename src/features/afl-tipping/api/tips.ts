@@ -64,7 +64,7 @@ async function fetchAllClerkUsers(): Promise<
 }
 
 export const submitTip = createServerFn({ method: "POST" })
-  .inputValidator(SubmitTipSchema)
+  .validator(SubmitTipSchema)
   .handler(async ({ data }) => {
     const { gameId, teamId, margin } = data;
     try {
@@ -102,7 +102,7 @@ export const submitTip = createServerFn({ method: "POST" })
   });
 
 export const getTips = createServerFn({ method: "GET" })
-  .inputValidator(GetTipsSchema)
+  .validator(GetTipsSchema)
   .handler(async ({ data }): Promise<AflUserTip[]> => {
     const { gameIds } = data;
     const userId = await ensureUserAuthenticated();
@@ -271,7 +271,7 @@ function buildUntippedEntries(
 }
 
 export const getGroupTips = createServerFn({ method: "GET" })
-  .inputValidator(GetGroupTipsSchema)
+  .validator(GetGroupTipsSchema)
   .handler(async ({ data }): Promise<AflGroupTipEntry[]> => {
     await ensureUserAuthenticated();
 

@@ -35,6 +35,13 @@ export default defineMain({
       // prefix-matched into `./mocks/clerk.tsx/server`.
       alias: [
         ...existingAliases,
+        // Vite 8.1's experimental `tsconfigPaths` stopped applying the `~/*`
+        // mapping to importers inside dot-directories, so files in .storybook
+        // (e.g. preview.tsx) need the alias spelled out.
+        {
+          find: /^~\//,
+          replacement: `${path.resolve(dirname, "../src")}/`,
+        },
         {
           find: /^@clerk\/tanstack-react-start\/server$/,
           replacement: path.resolve(dirname, "./mocks/clerk-server.ts"),

@@ -16,7 +16,7 @@ const ReportSchema = z.object({
 });
 
 export const reportCheating = createServerFn({ method: "POST" })
-  .inputValidator(ReportSchema)
+  .validator(ReportSchema)
   .handler(async ({ data }): Promise<{ success: true }> => {
     const reporterId = await ensureUserAuthenticated();
     if (reporterId === data.userId) {

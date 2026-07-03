@@ -23,7 +23,7 @@ const GetGamesSchema = z.object({
 });
 
 export const getGamesServerFn = createServerFn({ method: "GET" })
-  .inputValidator(GetGamesSchema)
+  .validator(GetGamesSchema)
   .handler(async ({ data }) => {
     const fet = () => fetchGames(data.round);
     return withCache(`games:${data.round ?? "all"}`, CACHE_DURATIONS.GAMES, fet);
@@ -40,7 +40,7 @@ const GetModelTipsSchema = z.object({
 });
 
 export const getModelTipsServerFn = createServerFn({ method: "GET" })
-  .inputValidator(GetModelTipsSchema)
+  .validator(GetModelTipsSchema)
   .handler(async ({ data }) => {
     const tipsFn = () => fetchTips(data.round);
     return withCache(`modelTips:${data.round}`, CACHE_DURATIONS.MODEL_TIPS, tipsFn);

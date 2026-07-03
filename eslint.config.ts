@@ -17,6 +17,7 @@ export default defineConfig([
     ignores: [
       ".github",
       ".claude",
+      ".agents",
       "CLAUDE.md",
       ".output",
       "components.json",
