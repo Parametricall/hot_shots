@@ -8,7 +8,6 @@ export const GAME_STATUS_CHECK_INTERVAL_MS = 60000; // 1 minute
 
 // Cache durations (in milliseconds)
 export const CACHE_DURATIONS = {
-  TEAMS: 1000 * 60 * 60, // 1 hour
   STANDINGS: 1000 * 60 * 60, // 1 hour
   GAMES: 1000 * 60 * 60, // 1 hour (fixtures rarely change once the season starts)
   INCOMPLETE_GAMES: 1000 * 60, // 1 minute
