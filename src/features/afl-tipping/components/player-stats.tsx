@@ -121,7 +121,6 @@ function PlayerStatsRow({
               label="Correct"
             />
             <StatBlock value={formatAccuracy(entry.season.accuracy)} label="Acc" />
-            <StatBlock value={entry.season.totalMarginDiff} label="Margin" />
             <StatBlock value={entry.season.currentStreak} label="Streak" />
           </div>
         )}
