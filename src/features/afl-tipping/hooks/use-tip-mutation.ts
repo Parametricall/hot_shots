@@ -65,7 +65,7 @@ export function useTipMutation() {
           queryKey: aflQueries.allGroupTipsKey(),
         });
         queryClient.invalidateQueries({
-          queryKey: aflQueries.allUnderdogComplianceKey(),
+          queryKey: aflQueries.allPlayerStatsKey(),
         });
       }
     },

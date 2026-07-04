@@ -11,7 +11,7 @@ const TABS = [
   { id: "tips", label: "My Tips" },
   { id: "group-tips", label: "Player Tips" },
   { id: "standings", label: "Ladder" },
-  { id: "leaderboard", label: "Leaderboard" },
+  { id: "stats", label: "Stats" },
 ] as const;
 
 const aflTippingSearchSchema = z.object({

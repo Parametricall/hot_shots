@@ -92,16 +92,32 @@ export type AflLeaderboardEntry = {
   score: number;
 };
 
-export type AflUnderdogComplianceRound = {
+export type AflPlayerRoundStats = {
   round: number;
+  isFinals: boolean;
+  correctTips: number;
+  gamesTipped: number; // completed games the user tipped
+  gamesCompleted: number; // completed games in the round
+  marginDiff: number | null; // diff on the round's margin game; null until it completes or if the user didn't tip it
   underdogCount: number;
   meetsMinimum: boolean;
-  isFinals: boolean;
 };
 
-export type AflUnderdogComplianceEntry = {
+export type AflPlayerSeasonStats = {
+  correctTips: number;
+  gamesTipped: number;
+  gamesCompleted: number;
+  accuracy: number | null; // 0-100, correctTips / gamesTipped; null when no completed tipped games
+  totalMarginDiff: number;
+  currentStreak: number; // consecutive correct tips ending at the most recent completed tipped game
+  longestStreak: number;
+  totalUnderdogs: number;
+};
+
+export type AflPlayerStatsEntry = {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
-  rounds: AflUnderdogComplianceRound[];
+  season: AflPlayerSeasonStats;
+  rounds: AflPlayerRoundStats[];
 };

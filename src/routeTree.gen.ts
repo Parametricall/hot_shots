@@ -17,8 +17,8 @@ import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
 import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authenticated/afl-tipping/tips'
+import { Route as AuthenticatedAflTippingStatsRouteImport } from './routes/_authenticated/afl-tipping/stats'
 import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
-import { Route as AuthenticatedAflTippingLeaderboardRouteImport } from './routes/_authenticated/afl-tipping/leaderboard'
 import { Route as AuthenticatedAflTippingGroupTipsRouteImport } from './routes/_authenticated/afl-tipping/group-tips'
 
 const SignUpRoute = SignUpRouteImport.update({
@@ -62,16 +62,16 @@ const AuthenticatedAflTippingTipsRoute =
     path: '/tips',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
+const AuthenticatedAflTippingStatsRoute =
+  AuthenticatedAflTippingStatsRouteImport.update({
+    id: '/stats',
+    path: '/stats',
+    getParentRoute: () => AuthenticatedAflTippingRoute,
+  } as any)
 const AuthenticatedAflTippingStandingsRoute =
   AuthenticatedAflTippingStandingsRouteImport.update({
     id: '/standings',
     path: '/standings',
-    getParentRoute: () => AuthenticatedAflTippingRoute,
-  } as any)
-const AuthenticatedAflTippingLeaderboardRoute =
-  AuthenticatedAflTippingLeaderboardRouteImport.update({
-    id: '/leaderboard',
-    path: '/leaderboard',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
 const AuthenticatedAflTippingGroupTipsRoute =
@@ -88,8 +88,8 @@ export interface FileRoutesByFullPath {
   '/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
-  '/afl-tipping/leaderboard': typeof AuthenticatedAflTippingLeaderboardRoute
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
+  '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
   '/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
 }
@@ -99,8 +99,8 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
-  '/afl-tipping/leaderboard': typeof AuthenticatedAflTippingLeaderboardRoute
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
+  '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
   '/afl-tipping': typeof AuthenticatedAflTippingIndexRoute
 }
@@ -113,8 +113,8 @@ export interface FileRoutesById {
   '/_authenticated/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/sign-in/$': typeof SignInSplatRoute
   '/_authenticated/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
-  '/_authenticated/afl-tipping/leaderboard': typeof AuthenticatedAflTippingLeaderboardRoute
   '/_authenticated/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
+  '/_authenticated/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/_authenticated/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
   '/_authenticated/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
 }
@@ -127,8 +127,8 @@ export interface FileRouteTypes {
     | '/afl-tipping'
     | '/sign-in/$'
     | '/afl-tipping/group-tips'
-    | '/afl-tipping/leaderboard'
     | '/afl-tipping/standings'
+    | '/afl-tipping/stats'
     | '/afl-tipping/tips'
     | '/afl-tipping/'
   fileRoutesByTo: FileRoutesByTo
@@ -138,8 +138,8 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/sign-in/$'
     | '/afl-tipping/group-tips'
-    | '/afl-tipping/leaderboard'
     | '/afl-tipping/standings'
+    | '/afl-tipping/stats'
     | '/afl-tipping/tips'
     | '/afl-tipping'
   id:
@@ -151,8 +151,8 @@ export interface FileRouteTypes {
     | '/_authenticated/afl-tipping'
     | '/sign-in/$'
     | '/_authenticated/afl-tipping/group-tips'
-    | '/_authenticated/afl-tipping/leaderboard'
     | '/_authenticated/afl-tipping/standings'
+    | '/_authenticated/afl-tipping/stats'
     | '/_authenticated/afl-tipping/tips'
     | '/_authenticated/afl-tipping/'
   fileRoutesById: FileRoutesById
@@ -222,18 +222,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAflTippingTipsRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
+    '/_authenticated/afl-tipping/stats': {
+      id: '/_authenticated/afl-tipping/stats'
+      path: '/stats'
+      fullPath: '/afl-tipping/stats'
+      preLoaderRoute: typeof AuthenticatedAflTippingStatsRouteImport
+      parentRoute: typeof AuthenticatedAflTippingRoute
+    }
     '/_authenticated/afl-tipping/standings': {
       id: '/_authenticated/afl-tipping/standings'
       path: '/standings'
       fullPath: '/afl-tipping/standings'
       preLoaderRoute: typeof AuthenticatedAflTippingStandingsRouteImport
-      parentRoute: typeof AuthenticatedAflTippingRoute
-    }
-    '/_authenticated/afl-tipping/leaderboard': {
-      id: '/_authenticated/afl-tipping/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/afl-tipping/leaderboard'
-      preLoaderRoute: typeof AuthenticatedAflTippingLeaderboardRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
     '/_authenticated/afl-tipping/group-tips': {
@@ -248,8 +248,8 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAflTippingRouteChildren {
   AuthenticatedAflTippingGroupTipsRoute: typeof AuthenticatedAflTippingGroupTipsRoute
-  AuthenticatedAflTippingLeaderboardRoute: typeof AuthenticatedAflTippingLeaderboardRoute
   AuthenticatedAflTippingStandingsRoute: typeof AuthenticatedAflTippingStandingsRoute
+  AuthenticatedAflTippingStatsRoute: typeof AuthenticatedAflTippingStatsRoute
   AuthenticatedAflTippingTipsRoute: typeof AuthenticatedAflTippingTipsRoute
   AuthenticatedAflTippingIndexRoute: typeof AuthenticatedAflTippingIndexRoute
 }
@@ -258,10 +258,9 @@ const AuthenticatedAflTippingRouteChildren: AuthenticatedAflTippingRouteChildren
   {
     AuthenticatedAflTippingGroupTipsRoute:
       AuthenticatedAflTippingGroupTipsRoute,
-    AuthenticatedAflTippingLeaderboardRoute:
-      AuthenticatedAflTippingLeaderboardRoute,
     AuthenticatedAflTippingStandingsRoute:
       AuthenticatedAflTippingStandingsRoute,
+    AuthenticatedAflTippingStatsRoute: AuthenticatedAflTippingStatsRoute,
     AuthenticatedAflTippingTipsRoute: AuthenticatedAflTippingTipsRoute,
     AuthenticatedAflTippingIndexRoute: AuthenticatedAflTippingIndexRoute,
   }

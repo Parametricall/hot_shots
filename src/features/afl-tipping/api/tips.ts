@@ -4,13 +4,14 @@ import { auth } from "@clerk/tanstack-react-start/server";
 import type {
   AflGroupTipEntry,
   AflLeaderboardEntry,
-  AflUnderdogComplianceEntry,
+  AflPlayerStatsEntry,
   AflUserTip,
 } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { createClerkClient } from "@clerk/backend";
 import serviceRegistry from "~/app/service-registry";
 import { GameRules } from "./game-rules";
+import { computePlayerStats } from "./player-stats";
 import type { AllTipsRow } from "./tips.repository";
 
 const SubmitTipSchema = z.object({
@@ -293,8 +294,8 @@ export const getGroupTips = createServerFn({ method: "GET" })
     ];
   });
 
-export const getUnderdogCompliance = createServerFn({ method: "GET" }).handler(
-  async (): Promise<AflUnderdogComplianceEntry[]> => {
+export const getPlayerStats = createServerFn({ method: "GET" }).handler(
+  async (): Promise<AflPlayerStatsEntry[]> => {
     await ensureUserAuthenticated();
 
     const repo = serviceRegistry.getService("tipsRepository");
@@ -303,63 +304,24 @@ export const getUnderdogCompliance = createServerFn({ method: "GET" }).handler(
     const { getGames } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames();
 
-    // Build gameId -> round lookup
-    const gameRoundMap = new Map<number, number>();
-    for (const game of games) {
-      gameRoundMap.set(game.id, game.round);
-    }
-
-    // Determine which rounds are finals based on the per-game isFinals flag
-    const finalsRounds = new Set<number>();
-    for (const game of games) {
-      if (game.isFinals) {
-        finalsRounds.add(game.round);
-      }
-    }
-
-    // Group tips by (userId, round), only include tips with non-null is_underdog
-    const userRoundStats = new Map<string, Map<number, number>>();
-    const roundsWithTracking = new Set<number>();
-
-    for (const tip of allTips) {
-      if (tip.is_underdog == null) continue;
-
-      const round = gameRoundMap.get(tip.game_id);
-      if (round == null) continue;
-
-      roundsWithTracking.add(round);
-
-      if (!userRoundStats.has(tip.user_id)) {
-        userRoundStats.set(tip.user_id, new Map());
-      }
-      const roundMap = userRoundStats.get(tip.user_id)!;
-      const current = roundMap.get(round) ?? 0;
-      roundMap.set(round, current + (tip.is_underdog ? 1 : 0));
-    }
-
+    const { byUser, makeEmptyStats } = computePlayerStats(allTips, games);
     const userMap = await fetchAllClerkUsers();
 
-    // Build compliance entries for all users
-    const sortedRounds = [...roundsWithTracking].sort((a, b) => a - b);
+    const entries = Array.from(userMap.entries()).map(([userId, userInfo]) => ({
+      userId,
+      displayName: userInfo.displayName,
+      avatarUrl: userInfo.avatarUrl,
+      ...(byUser.get(userId) ?? makeEmptyStats()),
+    }));
 
-    return Array.from(userMap.entries()).map(([userId, userInfo]) => {
-      const roundMap = userRoundStats.get(userId);
-      return {
-        userId,
-        displayName: userInfo.displayName,
-        avatarUrl: userInfo.avatarUrl,
-        rounds: sortedRounds.map((round) => {
-          const underdogCount = roundMap?.get(round) ?? 0;
-          const isFinals = finalsRounds.has(round);
-          return {
-            round,
-            underdogCount,
-            meetsMinimum: isFinals || underdogCount >= GameRules.MINIMUM_UNDERDOGS_PER_ROUND,
-            isFinals,
-          };
-        }),
-      };
+    entries.sort((a, b) => {
+      if (b.season.correctTips !== a.season.correctTips) {
+        return b.season.correctTips - a.season.correctTips;
+      }
+      return a.season.totalMarginDiff - b.season.totalMarginDiff;
     });
+
+    return entries;
   },
 );
 
@@ -368,5 +330,5 @@ export const service = {
   getTips,
   getLeaderboard,
   getGroupTips,
-  getUnderdogCompliance,
+  getPlayerStats,
 };

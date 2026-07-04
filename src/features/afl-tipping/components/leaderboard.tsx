@@ -5,7 +5,6 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +17,6 @@ import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
 import ServiceRegistry from "~/app/service-registry";
-import { UnderdogCompliance } from "./underdog-compliance";
 
 const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
@@ -142,7 +140,7 @@ export function LeaderboardSkeleton() {
   );
 }
 
-function LeaderboardScore() {
+export function Leaderboard() {
   const {
     data: leaderboard,
     isLoading,
@@ -274,22 +272,5 @@ function LeaderboardScore() {
         })}
       </CardContent>
     </Card>
-  );
-}
-
-export function Leaderboard() {
-  return (
-    <Tabs defaultValue="score">
-      <TabsList className="w-full mb-4">
-        <TabsTrigger value="score">Score</TabsTrigger>
-        <TabsTrigger value="underdogs">Underdogs</TabsTrigger>
-      </TabsList>
-      <TabsContent value="score">
-        <LeaderboardScore />
-      </TabsContent>
-      <TabsContent value="underdogs">
-        <UnderdogCompliance />
-      </TabsContent>
-    </Tabs>
   );
 }

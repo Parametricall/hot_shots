@@ -82,11 +82,11 @@ export const aflQueries = {
       staleTime: CACHE_DURATIONS.LEADERBOARD,
     });
   },
-  allUnderdogComplianceKey: () => [...aflQueries.aflKey(), "underdogCompliance"] as const,
-  underdogCompliance: () => {
+  allPlayerStatsKey: () => [...aflQueries.aflKey(), "playerStats"] as const,
+  playerStats: () => {
     return queryOptions({
-      queryKey: aflQueries.allUnderdogComplianceKey(),
-      queryFn: () => getAflService().getUnderdogCompliance(),
+      queryKey: aflQueries.allPlayerStatsKey(),
+      queryFn: () => getAflService().getPlayerStats(),
       staleTime: CACHE_DURATIONS.LEADERBOARD,
     });
   },

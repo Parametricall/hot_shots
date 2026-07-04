@@ -2,6 +2,8 @@ import {
   AflGame,
   AflGroupTipEntry,
   AflLeaderboardEntry,
+  AflPlayerRoundStats,
+  AflPlayerStatsEntry,
   AflStanding,
   AflTeam,
 } from "~/features/afl-tipping/types";
@@ -61,6 +63,57 @@ export function createAflGroupTipEntry(
     hasTipped: true,
     tipTeamId: null,
     ...overrides,
+  };
+}
+
+export function createAflPlayerRoundStats(
+  overrides: Partial<AflPlayerRoundStats> = {},
+): AflPlayerRoundStats {
+  return {
+    round: 1,
+    isFinals: false,
+    correctTips: 5,
+    gamesTipped: 8,
+    gamesCompleted: 9,
+    marginDiff: 12,
+    underdogCount: 2,
+    meetsMinimum: true,
+    ...overrides,
+  };
+}
+
+export function createAflPlayerStatsEntry(
+  overrides: Partial<Omit<AflPlayerStatsEntry, "season">> & {
+    season?: Partial<AflPlayerStatsEntry["season"]>;
+  } = {},
+): AflPlayerStatsEntry {
+  const { season, rounds, ...rest } = overrides;
+  return {
+    userId: "user-1",
+    displayName: "John Smith",
+    avatarUrl: null,
+    season: {
+      correctTips: 10,
+      gamesTipped: 17,
+      gamesCompleted: 18,
+      accuracy: (10 / 17) * 100,
+      totalMarginDiff: 25,
+      currentStreak: 3,
+      longestStreak: 5,
+      totalUnderdogs: 4,
+      ...season,
+    },
+    rounds: rounds ?? [
+      createAflPlayerRoundStats({ round: 1, correctTips: 5, marginDiff: 12 }),
+      createAflPlayerRoundStats({
+        round: 2,
+        correctTips: 5,
+        marginDiff: 13,
+        underdogCount: 1,
+        meetsMinimum: false,
+      }),
+    ],
+    ...rest,
   };
 }
 
