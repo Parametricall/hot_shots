@@ -59,7 +59,7 @@ function CorrectTipStatus({ roundStats }: { roundStats: AflPlayerRoundStats }) {
       <Star
         className={cn(
           "h-3.5 w-3.5 text-yellow-600 fill-yellow-400",
-          roundStats.correctTips !== roundStats.gamesCompleted && "invisible",
+          roundStats.correctTips !== roundStats.totalGames && "invisible",
         )}
       />
       {roundStats.correctTips}/{roundStats.totalGames}
