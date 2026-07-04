@@ -226,20 +226,6 @@ export function PlayerStats() {
 
   const roundIndex = selectedRoundIndex ?? defaultRoundIndex;
 
-  const sortedStats = useMemo(() => {
-    if (!stats) return [];
-    if (view === "season") return stats; // server order: season correct desc, margin asc
-    return [...stats].sort((a, b) => {
-      const roundA = a.rounds[roundIndex];
-      const roundB = b.rounds[roundIndex];
-      const correctDiff = (roundB?.correctTips ?? 0) - (roundA?.correctTips ?? 0);
-      if (correctDiff !== 0) return correctDiff;
-      const marginA = roundA?.marginDiff ?? Number.MAX_SAFE_INTEGER;
-      const marginB = roundB?.marginDiff ?? Number.MAX_SAFE_INTEGER;
-      return marginA - marginB;
-    });
-  }, [stats, view, roundIndex]);
-
   if (isLoading) return <PlayerStatsSkeleton />;
 
   if (isError) {
@@ -337,7 +323,8 @@ export function PlayerStats() {
         )}
       </CardHeader>
       <CardContent className="p-0">
-        {sortedStats.map((entry) => (
+        {/* Server order matches the leaderboard: correct tips desc, margin diff asc */}
+        {stats.map((entry) => (
           <PlayerStatsRow
             key={entry.userId}
             entry={entry}

@@ -92,11 +92,13 @@ describe("PlayerStats", () => {
     expect(screen.getByText("3/9")).toBeInTheDocument();
   });
 
-  it("sorts the round view by that round's correct tips", () => {
+  it("keeps the leaderboard order in the round view", () => {
     renderWithStats(makeEntries());
 
+    // Server order (leaderboard order): Alice leads on season correct tips,
+    // even though Bob got more correct in the displayed round
     const names = screen.getAllByText(/^(Alice|Bob)$/).map((el) => el.textContent);
-    expect(names).toEqual(["Bob", "Alice"]);
+    expect(names).toEqual(["Alice", "Bob"]);
   });
 
   it("navigates to the previous round", () => {
