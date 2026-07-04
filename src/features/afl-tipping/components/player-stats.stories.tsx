@@ -23,7 +23,7 @@ const PLAYER_STATS = [
     rounds: [
       createAflPlayerRoundStats({ round: 1, correctTips: 7, marginDiff: 4 }),
       createAflPlayerRoundStats({ round: 2, correctTips: 6, marginDiff: 3 }),
-      createAflPlayerRoundStats({ round: 3, correctTips: 5, marginDiff: 5 }),
+      createAflPlayerRoundStats({ round: 3, correctTips: 9, marginDiff: 5 }),
     ],
   }),
   createAflPlayerStatsEntry({

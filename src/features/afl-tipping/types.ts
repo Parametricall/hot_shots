@@ -98,6 +98,7 @@ export type AflPlayerRoundStats = {
   correctTips: number;
   gamesTipped: number; // completed games the user tipped
   gamesCompleted: number; // completed games in the round
+  totalGames: number;
   marginDiff: number | null; // diff on the round's margin game; null until it completes or if the user didn't tip it
   underdogCount: number;
   meetsMinimum: boolean;

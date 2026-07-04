@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { GameRules } from "~/features/afl-tipping/api/game-rules";
@@ -48,6 +49,20 @@ function UnderdogStatus({ roundStats }: { roundStats: AflPlayerRoundStats }) {
       ) : (
         <AlertTriangle className="h-3.5 w-3.5" />
       )}
+    </span>
+  );
+}
+
+function CorrectTipStatus({ roundStats }: { roundStats: AflPlayerRoundStats }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1")}>
+      <Star
+        className={cn(
+          "h-3.5 w-3.5 text-yellow-600 fill-yellow-400",
+          roundStats.correctTips !== roundStats.gamesCompleted && "invisible",
+        )}
+      />
+      {roundStats.correctTips}/{roundStats.totalGames}
     </span>
   );
 }
@@ -104,10 +119,7 @@ function PlayerStatsRow({
 
         {view === "round" && roundStats ? (
           <div className="flex items-center gap-2 text-sm">
-            <StatBlock
-              value={`${roundStats.correctTips}/${roundStats.gamesCompleted}`}
-              label="Correct"
-            />
+            <StatBlock value={<CorrectTipStatus roundStats={roundStats} />} label="Correct" />
             <StatBlock
               value={roundStats.marginDiff == null ? "—" : `+${roundStats.marginDiff}`}
               label="Margin"
@@ -150,7 +162,7 @@ function PlayerRoundBreakdown({ entry }: { entry: AflPlayerStatsEntry }) {
             {roundStats.isFinals && <span className="text-muted-foreground"> (F)</span>}
           </span>
           <span className="text-center">
-            {roundStats.correctTips}/{roundStats.gamesCompleted}
+            <CorrectTipStatus roundStats={roundStats} />
           </span>
           <span className="text-center">
             {roundStats.marginDiff == null ? "—" : `+${roundStats.marginDiff}`}

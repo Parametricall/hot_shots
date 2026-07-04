@@ -75,6 +75,7 @@ export function createAflPlayerRoundStats(
     correctTips: 5,
     gamesTipped: 8,
     gamesCompleted: 9,
+    totalGames: 9,
     marginDiff: 12,
     underdogCount: 2,
     meetsMinimum: true,

@@ -17,6 +17,7 @@ type RoundMeta = {
   round: number;
   isFinals: boolean;
   gamesCompleted: number;
+  totalGames: number;
   marginGameId: number | undefined;
   actualMargin: number | null;
 };
@@ -48,6 +49,7 @@ function buildRoundMeta(tips: PlayerStatsTip[], games: AflGame.Type[]): RoundMet
         gamesCompleted: roundGames.filter(AflGame.isComplete).length,
         marginGameId: marginGame?.id,
         actualMargin: marginGame ? GameRules.getActualMargin(marginGame) : null,
+        totalGames: roundGames.length,
       };
     });
 }
@@ -101,6 +103,7 @@ export function computePlayerStats(tips: PlayerStatsTip[], games: AflGame.Type[]
       correctTips: 0,
       gamesTipped: 0,
       gamesCompleted: meta.gamesCompleted,
+      totalGames: meta.totalGames,
       marginDiff: null,
       underdogCount: 0,
       meetsMinimum: meta.isFinals,
