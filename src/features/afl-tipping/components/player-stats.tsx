@@ -121,7 +121,7 @@ function PlayerStatsRow({
               label="Correct"
             />
             <StatBlock value={formatAccuracy(entry.season.accuracy)} label="Acc" />
-            <StatBlock value={entry.season.currentStreak} label="Streak" />
+            <StatBlock value={entry.season.longestStreak} label="Streak" />
           </div>
         )}
       </button>
