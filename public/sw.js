@@ -1,8 +1,13 @@
-// Minimal service worker — ensures the PWA always loads fresh content.
-// Serves all navigation requests from the network (no caching of HTML).
-// Static assets (JS/CSS) are fingerprinted by Vite, so browser caching is fine.
+// Service worker caching strategy:
+// - Navigations (HTML): network-first, cached copy as offline fallback. HTML is
+//   server-rendered and always references the current hashed asset URLs, so it
+//   must stay fresh — this also acts as the kill-switch for a bad SW deploy.
+// - Hashed build assets (/assets/*): cache-first. Vite content-hashes these, so
+//   a given URL never changes; caching them makes repeat launches skip the
+//   network for the whole JS/CSS bundle.
+// - Everything else: network-first with cache fallback.
 
-const CACHE_NAME = "hot-shots-v1";
+const CACHE_NAME = "hot-shots-v2";
 
 self.addEventListener("install", () => {
   // Activate immediately, don't wait for old tabs to close
@@ -23,21 +28,43 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
-  // Navigation requests (HTML pages) — always go to network
+  // Navigation requests (HTML pages) — network-first, cache the response so
+  // the app shell can still open offline
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => {
-        // If offline, try the cache as a fallback
-        return caches.match(request);
-      }),
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request)),
     );
     return;
   }
 
-  // All other requests — use network-first strategy
-  // Vite-built assets have content hashes so stale cache entries are harmless
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request)),
-  );
+  // Immutable hashed build assets — cache-first, populate on miss
+  if (url.origin === self.location.origin && url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ??
+          fetch(request).then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          }),
+      ),
+    );
+    return;
+  }
+
+  // All other requests — network-first with cache fallback
+  event.respondWith(fetch(request).catch(() => caches.match(request)));
 });

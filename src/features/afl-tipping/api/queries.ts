@@ -33,6 +33,9 @@ export const aflQueries = {
       queryKey: aflQueries.allGamesKey(),
       queryFn: () => getSquiggleService().getGames(),
       staleTime: Infinity,
+      // Scores change mid-round: bypass the Infinity staleTime when the app
+      // regains focus so live results stay fresh
+      refetchOnWindowFocus: "always",
     });
   },
   games: (round?: number) => {

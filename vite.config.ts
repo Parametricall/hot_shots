@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: true,
     },
+    define: {
+      // Busts the persisted react-query cache on each deploy
+      __BUILD_ID__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? "dev"),
+    },
     plugins: [
       tailwindcss(),
       !isStorybook &&

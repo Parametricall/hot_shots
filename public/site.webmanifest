@@ -1,6 +1,7 @@
 {
   "name": "Hot Shots - AFL",
   "short_name": "Hot Shots",
+  "start_url": "/afl-tipping/tips",
   "icons": [
     {
       "src": "/dummy-footy-logo.png",

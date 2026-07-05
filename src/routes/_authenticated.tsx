@@ -1,23 +1,26 @@
 // src/routes/_authenticated.tsx
-import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
-import { useAuth } from "@clerk/tanstack-react-start";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { auth } from "@clerk/tanstack-react-start/server";
 import { useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { CheatingPopup } from "~/features/afl-tipping/components/cheating-popup";
-import { AppLoadingScreen } from "~/components/AppLoadingScreen";
 
-export const Route = createFileRoute("/_authenticated")({
-  component: AuthenticatedLayout,
+const getAuthState = createServerFn({ method: "GET" }).handler(async () => {
+  const { userId } = await auth();
+  return { userId };
 });
 
-function AuthenticatedLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
-
-  if (!isLoaded) return <AppLoadingScreen />;
-  if (!isSignedIn) return <Navigate to="/sign-in" />;
-
-  return <AuthenticatedContent />;
-}
+export const Route = createFileRoute("/_authenticated")({
+  // Auth is checked server-side (Clerk middleware reads the session cookie),
+  // so the first render doesn't wait for Clerk's client JS to hydrate
+  beforeLoad: async () => {
+    const { userId } = await getAuthState();
+    if (!userId) throw redirect({ to: "/sign-in" });
+    return { userId };
+  },
+  component: AuthenticatedContent,
+});
 
 function AuthenticatedContent() {
   const { data } = useQuery(aflQueries.cheatingReports());

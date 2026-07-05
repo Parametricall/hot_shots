@@ -25,13 +25,21 @@ serviceRegistry.registerService("featureFlagsRepository", featureFlagsRepository
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
+const PERSIST_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
+
 // QueryClient setup is taken from docs, but is experimental and will likely change
 // https://tanstack.com/start/latest/docs/framework/react/examples/start-basic-react-query?path=examples%2Freact%2Fstart-basic-react-query%2Fsrc%2Frouter.tsx
 
-export function getRouter() {
+export async function getRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { staleTime: 60 * 1000, refetchOnWindowFocus: "always" },
+      queries: {
+        staleTime: 60 * 1000,
+        // gcTime must be >= the persistence maxAge, otherwise entries are
+        // garbage-collected before they can be persisted/restored
+        gcTime: PERSIST_MAX_AGE,
+        refetchOnWindowFocus: true,
+      },
     },
   });
 
@@ -51,12 +59,21 @@ export function getRouter() {
     const [, restorePromise] = persistQueryClient({
       queryClient,
       persister,
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      maxAge: PERSIST_MAX_AGE,
+      buster: __BUILD_ID__,
     });
 
-    // After restoring persisted cache, mark all queries as stale
-    // so they refetch on first use while still showing cached data instantly
-    restorePromise.then(() => queryClient.invalidateQueries());
+    // Wait for the restore so the first render sees cached data instead of
+    // racing it with network fetches. Then mark everything except static team
+    // data as stale: queries render instantly from cache and refetch in the
+    // background on mount.
+    // Note: all queries are persisted, including user-specific ones. Phones
+    // here are single-user; if account switching ever matters, clear the
+    // persister on Clerk sign-out.
+    await restorePromise;
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[1] !== "teams",
+    });
   }
 
   return routerWithQueryClient(
@@ -74,6 +91,6 @@ export function getRouter() {
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: ReturnType<typeof getRouter>;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }
