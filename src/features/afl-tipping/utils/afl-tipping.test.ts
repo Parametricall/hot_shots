@@ -6,8 +6,10 @@ import {
   groupGamesByDate,
   formatTime,
   aflGamesToRounds,
+  getTipSnapshotMismatch,
 } from "~/features/afl-tipping/utils/afl-tipping";
 import { createAflTeam, createAflGame } from "~/features/afl-tipping/mocks/factories";
+import type { AflModelTip, AflUserTip } from "~/features/afl-tipping/types";
 
 describe("findAflTeamById", () => {
   const teams = [createAflTeam({ id: 1, name: "Lions" }), createAflTeam({ id: 2, name: "Suns" })];
@@ -89,5 +91,67 @@ describe("aflGamesToRounds", () => {
     const games = [createAflGame({ round: 0, roundName: "Opening Round" })];
     const rounds = aflGamesToRounds(games);
     expect(rounds[0]!.name).toBe("Opening Round");
+  });
+});
+
+describe("getTipSnapshotMismatch", () => {
+  const basePrediction: AflModelTip = {
+    awayTeamId: 2,
+    homeTeamId: 1,
+    confidence: 60,
+    gameId: 100,
+    homeConfidence: 60,
+    awayConfidence: 40,
+    round: 1,
+    tipTeamId: 1,
+  };
+
+  const baseTip: AflUserTip = {
+    gameId: 100,
+    tipTeamId: 1,
+    isUnderdog: false,
+  };
+
+  it("returns 'favourite' when stored as favourite but model now tips the other team", () => {
+    const tip: AflUserTip = { ...baseTip, tipTeamId: 1, isUnderdog: false };
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: 2 };
+    expect(getTipSnapshotMismatch(tip, prediction)).toBe("favourite");
+  });
+
+  it("returns 'underdog' when stored as underdog but model now agrees", () => {
+    const tip: AflUserTip = { ...baseTip, tipTeamId: 1, isUnderdog: true };
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: 1 };
+    expect(getTipSnapshotMismatch(tip, prediction)).toBe("underdog");
+  });
+
+  it("returns null when stored favourite still agrees with the live prediction", () => {
+    const tip: AflUserTip = { ...baseTip, tipTeamId: 1, isUnderdog: false };
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: 1 };
+    expect(getTipSnapshotMismatch(tip, prediction)).toBeNull();
+  });
+
+  it("returns null when stored underdog still disagrees with the live prediction", () => {
+    const tip: AflUserTip = { ...baseTip, tipTeamId: 1, isUnderdog: true };
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: 2 };
+    expect(getTipSnapshotMismatch(tip, prediction)).toBeNull();
+  });
+
+  it("returns null for legacy tips with isUnderdog undefined", () => {
+    const tip: AflUserTip = { gameId: 100, tipTeamId: 1 };
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: 2 };
+    expect(getTipSnapshotMismatch(tip, prediction)).toBeNull();
+  });
+
+  it("returns null when tip is undefined", () => {
+    expect(getTipSnapshotMismatch(undefined, basePrediction)).toBeNull();
+  });
+
+  it("returns null when prediction is undefined", () => {
+    expect(getTipSnapshotMismatch(baseTip, undefined)).toBeNull();
+  });
+
+  it("returns null when prediction.tipTeamId is null", () => {
+    const prediction: AflModelTip = { ...basePrediction, tipTeamId: null };
+    expect(getTipSnapshotMismatch(baseTip, prediction)).toBeNull();
   });
 });

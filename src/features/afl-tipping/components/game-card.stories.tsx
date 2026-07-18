@@ -435,3 +435,122 @@ export const SelectedAwayTip = meta.story({
     },
   },
 });
+
+// Locked tip status badge — snapshot disagrees with the live prediction
+export const LockedAsFavouriteMismatch = meta.story({
+  args: {
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      isUnderdog: false,
+    },
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 2,
+      confidence: 60,
+      homeConfidence: 40,
+      awayConfidence: 60,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([currentGame]),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await canvas.findByText("Your Lions tip counts as a Favourite");
+    await canvas.findByText("Tap Lions again to update");
+  },
+});
+
+export const LockedAsUnderdogMismatch = meta.story({
+  args: {
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      isUnderdog: true,
+    },
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 1,
+      confidence: 65,
+      homeConfidence: 65,
+      awayConfidence: 35,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([currentGame]),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await canvas.findByText("Your Lions tip counts as an Underdog");
+  },
+});
+
+export const MismatchAfterGameStart = meta.story({
+  args: {
+    game: inProgressGame,
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      isUnderdog: false,
+    },
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 2,
+      confidence: 60,
+      homeConfidence: 40,
+      awayConfidence: 60,
+    },
+  },
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([inProgressGame]),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await canvas.findByText("Your Lions tip counts as a Favourite");
+    expect(canvas.queryByText(/Tap .* again to update/)).not.toBeInTheDocument();
+    expect(canvas.queryByText("Favourite")).not.toBeInTheDocument();
+    expect(canvas.queryByText("Underdog")).not.toBeInTheDocument();
+  },
+});
+
+export const MismatchMobile = meta.story({
+  args: {
+    tip: {
+      gameId: 100,
+      tipTeamId: 1,
+      isUnderdog: false,
+    },
+    prediction: {
+      homeTeamId: 1,
+      awayTeamId: 2,
+      gameId: 100,
+      round: 10,
+      tipTeamId: 2,
+      confidence: 60,
+      homeConfidence: 40,
+      awayConfidence: 60,
+    },
+  },
+  decorators: [containerDecorator("max-w-[360px]")],
+  parameters: {
+    services: {
+      squiggleService: mockSquiggleService([currentGame]),
+    },
+  },
+});

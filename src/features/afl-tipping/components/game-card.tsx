@@ -11,12 +11,12 @@ import React, {
 } from "react";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
+import { AlertTriangle, Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucide-react";
 import type { AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { cn } from "~/lib/utils";
 import { GameRules } from "~/features/afl-tipping/api/game-rules";
-import { formatTime } from "~/features/afl-tipping/utils/afl-tipping";
+import { formatTime, getTipSnapshotMismatch } from "~/features/afl-tipping/utils/afl-tipping";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import {
   Accordion,
@@ -274,6 +274,32 @@ function GameCardTeamButton({ team, isAwayTeam = false, className }: TeamButtonP
   );
 }
 
+// Shown when the underdog snapshot stored with the tip disagrees with the live
+// model tip, so the card's live "Favourite"/"Underdog" labels don't match what
+// the tip actually counts as. Sits under the matchup row rather than inside the
+// team button because the per-team value column is only ~60px wide on mobile.
+function GameCardTipStatusNotice() {
+  const { game, homeTeam, awayTeam, tip, prediction } = useGameCard();
+  const isGameStarted = useGameStartTimer(game.unixTime);
+  const isLocked = isGameStarted || AflGame.isComplete(game);
+
+  const status = getTipSnapshotMismatch(tip, prediction);
+  const tippedTeam =
+    tip?.tipTeamId === homeTeam.id ? homeTeam : tip?.tipTeamId === awayTeam.id ? awayTeam : null;
+
+  if (!status || !tippedTeam) return null;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-3 py-1.5 border-t border-amber-200 bg-amber-50 text-[11px] leading-tight text-amber-800">
+      <span className="flex items-center gap-1 font-medium">
+        <AlertTriangle className="h-3 w-3 shrink-0" />
+        Your {tippedTeam.name} tip counts as {status === "underdog" ? "an Underdog" : "a Favourite"}
+      </span>
+      {!isLocked && <span className="text-amber-700">Tap {tippedTeam.name} again to update</span>}
+    </div>
+  );
+}
+
 // Matchup section - no accordion dependencies
 interface GameCardMatchupProps {
   className?: string;
@@ -290,6 +316,7 @@ function GameCardMatchup({ className, children }: GameCardMatchupProps) {
         {children}
         <GameCardTeamButton team={awayTeam} isAwayTeam />
       </div>
+      <GameCardTipStatusNotice />
     </div>
   );
 }

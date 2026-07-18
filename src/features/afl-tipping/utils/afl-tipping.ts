@@ -1,4 +1,4 @@
-import type { AflGame, AflRound, AflTeam } from "../types";
+import type { AflGame, AflModelTip, AflRound, AflTeam, AflUserTip } from "../types";
 import { UNKNOWN_TEAM_ABBREV } from "../constants";
 
 export function findAflTeamById(teams: AflTeam[], teamId: number): AflTeam | undefined {
@@ -43,6 +43,22 @@ export function formatTime(date: Date): string {
     hour: "numeric",
     minute: "numeric",
   });
+}
+
+export type TipSnapshotStatus = "favourite" | "underdog";
+
+export function getTipSnapshotMismatch(
+  tip: AflUserTip | undefined,
+  prediction: AflModelTip | undefined,
+): TipSnapshotStatus | null {
+  if (tip == null) return null;
+  if (tip.isUnderdog == null) return null;
+  if (prediction == null || prediction.tipTeamId == null) return null;
+
+  const liveIsUnderdog = tip.tipTeamId !== prediction.tipTeamId;
+  if (tip.isUnderdog === liveIsUnderdog) return null;
+
+  return tip.isUnderdog ? "underdog" : "favourite";
 }
 
 export function aflGamesToRounds(games: AflGame[]): AflRound[] {
