@@ -55,6 +55,39 @@ describe("useTipMutation", () => {
     expect(cached).toEqual([{ gameId: 100, tipTeamId: 1, margin: 25 }]);
   });
 
+  it("drops the stale isUnderdog snapshot when the user switches teams", async () => {
+    // The stored snapshot describes the previously tipped team's model status.
+    // Consciously switching teams must not carry it over, otherwise
+    // getTipSnapshotMismatch would show a false "no longer matches" notice.
+    const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1, isUnderdog: false }];
+    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
+
+    const { result } = renderHook(() => useTipMutation(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 2 } }));
+
+    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    expect(cached).toEqual([
+      { gameId: 100, tipTeamId: 2, margin: undefined, isUnderdog: undefined },
+    ]);
+  });
+
+  it("preserves the isUnderdog snapshot when only the margin changes", async () => {
+    const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1, isUnderdog: true }];
+    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
+
+    const { result } = renderHook(() => useTipMutation(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 1, margin: 40 } }));
+
+    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    expect(cached).toEqual([{ gameId: 100, tipTeamId: 1, margin: 40, isUnderdog: true }]);
+  });
+
   it("adds a new tip when the game has no existing tip", async () => {
     queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, []);
 

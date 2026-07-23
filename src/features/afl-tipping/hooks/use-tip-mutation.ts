@@ -28,11 +28,19 @@ export function useTipMutation() {
 
         const existingTipIndex = old.findIndex((t) => t.gameId === gameId);
         if (existingTipIndex !== -1) {
+          const existingTip = old[existingTipIndex]!;
+          const teamChanged = existingTip.tipTeamId !== teamId;
           const updatedTips = [...old];
           updatedTips[existingTipIndex] = {
-            ...updatedTips[existingTipIndex]!,
+            ...existingTip,
             tipTeamId: teamId,
             margin,
+            // The stored isUnderdog is a snapshot of the model prediction for the
+            // *previously* tipped team. When the user consciously switches teams it
+            // no longer describes the new tip, so drop it and let the server refetch
+            // supply the fresh snapshot. Keeping it would make getTipSnapshotMismatch
+            // report a false "no longer matches the prediction" notice on every switch.
+            isUnderdog: teamChanged ? undefined : existingTip.isUnderdog,
           };
           return updatedTips;
         } else {
