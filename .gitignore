@@ -18,6 +18,7 @@ notes
 /blob-report/
 /playwright/.cache/
 .tanstack
+.turbo
 
 # Jetbrains
 .idea/
