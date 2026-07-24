@@ -3,9 +3,17 @@ name: Chromatic
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - "apps/afl/**"
+      - "package-lock.json"
+      - ".github/workflows/chromatic.yml"
   push:
     branches:
       - main
+    paths:
+      - "apps/afl/**"
+      - "package-lock.json"
+      - ".github/workflows/chromatic.yml"
 
 jobs:
   chromatic:
@@ -26,6 +34,7 @@ jobs:
 
       - uses: chromaui/action@latest
         with:
+          workingDir: apps/afl
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           onlyChanged: true
           exitZeroOnChanges: true
