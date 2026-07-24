@@ -5,6 +5,7 @@ import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import appCss from "~/styles/app.css?url";
 import { AppLoadingScreen } from "~/components/AppLoadingScreen";
+import { MigrationBanner } from "~/components/migration-banner";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { ClerkProvider } from "@clerk/tanstack-react-start";
@@ -85,7 +86,12 @@ function RootComponent() {
     }
   }, []);
 
-  return <Outlet />;
+  return (
+    <>
+      <MigrationBanner />
+      <Outlet />
+    </>
+  );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

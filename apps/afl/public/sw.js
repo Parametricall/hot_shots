@@ -7,7 +7,7 @@
 //   network for the whole JS/CSS bundle.
 // - Everything else: network-first with cache fallback.
 
-const CACHE_NAME = "hot-shots-v2";
+const CACHE_NAME = "hot-shots-v3";
 
 self.addEventListener("install", () => {
   // Activate immediately, don't wait for old tabs to close
