@@ -1,182 +1,311 @@
-# 007 — Monorepo conversion: hot-shots.dev landing + afl.hot-shots.dev PWA
+# 007 — One site, many installable apps: hub at `/`, each app a PWA under its own path
 
-> Status: planned, not executed.
+> Status: Phases 1–6 executed on branch `monorepo-restructure`. Phase 7 (Vercel dashboard
+> settings) and Phase 8's preview/real-device verification are manual steps to do at merge time.
+> **Supersedes the earlier subdomain version of this plan** (landing on the apex, AFL on
+> `afl.hot-shots.dev`).
 
-## Context
+## Goal (user experience)
 
-The repo is a single AFL tipping app (React 19 + TanStack Start + Vite + Nitro) deployed to Vercel at `hot-shots.dev` (GoDaddy domain), used via installed PWA on phones. Goal: a monorepo hosting multiple apps, each as its own Vercel project on a subdomain of `hot-shots.dev`, each installable as a separate PWA, with a landing page at the apex linking to each app.
+1. Visiting `hot-shots.dev` (browser or installed PWA) shows a **hub** that links to every app
+   (AFL tipping today; NRL tipping, putt-putt scores later).
+2. The hub is itself installable as a PWA ("Hot Shots") and runs every app **inside its own
+   window**.
+3. Each app is **also** installable on its own ("Hot Shots - AFL"), and that PWA opens straight
+   to the app's main page (`/afl-tipping/tips`).
+4. Hub-only users can opt in to "open straight to AFL when I launch Hot Shots".
 
-**Decisions made:**
+## Decisions made (and why)
 
-1. AFL app moves to **afl.hot-shots.dev**; apex becomes a landing page. Existing installed PWAs are origin-pinned → users reinstall once; plan includes redirects + migration banners + stale-service-worker eviction.
-2. **Turborepo + npm workspaces** (keep npm).
-3. Landing page uses the **same TanStack Start stack**.
-4. **Move first, extract later**: `apps/afl` + `apps/landing` + shared config packages only; shared UI package deferred.
+1. **Path-based, single origin — not subdomains.** A PWA's `scope` must be same-origin, so the
+   hub can only contain the apps if they live on `hot-shots.dev`. With subdomains, tapping an app
+   in the installed hub leaves the PWA (iOS: Safari sheet with its own cookie jar → possible
+   re-sign-in; Android: Custom Tab).
+2. **One Vercel project serving every app** — not one project per app. Vercel Microfrontends is
+   the only clean way to put several projects under one origin, and it includes only **2
+   projects** on Hobby/Pro (3rd project: not available on Hobby, $250/project/month on Pro;
+   Hobby also caps routed requests at 50K/month; TanStack Start isn't a listed framework).
+   Proxy rewrites between projects avoid the cap but put Clerk behind a proxy (host mismatch
+   risk) and add a hop to every request. One project: adding NRL costs nothing.
+3. **Existing installs keep working — no migration.** The deployed manifest (`main`) has no `id`
+   or `scope`, so installed AFL PWAs have `id = /afl-tipping/tips` and
+   `scope = /afl-tipping/` (defaults derived from `start_url`). This plan makes both explicit with
+   **the same values** and keeps the manifest at the **same URL** (`/site.webmanifest` — Android
+   WebAPK update checks key off the manifest URL). Result: no reinstall, no banners, no
+   self-destructing service worker, no redirects, no DNS/domain changes.
+4. **Keep the monorepo.** It's done and green; `packages/` gets real use once NRL shares tipping
+   logic/UI with AFL. The single app is renamed `apps/afl` → `apps/web` since it now serves the
+   whole site (cheap now — the branch isn't merged, so Vercel has never seen `apps/afl`).
+5. **One service worker for the whole origin** (`/sw.js`, scope `/`). SWs are per-origin/scope,
+   not per-installed-app, and the existing SW's strategy (network-first navigations, cache-first
+   `/assets/*`) is app-agnostic. Every installed PWA on the origin shares it. No change needed.
 
-**Verified repo facts the plan depends on:**
+## How installing works (reference for the executor)
 
-- Hand-rolled PWA: `public/site.webmanifest` (`start_url: /afl-tipping/tips`, no `id`/`scope`) + `public/sw.js` (cache `hot-shots-v2`, **network-first for navigations**, cache-first for `/assets/*`), registered in `src/routes/__root.tsx` when PROD.
-- No `vercel.json`; Nitro (`nitro/vite`, nightly) auto-detects the Vercel preset via `VERCEL` env at build.
-- Root `package.json` has `overrides: {"@tanstack/router-core": "1.171.14"}` (npm honors overrides **only at workspace root**) and an `imports` map `"#*" → ./*` (used by stories for `#.storybook/preview`; resolves relative to its containing package.json, so it moves with the app).
-- `tsconfig.json` alias `~/*` → `./src/*`; TanStack Start entries `./app/router` / `./app/start` are app-relative → the whole app survives a directory move with near-zero source changes.
-- No hardcoded `hot-shots.dev` anywhere in source.
-- Clerk: single instance, no domain-specific config. Production Clerk on the root domain sets its session cookie for `.hot-shots.dev` → **subdomains share auth automatically; no satellite-domain setup needed**.
+- The browser installs whichever manifest the **current page** links via `<link rel="manifest">`.
+  So manifest links move out of `__root.tsx` and into route `head()`s:
+  - hub page (`/`) links `/hub.webmanifest` → "Install Hot Shots"
+  - any `/afl-tipping/*` page links `/site.webmanifest` → "Install Hot Shots - AFL"
+- Nested scopes on one origin are allowed as long as `id`s differ. Hub scope `/` contains AFL's
+  `/afl-tipping/`; in-scope navigation inside the hub window stays in the hub. For links opened
+  from outside (e.g. WhatsApp), Android picks the installed app with the most specific scope.
+- **iOS:** every home-screen web app has isolated storage + cookies (separate from Safari and from
+  each other). A user with both the hub and AFL PWAs signs in to each once. True under any
+  architecture; just set expectations.
 
-**Key cutover mechanics (drives the ordering):**
+## Current state of the branch (verified)
 
-1. The old SW does **not** block redirects: navigation fetches return `opaqueredirect` (not cached, passed through), so once the apex serves 307s, even SW-controlled PWA launches get redirected — when online. Offline, the old SW serves the cached app shell, which is why eviction is also needed.
-2. Every navigation triggers a SW update check of apex `/sw.js` (Vercel serves it `max-age=0`). The landing app ships a byte-different **self-destructing SW** → browser installs it → it wipes caches and unregisters.
-3. Use **307** (temporary) redirects during migration; flip to 308 only weeks later once rollback is off the table (browsers cache permanent redirects forever).
+- Done and kept: `apps/afl` move, root workspaces + `turbo.json`, `packages/typescript-config` +
+  `packages/eslint-config`, CI (`ci.yml` runs `turbo run lint typecheck test:ci`;
+  `chromatic.yml` path-scoped to `apps/afl`).
+- To unwind (subdomain-only work):
+  - `apps/landing/` — whole app, including the self-destructing `public/sw.js` and the Nitro
+    `routeRules` 307 redirects to `afl.hot-shots.dev`.
+  - `apps/afl/src/components/migration-banner.tsx` + its use in `src/routes/__root.tsx`.
+  - `apps/afl/public/site.webmanifest` has `"scope": "/"` — **must not ship**: it would overlap the
+    hub's scope. Deployed (effective) scope is `/afl-tipping/`.
 
 ---
 
-## Phase 0 — Prep
+## Phase 1 — Unwind the subdomain work
 
-- Clean `git status`; branch `monorepo-restructure` off `main`. Record `npm -v` (for `packageManager` field turbo requires).
-- Remove stray root junk (`scratch_2.js`, stale logs) after confirming unneeded.
+1. `git rm -r apps/landing`. Run `npm install` at the root so `package-lock.json` drops
+   `hot-shots-landing`.
+2. Delete `apps/afl/src/components/migration-banner.tsx`; remove its import and `<MigrationBanner />`
+   from `apps/afl/src/routes/__root.tsx`.
+3. `apps/afl/public/site.webmanifest`: set `"scope": "/afl-tipping/"`. Keep
+   `"id": "/afl-tipping/tips"` and `"start_url": "/afl-tipping/tips"` exactly. Keep the file name.
+4. Keep `sw.js`'s `hot-shots-v3` cache name (harmless hygiene; the activate handler deletes v2).
+5. **Gate:** `npx turbo run build typecheck lint test:ci` green.
 
-## Phase 1 — Move app to `apps/afl` (use `git mv`)
+## Phase 2 — Rename `apps/afl` → `apps/web`
 
-Target structure:
+1. `git mv apps/afl apps/web`; `apps/web/package.json` name → `hot-shots-web`.
+2. Update references (full list from `git grep`):
+   - `.github/workflows/chromatic.yml` — two `paths` entries + `workingDir`
+   - root `package.json` — `"chromatic": "npm run chromatic --workspace apps/web"`
+   - `package-lock.json` — regenerate via `npm install`
+3. `CLAUDE.md` (root) still describes the pre-monorepo layout (`src/...` at the root). Update the
+   Key Directories / Commands sections to `apps/web/src/...`, and add a short "Apps on this site"
+   section: hub at `/`, one feature module + route subtree + manifest per app (see Appendix).
+4. **Gate:** fresh `npm ci`; `npx turbo run build typecheck lint test:ci`; `npm run storybook
+--workspace apps/web` boots (the `#.storybook` imports map moved with the package).
 
-```
-apps/afl/        src, public, .storybook, scripts, tsconfig.json, vite.config.ts,
-                 vitest.config.ts, vitest.shims.d.ts, eslint.config.ts,
-                 components.json, chromatic.config.json, package.json (new)
-apps/landing/    (Phase 4)
-packages/typescript-config/, packages/eslint-config/   (Phase 3)
-root:            package.json (workspaces), turbo.json, package-lock.json,
-                 supabase/, plans/, notes/, .github/, CLAUDE.md, README.md
-```
+## Phase 3 — Hub page at `/`
 
-- `apps/afl/package.json`: name `hot-shots-afl`; keep all current deps/scripts; keep the `imports` `"#*"` map **verbatim**; **remove `overrides`** (root-only in npm); drop `format`/`format:check` (root-level now); `prettier` moves to root devDeps.
-- No `src/` changes needed — all aliases/entries are app-relative. Regenerate `routeTree.gen.ts` via a dev/build run and commit.
-- `.gitignore`: add `.turbo/`; verify `.output`, `.vercel`, `.nitro`, `.tanstack`, `storybook-static` patterns match nested apps (unanchored entries already do).
+Today `apps/web/src/routes/index.tsx` redirects `/` → `/afl-tipping/tips`. Replace it with the hub.
 
-## Phase 2 — Root workspaces + Turborepo
+1. **App registry** — `apps/web/src/features/hub/apps.ts`:
 
-Root `package.json`: `workspaces: ["apps/*", "packages/*"]`, the `overrides` field, `packageManager: "npm@<version>"`, scripts delegating to `turbo run` (`dev`, `build`, `lint`, `typecheck`, `test`, `test:ci`), root-level `format`/`format:check` (prettier), devDeps `turbo` + `prettier`.
+   ```ts
+   export const APPS = [
+     {
+       id: "afl-tipping",
+       name: "AFL Tipping",
+       description: "Submit your tips and track your predictions.",
+       href: "/afl-tipping/tips",
+       icon: "/dummy-footy-logo.png",
+     },
+   ] as const;
+   export type AppId = (typeof APPS)[number]["id"];
+   ```
 
-Root `turbo.json` — **strict env mode is default in Turbo 2; undeclared env vars are stripped, so the env lists are load-bearing**:
+   Single source of truth for the hub cards, the launch-preference setting (Phase 5), and the hub
+   manifest's `shortcuts` (keep in sync by hand; it's one entry per app).
 
-```json
-{
-  "globalEnv": ["NODE_ENV", "VERCEL", "VERCEL_ENV", "VERCEL_GIT_COMMIT_SHA", "STORYBOOK"],
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "env": ["VITE_*", "CLERK_*", "ADMIN_USER_ID"],
-      "outputs": [".output/**", ".vercel/output/**", ".tanstack/**", "src/routeTree.gen.ts"]
-    },
-    "dev": { "cache": false, "persistent": true },
-    "typecheck": { "outputs": [] },
-    "lint": { "outputs": [] },
-    "test": { "outputs": [] },
-    "test:ci": { "outputs": [] },
-    "build-storybook": { "outputs": ["storybook-static/**"] }
-  }
-}
-```
+2. **Hub page** — `apps/web/src/features/hub/pages/hub.tsx`: a card per `APPS` entry (reuse the
+   card design from the deleted `apps/landing/src/routes/index.tsx`, with shadcn `Card` if it
+   fits). Plain `<Link to={app.href}>` — same origin, client-side navigation.
+3. **Route** — `apps/web/src/routes/index.tsx` renders the hub page. Public (not under
+   `_authenticated`) — the hub needs no user data. Add `data-app-ready` if `AppLoadingScreen`
+   relies on it (check how `sign-in.tsx` uses it).
+4. **Header** (`apps/web/src/components/header.tsx`): the logo `<Link to="/">` used to land on
+   tips via the redirect; now it would go to the hub. Point the logo at `/afl-tipping/tips` (app
+   home), and add a small "All apps" link (lucide `LayoutGrid` icon) to `/`.
+   Known behavior: inside the **AFL-only** PWA, `/` is out of scope, so "All apps" opens in the
+   browser overlay (Android toolbar / iOS Safari sheet). Acceptable — that user chose the
+   single-app install.
+5. Stories: `hub.stories.tsx` next to the page (`withRouter` decorator). Test: renders one card
+   per `APPS` entry with the right `href`.
 
-Cross-check env wildcards against the Vercel project's actual vars (`VITE_SUPABASE_*`, `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_SIGN_IN_URL/-UP_URL`, `ADMIN_USER_ID`, `VITE_ADMIN_USER_ID`, `VITE_DEV_USER_*`).
+## Phase 4 — Per-app manifests
 
-- `npm install` at root to regenerate the lockfile as a workspace tree; commit.
-- **Gate:** fresh `npm ci`; `npx turbo run build typecheck lint test:ci` green; Storybook boots (validates `#.storybook` imports + `STORYBOOK=true` vite guard).
+1. **Hub manifest** — new `apps/web/public/hub.webmanifest`:
 
-## Phase 3 — Shared config packages (thin)
+   ```json
+   {
+     "id": "/",
+     "name": "Hot Shots",
+     "short_name": "Hot Shots",
+     "start_url": "/?launch=pwa",
+     "scope": "/",
+     "display": "standalone",
+     "theme_color": "#f9fafb",
+     "background_color": "#f9fafb",
+     "icons": [
+       {
+         "src": "/hub-icon.png",
+         "sizes": "512x512",
+         "type": "image/png",
+         "purpose": "any maskable"
+       }
+     ],
+     "shortcuts": [{ "name": "AFL Tipping", "url": "/afl-tipping/tips" }]
+   }
+   ```
 
-- `packages/typescript-config`: `@hot-shots/typescript-config` exposing `base.json` (current compilerOptions minus `paths`/`include`). Apps extend it and add their own `~/*` paths + includes.
-- `packages/eslint-config`: `@hot-shots/eslint-config` exporting a base flat-config (js/ts/react/prettier layers) from the current `eslint.config.ts`; app-specific plugins (storybook, @tanstack/query, css/json/markdown) stay in `apps/afl/eslint.config.ts` which spreads the base. jiti resolves the TS config; landing needs `eslint` + `jiti` devDeps too. Don't over-engineer — fallback is landing importing the base directly.
+   - `id: "/"` is explicit so `start_url` can change later without creating a new app.
+   - `?launch=pwa` is what Phase 5 keys off; it only appears on PWA launches.
+   - **Needs a distinct icon** — two identical footy icons on a home screen is confusing. A
+     placeholder `hub-icon.png` (512×512) is fine; proper icons remain out of scope.
+   - `shortcuts` = Android long-press menu. iOS ignores it.
 
-## Phase 4 — Scaffold `apps/landing`
+2. **AFL manifest** — `site.webmanifest` stays as fixed in Phase 1. Optionally change `short_name`
+   to "AFL Tips" to tell the two icons apart (`name`/`short_name` changes are allowed manifest
+   updates; `id`, file URL, and `scope` must not change).
+3. **Move manifest links out of `__root.tsx`:**
+   - `__root.tsx` keeps icons/apple-touch-icon/theme-color but **drops** the `rel="manifest"` link.
+   - `routes/index.tsx` `head()` adds `{ rel: "manifest", href: "/hub.webmanifest" }` + an
+     `apple-touch-icon` pointing at the hub icon.
+   - `routes/_authenticated/afl-tipping.tsx` `head()` adds
+     `{ rel: "manifest", href: "/site.webmanifest" }`.
+   - Verify in the SSR HTML that each page has **exactly one** manifest link (TanStack Router
+     merges `head()` from matched routes; child `links` are appended, not deduped).
+   - Titles: root title becomes "Hot Shots"; the AFL layout sets "Hot Shots - AFL" (iOS uses the
+     page title as the default home-screen name).
+4. `/sign-in`, `/sign-up` link no manifest (nothing to install there).
 
-Minimal TanStack Start app: **no Clerk, no Supabase, no Storybook/tests, and deliberately NOT a PWA** (no manifest link, no SW registration — an apex PWA is what caused this migration pain).
+## Phase 5 — "Open straight to my app" for hub users
 
-- Copy afl's `vite.config.ts` shape minus devtools/STORYBOOK guard; **port 3001** so `turbo run dev` runs both.
-- `src/app/router.tsx` + `start.ts` (no clerkMiddleware), `src/routes/__root.tsx` (shell, no manifest/SW), `src/routes/index.tsx` — landing page with cards linking to `https://afl.hot-shots.dev/afl-tipping/tips`, Tailwind v4 styles, tsconfig extending the shared base.
-- **`apps/landing/public/sw.js` — self-destructing takeover SW** (must be served indefinitely):
+A **cookie**, not `localStorage`: the redirect has to happen during SSR in `beforeLoad` so the hub
+never flashes, and SSR can't read `localStorage`.
 
-```js
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-      await self.registration.unregister();
-      const windows = await self.clients.matchAll({ type: "window" });
-      for (const client of windows) client.navigate(client.url).catch(() => {});
-    })(),
-  );
-});
-// deliberately NO fetch handler
-```
+1. `apps/web/src/features/hub/api/launch-app.ts`:
+   - `getLaunchApp` — `createServerFn({ method: "GET" })`, reads cookie `hs_launch_app` with
+     `getCookie` from `@tanstack/react-start/server`, returns the matching `APPS` entry or `null`
+     (ignore unknown values).
+   - `setLaunchApp` — `createServerFn({ method: "POST" })`, input validated with Zod as `AppId |
+null`; `setCookie("hs_launch_app", id, { path: "/", maxAge: 365 days, sameSite: "lax",
+httpOnly: true, secure: true in prod })`, or `deleteCookie` for `null`.
+   - This is first-party state, not a third-party API, so the service-registry rule doesn't apply;
+     still co-locate it in `features/hub/api/` like other server fns.
+2. `routes/index.tsx`:
 
-- **Redirects (307)** — primary mechanism: Nitro `routeRules` (compiled into `.vercel/output/config.json`, honored by Vercel's Build Output API; `vercel.json` routing may be ignored when Build Output config exists):
-  - `/afl-tipping` and `/afl-tipping/**` → `https://afl.hot-shots.dev/...` (preserve path)
-  - `/sign-in`, `/sign-in/**`, `/sign-up` → same on afl origin
-  - `/` is NOT redirected (it's the landing page).
-  - Verify on the preview deploy with `curl -I`; if routeRules don't survive the preset, fall back to redirects in TanStack Start server code (always works).
+   ```ts
+   validateSearch: z.object({ launch: z.literal("pwa").optional() }),
+   beforeLoad: async ({ search }) => {
+     if (search.launch !== "pwa") return;
+     const app = await getLaunchApp();
+     if (app) throw redirect({ href: app.href });
+   },
+   ```
 
-## Phase 5 — AFL app migration changes (`apps/afl`)
+   Only PWA launches carry `?launch=pwa`, so tapping "All apps" (plain `/`) always shows the hub —
+   the preference can never trap a user inside an app.
 
-1. `site.webmanifest`: add `"id": "/afl-tipping/tips"` and `"scope": "/"`; `start_url` unchanged.
-2. `sw.js`: bump cache to `hot-shots-v3` (hygiene; new origin starts clean anyway).
-3. **Migration banner** (in `__root.tsx`): when `location.hostname` is apex/www → non-dismissible top banner: "Hot Shots has moved to afl.hot-shots.dev — open it and add it to your home screen; delete the old icon." Works pre-cutover because the same build serves both origins during the bake window and the old SW is network-first for navigations.
-4. **Reinstall nudge** (new origin): when on `afl.hot-shots.dev` and `!matchMedia("(display-mode: standalone)")` → dismissible (localStorage) "Add to home screen" hint with iOS/Android steps. Catches users arriving via redirect from their old PWA icon.
-5. Re-grep for `hot-shots` origin assumptions before merge (none found today).
+3. Hub UI: under each card, a "Open this app when I launch Hot Shots" toggle (shadcn `Switch`),
+   one active at a time. Seed state from `getLaunchApp` in the route loader; on change call
+   `setLaunchApp` and invalidate.
+4. Known limitations (document in the component's comment, don't engineer around):
+   - iOS: the installed hub has its own cookie jar — the setting must be made **inside** the
+     installed hub, not in Safari.
+   - Offline launch with a preference set: the SSR 307 isn't cacheable by the SW (navigation
+     redirects come back as `opaqueredirect`), so `/?launch=pwa` fails offline. Users can still
+     open the AFL-only PWA offline.
 
-## Phase 6 — CI
+## Phase 6 — Sign-in redirect-back
 
-- `.github/workflows/ci.yml`: keep the root prettier format job; collapse lint/typecheck/test into one job running `npx turbo run lint typecheck test:ci`.
-- `.github/workflows/chromatic.yml`: add `paths: ["apps/afl/**", "package-lock.json", ...]` filters; add `workingDir: apps/afl` to the chromaui action; watch TurboSnap (`storybookBaseDir` option if it misbehaves).
+With the hub at `/`, anything that used to rely on `/` → tips now lands on the hub.
 
-## Phase 7 — Vercel projects, domains, DNS (pre-cutover)
+1. `routes/_authenticated.tsx`: redirect with the attempted URL —
+   `throw redirect({ to: "/sign-in", search: { redirect_url: location.href } })` (`location` is in
+   `beforeLoad`'s args; `href` is path + search, same-origin).
+2. `routes/sign-in.tsx` and `sign-in.$.tsx`: `validateSearch: z.object({ redirect_url:
+z.string().optional() })`. Clerk's `<SignIn>` reads `redirect_url` from the query string by
+   itself — confirm against Clerk docs for `@clerk/tanstack-react-start` and, if it doesn't,
+   pass it as `forceRedirectUrl`. Only accept values starting with `/` (open-redirect guard).
+3. `DevLoginButtons` in `features/auth/pages/sign-in.tsx`: replace `window.location.href = "/"`
+   with the validated `redirect_url ?? "/afl-tipping/tips"`.
+4. Sign-in stays at `/sign-in` (shared by every app, covered by the hub's scope). In the AFL-only
+   PWA it's out of scope — identical to today's production behavior, so no regression. Moving
+   sign-in under each app's scope is deferred (see Out of scope).
 
-**Reuse the existing Vercel project as `hot-shots-afl`** (it already holds every env var + proven build settings for the user-critical app); **create a new project for landing** (needs no env vars). Domain moves between same-team projects are instant and reversible, so apex ownership is a cheap late decision.
+## Phase 7 — Vercel (no domain or DNS changes)
 
-1. Existing project: rename `hot-shots-afl`; Root Directory `apps/afl`; ensure "Include source files outside of Root Directory" is enabled; Ignored Build Step `npx turbo-ignore`; Node 24. Change Root Directory immediately before merging (a failed build of pre-merge main is harmless — Vercel keeps serving the last good deploy).
-2. New project `hot-shots-landing`: same repo, Root Directory `apps/landing`, same settings, no env vars.
-3. **Verification point (flagged risk):** Nitro's Vercel preset writes `.vercel/output` relative to the app root, which matches Vercel's Root Directory expectation — confirm on first preview deploy (build log: "Build Completed in .vercel/output"; SSR function works).
-4. **GoDaddy DNS:** add `CNAME afl → cname.vercel-dns.com` (TTL 600). Leave existing apex/www records untouched.
-5. Attach `afl.hot-shots.dev` to `hot-shots-afl` (AFL now serves on both origins). Apex + www stay on `hot-shots-afl` until the flip.
+The existing project keeps `hot-shots.dev` + `www`, all env vars, and Clerk config.
 
-**Clerk checklist (production instance):** cookie on `.hot-shots.dev` covers the subdomain — no satellite domains. Update Home URL / component redirect URLs to the afl origin; check `authorizedParties` if configured (none in code today); `CLERK_SIGN_IN_URL`/`-UP_URL` are relative paths so unchanged; OAuth redirects go via `clerk.hot-shots.dev` — unaffected; dev instances unaffected.
+1. Immediately before merging: Settings → Build & Deployment → **Root Directory `apps/web`**;
+   enable "Include source files outside of the Root Directory"; Node 24; Ignored Build Step
+   `npx turbo-ignore` (skips plan/doc-only commits). A failed build of pre-merge `main` in the
+   meantime is harmless — Vercel keeps serving the last good deployment.
+2. **Verification point (carried over risk):** confirm Nitro's Vercel preset writes
+   `.vercel/output` relative to `apps/web` (build log shows the Build Output API being used; SSR
+   routes and server functions work on the preview URL).
+3. Clerk: nothing to change — same origin, same instance.
 
-## Phase 8 — Production cutover (ordered)
+## Phase 8 — Verification
 
-1. **Merge** the restructure (hold the banner commit): set Root Directory, merge to main, verify apex serves the AFL app exactly as before.
-2. **Verify landing** on its `*.vercel.app` URL: page renders; `curl -I .../afl-tipping/tips` → 307 to the afl origin; `/sw.js` serves the self-destructing SW with `max-age=0`.
-3. **Bring up the subdomain:** CNAME + attach domain + cert. On a real phone: sign in on `afl.hot-shots.dev` (Clerk session works), install PWA, standalone + offline launch OK.
-4. **Bake window (~1–2 weeks):** merge the banner commit. Apex users (incl. installed PWAs — network-first navigations fetch fresh HTML) see the migration banner every online launch.
-5. **The flip (seconds, reversible):** in Vercel, move `hot-shots.dev` + `www` from `hot-shots-afl` to `hot-shots-landing`; re-establish www→apex redirect on the landing project if needed.
-6. Run the post-cutover checklist immediately.
+**Local:** fresh `npm ci`; `npx turbo run build typecheck lint test:ci`; `npm run dev` → `/`
+shows the hub, card → tips, logo → tips, "All apps" → hub; signed-out visit to
+`/afl-tipping/standings` → sign-in → back to standings.
 
-**Expected old-PWA behavior post-flip (verify on a phone):**
+**Preview deploy** (Clerk preview/dev instance as configured): same as local, plus
 
-- Online launch: old icon → old SW passes the 307 through → lands on afl origin in a browser-decorated window → reinstall nudge shows. Meanwhile the update check installs the self-destructing SW → caches wiped, SW unregistered. Old icon keeps "working" (via redirect) until the user reinstalls and deletes it.
-- Offline before takeover: cached old app still runs (Clerk cookie still valid) — degraded, self-heals next online launch.
-- Offline after takeover: browser offline error, same as any website — fixed by reinstalling on the new origin.
+- `curl -s <preview>/ | grep manifest` → only `/hub.webmanifest`;
+  `/afl-tipping/tips` (signed in, via browser devtools) → only `/site.webmanifest`.
+- Chrome devtools → Application → Manifest on each page: correct `id`, `scope`, no errors;
+  "Installability" passes for both.
+- `/?launch=pwa` with the cookie set → 307 to `/afl-tipping/tips`; without the cookie → hub.
 
-## Phase 9 — Verification & rollback
+**Real phones after production deploy** (Android Chrome + iOS Safari):
 
-**Local:** fresh `npm ci`; `turbo run build typecheck lint test:ci` green; both dev servers (3000/3001); Storybook + build-storybook OK; `git status` clean after build.
+- [ ] **Existing AFL install** (made before this deploy): launches to tips, still standalone,
+      still signed in — no reinstall prompt, no duplicate icon.
+- [ ] Fresh install from `/` → "Hot Shots" hub icon; tapping AFL stays inside the hub window.
+- [ ] Fresh install from `/afl-tipping/tips` → AFL-only icon, opens to tips.
+- [ ] Both installed side by side: distinct icons/names; each opens to the right place.
+- [ ] Hub launch preference → next hub launch opens straight to tips; "All apps" still reaches
+      the hub.
+- [ ] Offline launch of the AFL-only PWA shows the cached shell (SW unchanged).
+- [ ] Android: long-press hub icon shows the "AFL Tipping" shortcut.
 
-**Preview:** both projects build via Build Output API; `turbo-ignore` skips unaffected app on scoped commits; redirect + sw.js checks on landing; sign-in + tips render + `__BUILD_ID__` on afl.
-
-**Post-cutover:** apex renders landing; `hot-shots.dev/afl-tipping/tips` → 307 → afl app with signed-in state preserved; www redirects; fresh-phone PWA install + offline OK; old-PWA phone lands on afl origin and apex tab shows landing (not cached AFL shell) after one reload cycle; CI + Chromatic green on first post-merge PR.
-
-**Rollback:** move apex + www back to `hot-shots-afl` in the Vercel dashboard (seconds, no DNS). The AFL app's normal caching `/sw.js` re-registers on next launch for anyone the takeover SW touched. This is why redirects stay **307** until rollback is inconceivable. No code rollback needed — the domain move is the only lever.
+**Rollback:** Vercel → Deployments → Instant Rollback to the previous production deployment. `/`
+goes back to redirecting to tips; hub installs made in the meantime launch `/?launch=pwa` → tips.
+Existing AFL installs are unaffected either way (their `id`/`scope`/manifest URL never changed).
 
 ## Out of scope (deferred)
 
-- Shared UI package (`packages/ui`); any app beyond landing; Turborepo remote caching; pnpm; vite-plugin-pwa; proper icons; the 307→308 flip (~4 weeks post-cutover).
+- NRL / putt-putt apps themselves (see Appendix for the recipe).
+- Shared `packages/ui` or `packages/tipping-core` — extract when NRL needs it, not before.
+- Sign-in inside each app's scope (`/afl-tipping/sign-in`) — only worth it if the AFL-only PWA's
+  out-of-scope sign-in (unchanged from today) bothers users.
+- Proper icons/splash screens; per-app theme colors.
+- Turborepo remote caching.
+
+## Appendix — Adding a new app (e.g. NRL tipping)
+
+No Vercel, DNS, or Clerk changes. In `apps/web`:
+
+1. Feature module `src/features/nrl-tipping/` (api, components, pages, `queries.ts` with a root
+   key `["nrl"]` — AFL's keys are already rooted at `["afl"]`, so the shared persisted query cache
+   can't collide). Register its services in `src/app/service-registry.ts` / `router.tsx`.
+   Revisit the AFL-specific `invalidateQueries` predicate in `router.tsx` (`queryKey[1] !==
+"teams"`) so it still does the right thing for NRL keys.
+2. Routes under `src/routes/_authenticated/nrl-tipping/` with a layout whose `head()` links
+   `/nrl-tipping.webmanifest`.
+3. `public/nrl-tipping.webmanifest`: `id` + `start_url` `/nrl-tipping/tips`, `scope`
+   `/nrl-tipping/`, its own icon. **Never change its `id`, `scope`, or file name after launch.**
+4. Add an entry to `APPS` (`features/hub/apps.ts`) and a `shortcuts` entry to `hub.webmanifest`.
+5. Namespace any new `localStorage` keys (`nrl:*`) — all apps share one origin's storage.
 
 ## Critical files
 
-- `package.json` → splits into root workspace manifest + `apps/afl/package.json` (`overrides` root-only; `imports` map moves verbatim)
-- `vite.config.ts` → moves; template for landing (which adds redirect routeRules, port 3001)
-- `public/sw.js` → old caching SW (its network-first navigations make the cutover safe); new takeover SW at `apps/landing/public/sw.js`
-- `src/routes/__root.tsx` → SW registration, manifest links, both banners
-- `public/site.webmanifest` → gains `id` + `scope`
-- `.github/workflows/ci.yml`, `chromatic.yml` → turbo-based CI, path-scoped Chromatic
+- `apps/web/public/site.webmanifest` — AFL identity; `id`/`scope`/URL frozen
+- `apps/web/public/hub.webmanifest` — new hub identity
+- `apps/web/src/routes/__root.tsx` — drops manifest link + MigrationBanner
+- `apps/web/src/routes/index.tsx` — redirect → hub page + launch redirect
+- `apps/web/src/routes/_authenticated.tsx`, `sign-in*.tsx`, `features/auth/pages/sign-in.tsx` — redirect-back
+- `apps/web/src/routes/_authenticated/afl-tipping.tsx` — AFL manifest link + title
+- `apps/web/src/features/hub/` — registry, page, launch-app server fns
+- `apps/web/src/components/header.tsx` — logo target + "All apps"
+- `.github/workflows/chromatic.yml`, root `package.json`, `CLAUDE.md` — path rename
