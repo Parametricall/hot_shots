@@ -5,6 +5,6 @@
 // only exist inside a real TanStack Start app build. Give it something
 // loadable instead.
 
-export const getCookie = (_name: string): string | undefined => undefined;
-export const setCookie = (..._args: unknown[]): void => {};
-export const deleteCookie = (..._args: unknown[]): void => {};
+export const getCookie = (): string | undefined => undefined;
+export const setCookie = (): void => {};
+export const deleteCookie = (): void => {};
