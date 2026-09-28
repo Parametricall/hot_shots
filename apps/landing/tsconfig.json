@@ -1,9 +1,0 @@
-{
-  "extends": "@hot-shots/typescript-config/base.json",
-  "include": ["src", "vite.config.ts", "eslint.config.ts"],
-  "compilerOptions": {
-    "paths": {
-      "~/*": ["./src/*"]
-    }
-  }
-}
