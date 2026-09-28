@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -10,12 +11,24 @@ import {
 import { HubPage } from "~/features/hub/pages/hub";
 import { APPS } from "~/features/hub/apps";
 
-function renderHub() {
-  const rootRoute = createRootRoute({ component: () => <HubPage /> });
+const mockSetLaunchApp = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("~/features/hub/api/launch-app", () => ({
+  setLaunchApp: (...args: unknown[]) => mockSetLaunchApp(...args),
+}));
+
+function renderHub(launchAppId: string | null = null) {
+  const rootRoute = createRootRoute();
+  const indexRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/",
+    loader: () => ({ launchAppId }),
+    component: HubPage,
+  });
   const router = createRouter({
     history: createMemoryHistory({ initialEntries: ["/"] }),
     routeTree: rootRoute.addChildren([
-      createRoute({ getParentRoute: () => rootRoute, path: "/" }),
+      indexRoute,
       createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping/tips" }),
     ]),
   });
@@ -29,5 +42,23 @@ describe("HubPage", () => {
       const link = await screen.findByRole("link", { name: new RegExp(app.name) });
       expect(link).toHaveAttribute("href", app.href);
     }
+  });
+
+  it("saves the launch preference when the toggle is switched on", async () => {
+    const user = userEvent.setup();
+    renderHub();
+    const toggle = await screen.findByRole("switch", {
+      name: /open this app when i launch hot shots/i,
+    });
+    await user.click(toggle);
+    expect(mockSetLaunchApp).toHaveBeenCalledWith({ data: APPS[0].id });
+  });
+
+  it("shows the current launch preference as checked", async () => {
+    renderHub(APPS[0].id);
+    const toggle = await screen.findByRole("switch", {
+      name: /open this app when i launch hot shots/i,
+    });
+    expect(toggle).toBeChecked();
   });
 });
