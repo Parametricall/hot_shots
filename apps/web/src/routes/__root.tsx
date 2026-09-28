@@ -41,8 +41,8 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       ...seo({
-        title: "Hot Shots - AFL",
-        description: "Your go-to platform for AFL tipping.",
+        title: "Hot Shots",
+        description: "Your go-to platform for sports tipping.",
       }),
       {
         name: "theme-color",
@@ -68,7 +68,6 @@ export const Route = createRootRouteWithContext<{
         sizes: "180x180",
         href: "/dummy-footy-logo.png",
       },
-      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   pendingComponent: () => <AppLoadingScreen />,

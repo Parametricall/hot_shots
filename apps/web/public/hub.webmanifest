@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Hot Shots",
+  "short_name": "Hot Shots",
+  "start_url": "/?launch=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#f9fafb",
+  "background_color": "#f9fafb",
+  "icons": [
+    {
+      "src": "/hub-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [{ "name": "AFL Tipping", "url": "/afl-tipping/tips" }]
+}

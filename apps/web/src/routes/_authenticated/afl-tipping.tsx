@@ -20,6 +20,10 @@ const aflTippingSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/afl-tipping")({
   validateSearch: aflTippingSearchSchema,
+  head: () => ({
+    meta: [{ title: "Hot Shots - AFL" }],
+    links: [{ rel: "manifest", href: "/site.webmanifest" }],
+  }),
   component: AflTippingLayout,
 });
 
