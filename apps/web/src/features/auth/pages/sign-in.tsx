@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SignIn, useClerk } from "@clerk/tanstack-react-start";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 
 const DEV_USERS = import.meta.env.DEV ? getDevUsers() : [];
 
@@ -17,6 +18,9 @@ function getDevUsers() {
 
 export function SignInPage() {
   const queryClient = useQueryClient();
+  const { redirect_url: redirectUrl } = useSearch({ strict: false }) as {
+    redirect_url?: string;
+  };
 
   useEffect(() => {
     queryClient.clear();
@@ -25,13 +29,13 @@ export function SignInPage() {
 
   return (
     <div className="h-dvh flex flex-col justify-center items-center w-full gap-6" data-app-ready>
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
-      {import.meta.env.DEV && DEV_USERS.length > 0 && <DevLoginButtons />}
+      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl={redirectUrl} />
+      {import.meta.env.DEV && DEV_USERS.length > 0 && <DevLoginButtons redirectUrl={redirectUrl} />}
     </div>
   );
 }
 
-function DevLoginButtons() {
+function DevLoginButtons({ redirectUrl }: { redirectUrl?: string }) {
   const clerk = useClerk();
   const [signingInAs, setSigningInAs] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +53,7 @@ function DevLoginButtons() {
       });
       if (result.createdSessionId) {
         await clerk.setActive({ session: result.createdSessionId });
-        window.location.href = "/";
+        window.location.href = redirectUrl ?? "/afl-tipping/tips";
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign-in failed");
