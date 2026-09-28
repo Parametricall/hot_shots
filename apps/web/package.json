@@ -1,5 +1,5 @@
 {
-  "name": "hot-shots-afl",
+  "name": "hot-shots-web",
   "private": true,
   "sideEffects": false,
   "type": "module",

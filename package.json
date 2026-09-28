@@ -19,7 +19,7 @@
     "test:ci": "turbo run test:ci",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "chromatic": "npm run chromatic --workspace apps/afl"
+    "chromatic": "npm run chromatic --workspace apps/web"
   },
   "devDependencies": {
     "prettier": "^3.9.4",
