@@ -50,6 +50,14 @@ export default defineMain({
           find: /^@clerk\/tanstack-react-start$/,
           replacement: path.resolve(dirname, "./mocks/clerk.tsx"),
         },
+        {
+          find: /^@tanstack\/react-start\/server$/,
+          replacement: path.resolve(dirname, "./mocks/tanstack-start-server.ts"),
+        },
+        {
+          find: /^node:async_hooks$/,
+          replacement: path.resolve(dirname, "./mocks/async-hooks.ts"),
+        },
       ],
     };
     // Server-oriented modules reach for `process.env` at module load. The browser

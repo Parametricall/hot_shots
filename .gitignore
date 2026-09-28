@@ -11,7 +11,9 @@ notes
 /build/
 /api/
 /server/build
-/public/build# Sentry Config File
+/public/build
+
+# Sentry Config File
 .env.sentry-build-plugin
 /test-results/
 /playwright-report/
@@ -27,3 +29,11 @@ storybook-static
 
 # Claude Code
 .claude/
+
+# Database dumps and user exports (contain production user data)
+backups/
+*.dump
+
+# Not ready to commit yet
+.agents/
+plans/
