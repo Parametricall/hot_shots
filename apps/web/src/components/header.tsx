@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useUser } from "@clerk/tanstack-react-start";
+import { LayoutGrid } from "lucide-react";
 import * as React from "react";
 
 const UserButton = React.lazy(() =>
@@ -32,7 +33,7 @@ export function Header(props: ComponentProps<"header">) {
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/afl-tipping/tips" className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
               <img src={logo} alt="Logo" className="w-12 h-12 rounded-xl" />
             </div>
@@ -43,6 +44,13 @@ export function Header(props: ComponentProps<"header">) {
 
           {/* User */}
           <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">All apps</span>
+            </Link>
             {user && (
               <>
                 <div className="hidden sm:flex flex-col items-end">

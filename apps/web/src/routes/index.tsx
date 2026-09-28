@@ -1,11 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { HubPage } from "~/features/hub/pages/hub";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async ({ location }) => {
-    if (location.pathname === "/") {
-      throw redirect({
-        to: "/afl-tipping/tips",
-      });
-    }
-  },
+  component: HubPage,
 });
