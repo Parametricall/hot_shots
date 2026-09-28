@@ -47,4 +47,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npx turbo run lint typecheck test:ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:ci

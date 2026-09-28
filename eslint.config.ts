@@ -1,12 +1,38 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import pluginStorybook from "eslint-plugin-storybook";
 
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import pluginReact from "eslint-plugin-react";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import css from "@eslint/css";
 import { defineConfig, globalIgnores, type Config } from "eslint/config";
 import pluginQuery from "@tanstack/eslint-plugin-query";
-import { base } from "@hot-shots/eslint-config";
+
+const base = defineConfig([
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    plugins: { js },
+    extends: ["js/recommended"],
+    languageOptions: { globals: globals.browser },
+  },
+  tseslint.configs.recommended,
+  {
+    ...pluginReact.configs.flat.recommended,
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    rules: {
+      ...(pluginReact.configs.flat.recommended?.rules ?? {}),
+      "react/react-in-jsx-scope": "off", // Not needed with React 17+
+    },
+  },
+]);
 
 export default defineConfig([
   globalIgnores(["!.storybook"], "Include Storybook Directory"),

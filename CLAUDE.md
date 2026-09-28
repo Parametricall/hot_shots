@@ -4,27 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hot Shots is a monorepo serving a single site (`apps/web`) with a hub at `/` linking to
-installable sports tipping apps. AFL (Australian Football League) tipping is the first app: users
-submit tips on AFL games, view standings, and track their predictions against Squiggle's AI model.
+Hot Shots is a single TanStack Start site with a hub at `/` linking to installable sports tipping
+apps. AFL (Australian Football League) tipping is the first app: users submit tips on AFL games,
+view standings, and track their predictions against Squiggle's AI model.
 
 ### Apps on this site
 
-Everything lives in one TanStack Start app (`apps/web`) deployed to a single origin, so every app
-can share a PWA-installable hub (see `plans/007-monorepo-pwa-hub.md` for the full rationale). Each
-app is:
+Everything lives in one TanStack Start app deployed to a single origin, so every app can share a
+PWA-installable hub (see `plans/007-monorepo-pwa-hub.md` for the full rationale). Each app is:
 
-- one feature module under `apps/web/src/features/<app>/`
-- one route subtree (e.g. `apps/web/src/routes/_authenticated/<app>/`)
+- one feature module under `src/features/<app>/`
+- one route subtree (e.g. `src/routes/_authenticated/<app>/`)
 - one `public/<app>.webmanifest`, linked only from that app's route `head()`, so it can be
   installed on its own as a separate PWA
 
-The hub itself (`apps/web/src/features/hub/`) is also its own installable PWA
+The hub itself (`src/features/hub/`) is also its own installable PWA
 (`public/hub.webmanifest`) and lists every app via `features/hub/apps.ts`.
 
 ## Commands
 
-Run from the repo root (Turborepo fans these out to every app):
+Run from the repo root:
 
 ```bash
 npm run dev               # Start dev server (port 3000)
@@ -33,7 +32,7 @@ npm run lint               # ESLint
 npm run format            # Prettier format
 npm run typecheck         # TypeScript check (tsc --noEmit)
 npm run test:ci            # Vitest (unit + component projects)
-npm run storybook --workspace apps/web   # Storybook dev server (port 6006)
+npm run storybook   # Storybook dev server (port 6006)
 ```
 
 ## Architecture
@@ -51,18 +50,18 @@ npm run storybook --workspace apps/web   # Storybook dev server (port 6006)
 
 ### Key Directories
 
-- `apps/web/src/app/` - App bootstrap & configuration (router, start, service registry)
-- `apps/web/src/routes/` - TanStack Router file-based routes (auto-generates `routeTree.gen.ts`)
-- `apps/web/src/features/afl-tipping/` - Main feature module with components, API, pages, providers
-- `apps/web/src/features/afl-tipping/api/squiggle/` - Squiggle API integration with Zod schemas
-- `apps/web/src/features/afl-tipping/pages/` - Page components for afl-tipping routes
-- `apps/web/src/features/auth/` - Auth feature (sign-in page)
-- `apps/web/src/components/ui/` - shadcn/ui components
-- `apps/web/src/lib/` - Configured third-party libraries (utils, supabase client)
+- `src/app/` - App bootstrap & configuration (router, start, service registry)
+- `src/routes/` - TanStack Router file-based routes (auto-generates `routeTree.gen.ts`)
+- `src/features/afl-tipping/` - Main feature module with components, API, pages, providers
+- `src/features/afl-tipping/api/squiggle/` - Squiggle API integration with Zod schemas
+- `src/features/afl-tipping/pages/` - Page components for afl-tipping routes
+- `src/features/auth/` - Auth feature (sign-in page)
+- `src/components/ui/` - shadcn/ui components
+- `src/lib/` - Configured third-party libraries (utils, supabase client)
 
 ### Service Registry Pattern
 
-All third-party API calls must go through `apps/web/src/app/service-registry.ts`. This centralizes:
+All third-party API calls must go through `src/app/service-registry.ts`. This centralizes:
 
 - Service instantiation and dependency injection
 - DTO-to-domain type mapping (only place this should happen)
@@ -72,7 +71,7 @@ All third-party API calls must go through `apps/web/src/app/service-registry.ts`
 
 ### Server Functions
 
-Located in `apps/web/src/features/afl-tipping/api/tips.ts`. These are TanStack Start server functions that:
+Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start server functions that:
 
 - Run server-side only
 - Use Clerk for auth
@@ -80,9 +79,9 @@ Located in `apps/web/src/features/afl-tipping/api/tips.ts`. These are TanStack S
 
 ### Routing
 
-- `apps/web/src/routes/__root.tsx` - Root layout with providers (Clerk, Query, Router)
-- `apps/web/src/routes/_authenticated.tsx` - Auth guard layout for protected routes
-- Protected pages under `apps/web/src/routes/_authenticated/`
+- `src/routes/__root.tsx` - Root layout with providers (Clerk, Query, Router)
+- `src/routes/_authenticated.tsx` - Auth guard layout for protected routes
+- Protected pages under `src/routes/_authenticated/`
 
 ### Query Patterns
 
@@ -94,7 +93,7 @@ Use hierarchical query keys:
 
 ## Domain Types
 
-Key types in `apps/web/src/features/afl-tipping/types.ts`:
+Key types in `src/features/afl-tipping/types.ts`:
 
 - `AflTeam` - Team with name, abbreviation, colors
 - `AflGame` - Game with teams, venue, scores, status
@@ -125,23 +124,23 @@ Run `npm run format` before committing if you've created new files.
 
 ### Adding a New API Integration
 
-1. Create the fetch function in `apps/web/src/features/<feature>/api/`
+1. Create the fetch function in `src/features/<feature>/api/`
 2. Define Zod schemas for the response DTO
 3. Map DTO to domain types in the service
-4. Register the service in `apps/web/src/app/service-registry.ts`
-5. Wire it up in `apps/web/src/app/router.tsx`
+4. Register the service in `src/app/service-registry.ts`
+5. Wire it up in `src/app/router.tsx`
 6. Create query options in the feature's `queries.ts`
 
 ### Adding a New Page
 
-1. Create the page component in `apps/web/src/features/<feature>/pages/`
-2. Create a route file in `apps/web/src/routes/` (or `apps/web/src/routes/_authenticated/` for protected routes)
+1. Create the page component in `src/features/<feature>/pages/`
+2. Create a route file in `src/routes/` (or `src/routes/_authenticated/` for protected routes)
 3. Import the page component from the feature module
 
 ### Adding a New Component
 
-1. Place shared components in `apps/web/src/components/`
-2. Place feature-specific components in `apps/web/src/features/<feature>/components/`
+1. Place shared components in `src/components/`
+2. Place feature-specific components in `src/features/<feature>/components/`
 3. Co-locate stories next to the component: `component-name.stories.tsx`
 4. Co-locate tests next to the component: `component-name.test.tsx`
 
@@ -149,7 +148,7 @@ Run `npm run format` before committing if you've created new files.
 
 - Import preview decorators from `#.storybook/preview`
 - Use `containerDecorator` for width constraints, `centeredYDecorator` for centering
-- Use mock factories from `apps/web/src/features/afl-tipping/mocks/factories` for test data
+- Use mock factories from `src/features/afl-tipping/mocks/factories` for test data
 - Configure services via `parameters.services` (the `withServices` decorator handles registration)
 - Use `withMockUser` decorator when the component needs Clerk user context
 - Use `withRouter` decorator when the component uses TanStack Router hooks
@@ -165,5 +164,5 @@ Run `npm run format` before committing if you've created new files.
 ### Styling
 
 - Use Tailwind CSS v4 utility classes
-- Use shadcn/ui components from `apps/web/src/components/ui/` — add new ones with `npx shadcn@latest add <component>`
+- Use shadcn/ui components from `src/components/ui/` — add new ones with `npx shadcn@latest add <component>`
 - Use the `cn()` helper from `~/lib/utils` for conditional classes
