@@ -28,7 +28,7 @@ Run from the repo root:
 ```bash
 npm run dev               # Start dev server (port 3000)
 npm run build             # Production build (vite build + tsc check)
-npm run lint               # ESLint
+npm run lint              # oxlint
 npm run format            # Prettier format
 npm run typecheck         # TypeScript check (tsc --noEmit)
 npm run test:ci            # Vitest (unit + component projects)

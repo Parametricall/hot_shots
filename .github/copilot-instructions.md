@@ -21,7 +21,7 @@ You are working on an AFL (Australian Football League) tipping application built
 - Use TypeScript for all new files
 - Prefer functional components with hooks
 - Use arrow functions for component definitions
-- Follow ESLint and Prettier configurations
+- Follow oxlint and Prettier configurations
 - Use meaningful variable and function names (e.g., `fetchRoundFixtures`, not `getData`)
 - **Always use the service registry abstraction for all API calls.**
 
@@ -231,7 +231,7 @@ try {
 ## PyCharm Specific
 
 - Use PyCharm's built-in TypeScript support
-- Enable ESLint integration for real-time feedback
+- Enable the Oxc (oxlint) integration for real-time feedback
 - Use `.run` configurations for npm scripts
 - Leverage PyCharm's refactoring tools for safe code changes
 
