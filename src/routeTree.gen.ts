@@ -9,21 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
+import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
-import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authenticated/afl-tipping/tips'
-import { Route as AuthenticatedAflTippingStatsRouteImport } from './routes/_authenticated/afl-tipping/stats'
-import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
 import { Route as AuthenticatedAflTippingGroupTipsRouteImport } from './routes/_authenticated/afl-tipping/group-tips'
+import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
+import { Route as AuthenticatedAflTippingStatsRouteImport } from './routes/_authenticated/afl-tipping/stats'
+import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authenticated/afl-tipping/tips'
 
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -31,24 +35,20 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignInSplatRoute = SignInSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => SignInRoute,
 } as any)
 const AuthenticatedAflTippingRoute = AuthenticatedAflTippingRouteImport.update({
   id: '/afl-tipping',
   path: '/afl-tipping',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const SignInSplatRoute = SignInSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => SignInRoute,
 } as any)
 const AuthenticatedAflTippingIndexRoute =
   AuthenticatedAflTippingIndexRouteImport.update({
@@ -56,16 +56,10 @@ const AuthenticatedAflTippingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
-const AuthenticatedAflTippingTipsRoute =
-  AuthenticatedAflTippingTipsRouteImport.update({
-    id: '/tips',
-    path: '/tips',
-    getParentRoute: () => AuthenticatedAflTippingRoute,
-  } as any)
-const AuthenticatedAflTippingStatsRoute =
-  AuthenticatedAflTippingStatsRouteImport.update({
-    id: '/stats',
-    path: '/stats',
+const AuthenticatedAflTippingGroupTipsRoute =
+  AuthenticatedAflTippingGroupTipsRouteImport.update({
+    id: '/group-tips',
+    path: '/group-tips',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
 const AuthenticatedAflTippingStandingsRoute =
@@ -74,10 +68,16 @@ const AuthenticatedAflTippingStandingsRoute =
     path: '/standings',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
-const AuthenticatedAflTippingGroupTipsRoute =
-  AuthenticatedAflTippingGroupTipsRouteImport.update({
-    id: '/group-tips',
-    path: '/group-tips',
+const AuthenticatedAflTippingStatsRoute =
+  AuthenticatedAflTippingStatsRouteImport.update({
+    id: '/stats',
+    path: '/stats',
+    getParentRoute: () => AuthenticatedAflTippingRoute,
+  } as any)
+const AuthenticatedAflTippingTipsRoute =
+  AuthenticatedAflTippingTipsRouteImport.update({
+    id: '/tips',
+    path: '/tips',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
 
@@ -166,18 +166,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -187,19 +180,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in/$': {
-      id: '/sign-in/$'
-      path: '/$'
-      fullPath: '/sign-in/$'
-      preLoaderRoute: typeof SignInSplatRouteImport
-      parentRoute: typeof SignInRoute
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/afl-tipping': {
       id: '/_authenticated/afl-tipping'
@@ -208,6 +201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAflTippingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatRouteImport
+      parentRoute: typeof SignInRoute
+    }
     '/_authenticated/afl-tipping/': {
       id: '/_authenticated/afl-tipping/'
       path: '/'
@@ -215,18 +215,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAflTippingIndexRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
-    '/_authenticated/afl-tipping/tips': {
-      id: '/_authenticated/afl-tipping/tips'
-      path: '/tips'
-      fullPath: '/afl-tipping/tips'
-      preLoaderRoute: typeof AuthenticatedAflTippingTipsRouteImport
-      parentRoute: typeof AuthenticatedAflTippingRoute
-    }
-    '/_authenticated/afl-tipping/stats': {
-      id: '/_authenticated/afl-tipping/stats'
-      path: '/stats'
-      fullPath: '/afl-tipping/stats'
-      preLoaderRoute: typeof AuthenticatedAflTippingStatsRouteImport
+    '/_authenticated/afl-tipping/group-tips': {
+      id: '/_authenticated/afl-tipping/group-tips'
+      path: '/group-tips'
+      fullPath: '/afl-tipping/group-tips'
+      preLoaderRoute: typeof AuthenticatedAflTippingGroupTipsRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
     '/_authenticated/afl-tipping/standings': {
@@ -236,11 +229,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAflTippingStandingsRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
-    '/_authenticated/afl-tipping/group-tips': {
-      id: '/_authenticated/afl-tipping/group-tips'
-      path: '/group-tips'
-      fullPath: '/afl-tipping/group-tips'
-      preLoaderRoute: typeof AuthenticatedAflTippingGroupTipsRouteImport
+    '/_authenticated/afl-tipping/stats': {
+      id: '/_authenticated/afl-tipping/stats'
+      path: '/stats'
+      fullPath: '/afl-tipping/stats'
+      preLoaderRoute: typeof AuthenticatedAflTippingStatsRouteImport
+      parentRoute: typeof AuthenticatedAflTippingRoute
+    }
+    '/_authenticated/afl-tipping/tips': {
+      id: '/_authenticated/afl-tipping/tips'
+      path: '/tips'
+      fullPath: '/afl-tipping/tips'
+      preLoaderRoute: typeof AuthenticatedAflTippingTipsRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
     }
   }
