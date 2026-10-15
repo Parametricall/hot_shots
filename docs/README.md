@@ -6,5 +6,5 @@ Everything under `docs/`, and when to read it. The vocabulary is in
 
 | Doc                  | Read it when                                                                  |
 | -------------------- | ----------------------------------------------------------------------------- |
-| `adr/`               | You're about to reverse a decision, or wonder why something is done this way  |
+| [`adr/`](adr/)       | You're about to reverse a decision, or wonder why something is done this way  |
 | [`agents/`](agents/) | You're writing or changing a skill, or an agent asks how this repo is tracked |
