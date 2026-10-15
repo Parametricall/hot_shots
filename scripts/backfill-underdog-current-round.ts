@@ -8,7 +8,8 @@
  *   --round N    Override the round to backfill (default: latest round with tips)
  *   --dry-run    Print what would be updated without writing to the database
  *
- * Reads VITE_SUPABASE_URL and VITE_SUPABASE_KEY from .env
+ * Reads SUPABASE_URL (or VITE_SUPABASE_URL) and SUPABASE_SECRET_KEY from .env.
+ * RLS denies the publishable key every row, so this needs the secret key.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -33,15 +34,17 @@ for (const line of envContent.split("\n")) {
 const SQUIGGLE_API = "https://api.squiggle.com.au";
 const USER_AGENT = "Alex's Tipping App - parametricall@users.noreply.github.com";
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SECRET_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_KEY in .env");
+  console.error("Missing SUPABASE_URL (or VITE_SUPABASE_URL) or SUPABASE_SECRET_KEY in .env");
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
 // Parse CLI args
 const args = process.argv.slice(2);
