@@ -21,6 +21,40 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `612bab8`, 2026-07-03
+- **Reviewed and implemented**: 2026-10-15, on `advisor/001-supabase-rls-lockdown` (off `auto-tips`)
+
+## Review revisions (2026-10-15) — these override the steps below
+
+The plan was reviewed against `046c4f8` before it was executed. Where this section and the
+original steps disagree, this section is what was built:
+
+1. **Only `afl_tipping` remains.** Plan 008 dropped `cheating_reports` and `feature_flags`, so
+   the migration enables RLS on `afl_tipping` alone and the probe uses `/rest/v1/afl_tipping`.
+2. **Migration timestamp.** `20260703000000` sorts before the already-committed
+   `20261015000000_drop_…` migration, which `supabase db push` refuses without
+   `--include-all`. The file is `20261015120000_enable_rls_lockdown.sql`.
+3. **STOP condition hit, then resolved.** `src/app/router.tsx` registers `tipsRepository`, and
+   the router runs on the client too, so `~/lib/supabase` and all of supabase-js shipped in
+   the browser bundle. `getSupabaseServerClient` is now wrapped in TanStack Start's
+   `createServerOnlyFn`, which strips its body from the client build. Verified: after
+   `npm run build`, `.output/public` holds no `SUPABASE_SECRET_KEY`, `PostgrestClient` or
+   `persistSession`; the client gets a stub that throws.
+4. **Env var renamed to `SUPABASE_SECRET_KEY`.** The project already uses Supabase's new
+   `sb_publishable_…` key; its counterpart is the `sb_secret_…` key (Dashboard → Project
+   Settings → API Keys). The legacy `service_role` JWT works in the same variable.
+5. **Missed caller.** `scripts/backfill-underdog-current-round.ts` built its own client from the
+   anon key and would have read zero rows under RLS. It now uses `SUPABASE_SECRET_KEY`.
+6. **Rollout order made explicit.** Applying the migration before the new code is live cuts the
+   production app off from its own data. Order: set `SUPABASE_SECRET_KEY` in Vercel
+   (Production and Preview) → deploy → smoke test → apply the migration → probe → smoke test.
+7. **Extras.** Dropped the stale `supabaseUrl`/`hasKey` log fields in `tips.repository.ts`;
+   recorded the decision as `docs/adr/0002-supabase-is-server-only.md`; added one line to
+   `AGENTS.md` so new tables get RLS.
+
+Not fixed here, found during the review: Clerk's `getEnvVariable` reads `import.meta.env[name]`
+dynamically, so Vite inlines **every** `VITE_*` variable into the client bundle, not just the
+ones the app reads. After this plan the anon key that leaks that way is inert, but no secret
+may ever be a `VITE_*` variable (`.env.example` says so).
 
 ## Why this matters
 

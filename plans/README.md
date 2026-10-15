@@ -12,15 +12,15 @@ findings.
 
 ## Execution order & status
 
-| Plan | Title                                                                              | Priority | Effort | Risk | Depends on | Status |
-| ---- | ---------------------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | ------ |
-| 001  | Lock down Supabase with RLS + server-only service-role key                         | P1       | M      | MED  | —          | TODO   |
-| 002  | Extract & unit-test leaderboard-scoring and underdog-compliance                    | P2       | M      | LOW  | —          | TODO   |
-| 003  | Remediate `npm audit` dependency vulnerabilities                                   | P2       | S      | LOW  | —          | TODO   |
-| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)              | P2       | L      | MED  | —          | TODO   |
-| 005  | Remove server-side in-memory cache (`withCache`) — unreliable on Vercel serverless | P2       | S      | LOW  | —          | DONE   |
-| 008  | Remove the cheating feature and the feature-flag system it used                    | P2       | S      | LOW  | —          | DONE   |
-| 009  | Give Tipsters a home-team Auto-tip for every Game they miss                        | P2       | M      | MED  | —          | DONE   |
+| Plan | Title                                                                              | Priority | Effort | Risk | Depends on | Status                                                                |
+| ---- | ---------------------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | --------------------------------------------------------------------- |
+| 001  | Lock down Supabase with RLS + server-only service-role key                         | P1       | M      | MED  | —          | IN PROGRESS (code done; operator to set key, deploy, apply migration) |
+| 002  | Extract & unit-test leaderboard-scoring and underdog-compliance                    | P2       | M      | LOW  | —          | TODO                                                                  |
+| 003  | Remediate `npm audit` dependency vulnerabilities                                   | P2       | S      | LOW  | —          | TODO                                                                  |
+| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)              | P2       | L      | MED  | —          | TODO                                                                  |
+| 005  | Remove server-side in-memory cache (`withCache`) — unreliable on Vercel serverless | P2       | S      | LOW  | —          | DONE                                                                  |
+| 008  | Remove the cheating feature and the feature-flag system it used                    | P2       | S      | LOW  | —          | DONE                                                                  |
+| 009  | Give Tipsters a home-team Auto-tip for every Game they miss                        | P2       | M      | MED  | —          | DONE                                                                  |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 

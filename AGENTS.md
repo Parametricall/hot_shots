@@ -84,7 +84,10 @@ Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start serv
 
 - Run server-side only
 - Use Clerk for auth
-- Interact with Supabase for user tips
+- Interact with Supabase for user tips, through `getSupabaseServerClient()` in `src/lib/supabase.ts`
+  only. It uses the server-only `SUPABASE_SECRET_KEY`; RLS denies the publishable key every row
+  (`docs/adr/0002`), so a new table's migration must enable RLS, and no secret may take a `VITE_`
+  prefix.
 
 ### Routing
 
