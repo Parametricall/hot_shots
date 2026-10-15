@@ -3,9 +3,10 @@
 Features that landed with automated tests but still want a human pass. Tick items off as you go and
 add a date. Terms follow `GLOSSARY.md`.
 
-## Plan 007: hub and installable apps
+## Hub and installable apps
 
-Status: code merged (phases 1–6). Phases 7–8 (Vercel settings, real devices) are still manual.
+Status: deployed. The real-device checks below are still to do. See
+`docs/adr/0003-every-app-on-one-origin.md`.
 
 ### Hub (`/`)
 
@@ -41,7 +42,7 @@ Status: code merged (phases 1–6). Phases 7–8 (Vercel settings, real devices)
 - [ ] Offline launch of the AFL-only PWA shows the cached shell
 - [ ] Android: long-press the Hub icon shows the "AFL Tipping" shortcut
 
-## Plan 008: cheating feature removed
+## Cheating feature removed
 
 Status: code and migration deployed, tables dropped.
 
@@ -51,10 +52,10 @@ Status: code and migration deployed, tables dropped.
 - [ ] Leaderboard rank, ties sharing a rank, and the wooden spoon still look right
 - [ ] `ADMIN_USER_ID` and `VITE_ADMIN_USER_ID` removed from `.env` and every Vercel environment
 
-## Plan 009: home-team Auto-tips
+## Home-team Auto-tips
 
-Status: code on branch `auto-tips`, not deployed. **Retroactive: the 2026 Leaderboard changes on
-deploy.** Tell the Tipsters. See `docs/adr/0001-missed-tips-become-home-team-auto-tips.md`.
+Status: deployed 2026-10-15. **Retroactive: the 2026 Leaderboard changed on deploy.** Tell the
+Tipsters if you haven't. See `docs/adr/0001-missed-tips-become-home-team-auto-tips.md`.
 
 ### My Tips
 
@@ -91,4 +92,16 @@ deploy.** Tell the Tipsters. See `docs/adr/0001-missed-tips-become-home-team-aut
 - If not tipping turns out to be an advantage, the ADR's alternative is to default an Auto-tip's
   Margin to the Round's largest winning margin. That change belongs in `toAutoTipRow`.
 - Plan 002 (extract scoring) must keep the Auto-tip merge upstream of the extracted scorers.
-- Plan 001 (RLS lockdown) must drop its lines for `cheating_reports` and `feature_flags`.
+
+## Supabase locked to the server
+
+Status: deployed and migration applied 2026-10-15. See `docs/adr/0002-supabase-is-server-only.md`.
+
+- [ ] Signed in: submit a Tip, open the Leaderboard and Group tips (the server reads through the
+      secret key)
+- [ ] `SUPABASE_SECRET_KEY` is set in Production and Preview on Vercel, as a non-`VITE_` variable
+- [ ] SQL Editor: `select relrowsecurity from pg_class where oid = 'public.afl_tipping'::regclass`
+      returns `true`
+- [ ] SQL Editor: `select policyname from pg_policies where tablename = 'afl_tipping'` returns no
+      rows. A policy made in the dashboard would still let signed-in Tipsters reach the table
+      from the browser with their Clerk token

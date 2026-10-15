@@ -14,7 +14,7 @@ view standings, and track their predictions against Squiggle's AI model.
 ### Apps on this site
 
 Everything lives in one TanStack Start app deployed to a single origin, so every app can share a
-PWA-installable hub (see `plans/007-monorepo-pwa-hub.md` for the full rationale). Each app is:
+PWA-installable hub (see `docs/adr/0003-every-app-on-one-origin.md` for why). Each app is:
 
 - one feature module under `src/features/<app>/`
 - one route subtree (e.g. `src/routes/_authenticated/<app>/`)
