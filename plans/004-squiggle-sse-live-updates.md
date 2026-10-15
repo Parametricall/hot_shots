@@ -297,7 +297,7 @@ Handler behavior, in order:
 3. **Upstream**: `fetch(\`${SQUIGGLE_SSE_HOST}/${channel}\`, { headers:
    { "User-Agent": SQUIGGLE_USER_AGENT, Accept: "text/event-stream" },
    signal: request.signal })`—`request.signal`cancels upstream when the
-client disconnects.`!upstream.ok || !upstream.body` → 502.
+   client disconnects.`!upstream.ok || !upstream.body` → 502.
 4. **Pump with heartbeat** (extract as a named function for testability):
    manual `reader.read()` loop enqueueing chunks unmodified (Squiggle's
    `retry:2000` and `id:` lines pass through), plus a `setInterval` enqueueing

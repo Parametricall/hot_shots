@@ -145,13 +145,13 @@ rule 2 is scored correctly with **no changes to `scoreTips` or
 
 ## Commands you will need
 
-| Purpose   | Command                                                         | Expected on success                 |
-| --------- | --------------------------------------------------------------- | ----------------------------------- |
-| Typecheck | `npm run typecheck`                                             | exit 0, no errors                   |
+| Purpose   | Command                                                          | Expected on success                 |
+| --------- | ---------------------------------------------------------------- | ----------------------------------- |
+| Typecheck | `npm run typecheck`                                              | exit 0, no errors                   |
 | One file  | `npx vp test run src/features/afl-tipping/api/auto-tips.test.ts` | all pass                            |
-| Tests     | `npm run test:ci`                                               | exit 0, all tests pass              |
-| Lint+fmt  | `npm run check`                                                 | exit 0 ("pass" for format and lint) |
-| Build     | `npm run build`                                                 | exit 0                              |
+| Tests     | `npm run test:ci`                                                | exit 0, all tests pass              |
+| Lint+fmt  | `npm run check`                                                  | exit 0 ("pass" for format and lint) |
+| Build     | `npm run build`                                                  | exit 0                              |
 
 ## Suggested executor toolkit
 
@@ -240,7 +240,7 @@ and use it in the function signatures that take `userMap`
 Add a helper for the signed-in Tipster:
 
 ```ts
-async function fetchTipsterJoinedAt(userId: string): Promise<number>
+async function fetchTipsterJoinedAt(userId: string): Promise<number>;
 // createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! }).users.getUser(userId) → user.createdAt
 ```
 
@@ -254,8 +254,9 @@ In `getLeaderboard` and `getPlayerStats`, after loading `allTips`, `games` and
 ```ts
 const joinedAtByTipster = new Map([...userMap].map(([id, u]) => [id, u.joinedAt]));
 const gamesById = new Map(games.map((g) => [g.id, g]));
-const autoTipRows = findAutoTips({ games, tips: allTips, joinedAtByTipster, now: Date.now() })
-  .map((a) => toAutoTipRow(a, gamesById.get(a.gameId)!));
+const autoTipRows = findAutoTips({ games, tips: allTips, joinedAtByTipster, now: Date.now() }).map(
+  (a) => toAutoTipRow(a, gamesById.get(a.gameId)!),
+);
 const tipsWithAutoTips = [...allTips, ...autoTipRows];
 ```
 

@@ -89,7 +89,7 @@
    Key Directories / Commands sections to `apps/web/src/...`, and add a short "Apps on this site"
    section: hub at `/`, one feature module + route subtree + manifest per app (see Appendix).
 4. **Gate:** fresh `npm ci`; `npx turbo run build typecheck lint test:ci`; `npm run storybook
---workspace apps/web` boots (the `#.storybook` imports map moved with the package).
+   --workspace apps/web` boots (the `#.storybook` imports map moved with the package).
 
 ## Phase 3 — Hub page at `/`
 
@@ -185,8 +185,8 @@ never flashes, and SSR can't read `localStorage`.
      `getCookie` from `@tanstack/react-start/server`, returns the matching `APPS` entry or `null`
      (ignore unknown values).
    - `setLaunchApp` — `createServerFn({ method: "POST" })`, input validated with Zod as `AppId |
-null`; `setCookie("hs_launch_app", id, { path: "/", maxAge: 365 days, sameSite: "lax",
-httpOnly: true, secure: true in prod })`, or `deleteCookie` for `null`.
+     null`; `setCookie("hs_launch_app", id, { path: "/", maxAge: 365 days, sameSite: "lax",
+     httpOnly: true, secure: true in prod })`, or `deleteCookie` for `null`.
    - This is first-party state, not a third-party API, so the service-registry rule doesn't apply;
      still co-locate it in `features/hub/api/` like other server fns.
 2. `routes/index.tsx`:
@@ -221,7 +221,7 @@ With the hub at `/`, anything that used to rely on `/` → tips now lands on the
    `throw redirect({ to: "/sign-in", search: { redirect_url: location.href } })` (`location` is in
    `beforeLoad`'s args; `href` is path + search, same-origin).
 2. `routes/sign-in.tsx` and `sign-in.$.tsx`: `validateSearch: z.object({ redirect_url:
-z.string().optional() })`. Clerk's `<SignIn>` reads `redirect_url` from the query string by
+   z.string().optional() })`. Clerk's `<SignIn>` reads `redirect_url` from the query string by
    itself — confirm against Clerk docs for `@clerk/tanstack-react-start` and, if it doesn't,
    pass it as `forceRedirectUrl`. Only accept values starting with `/` (open-redirect guard).
 3. `DevLoginButtons` in `features/auth/pages/sign-in.tsx`: replace `window.location.href = "/"`
@@ -290,7 +290,7 @@ No Vercel, DNS, or Clerk changes. In `apps/web`:
    key `["nrl"]` — AFL's keys are already rooted at `["afl"]`, so the shared persisted query cache
    can't collide). Register its services in `src/app/service-registry.ts` / `router.tsx`.
    Revisit the AFL-specific `invalidateQueries` predicate in `router.tsx` (`queryKey[1] !==
-"teams"`) so it still does the right thing for NRL keys.
+   "teams"`) so it still does the right thing for NRL keys.
 2. Routes under `src/routes/_authenticated/nrl-tipping/` with a layout whose `head()` links
    `/nrl-tipping.webmanifest`.
 3. `public/nrl-tipping.webmanifest`: `id` + `start_url` `/nrl-tipping/tips`, `scope`

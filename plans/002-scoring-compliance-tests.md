@@ -344,7 +344,7 @@ In `src/features/afl-tipping/api/tips.ts`:
 4. If `npm run typecheck` now reports an unused import in `tips.ts` (for example
    `AflLeaderboardEntry` is only referenced by the moved `assembleLeaderboard`),
    remove that specific import from the `import type { ... } from
-"~/features/afl-tipping/types"` line. Keep `AflUnderdogComplianceEntry`,
+   "~/features/afl-tipping/types"` line. Keep `AflUnderdogComplianceEntry`,
    `AflGroupTipEntry`, and `AflUserTip` — they are still used.
 
 **Verify**: `npm run typecheck` → exit 0. Then `npm run test:ci` → all existing
