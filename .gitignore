@@ -27,8 +27,11 @@ notes
 *storybook.log
 storybook-static
 
-# Claude Code
-.claude/
+# Claude Code: commit the skills, keep local settings local
+.claude/*
+!.claude/skills/
+# `npx skills` symlinks into here unless run with --copy (docs/agents/skills.md)
+.agents/
 
 # clerk configuration (can include secrets)
 /.clerk/
@@ -38,5 +41,4 @@ backups/
 *.dump
 
 # Not ready to commit yet
-.agents/
 plans/

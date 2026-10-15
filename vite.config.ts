@@ -61,7 +61,9 @@ export default defineConfig(({ mode }) => {
       bracketSpacing: true,
       // Prettier never sorted package.json; keep its key order stable.
       sortPackageJson: false,
-      ignorePatterns: ["**/build", "**/public", "pnpm-lock.yaml", "routeTree.gen.ts"],
+      // .claude/skills are third-party: formatting them turns every `npx skills update` diff
+      // into whitespace noise.
+      ignorePatterns: ["**/build", "**/public", "pnpm-lock.yaml", "routeTree.gen.ts", ".claude"],
     },
     lint: {
       plugins: ["typescript"],
