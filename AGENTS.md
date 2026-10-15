@@ -222,4 +222,4 @@ Keep subjects to 72 characters, lowercase after the scope, imperative mood.
 - `.claude/skills/`: committed agent skills. Read `docs/agents/skills.md` before adding, updating
   or committing one.
 - Issues: GitHub Issues on `Parametricall/hot_shots`. Follow `docs/agents/issue-tracker.md`.
-- `plans/`: implementation plans (from `/improve`), not committed yet.
+- `plans/`: implementation plans (from `/improve`), committed; `plans/README.md` is the index.

@@ -19,6 +19,8 @@ findings.
 | 003  | Remediate `npm audit` dependency vulnerabilities                                   | P2       | S      | LOW  | —          | TODO   |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)              | P2       | L      | MED  | —          | TODO   |
 | 005  | Remove server-side in-memory cache (`withCache`) — unreliable on Vercel serverless | P2       | S      | LOW  | —          | DONE   |
+| 008  | Remove the cheating feature and the feature-flag system it used                    | P2       | S      | LOW  | —          | DONE   |
+| 009  | Give Tipsters a home-team Auto-tip for every Game they miss                        | P2       | M      | MED  | —          | DONE   |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
@@ -47,6 +49,15 @@ in-season) so the live e2e step can actually run. Original 001–003 sequence:
 ## Dependency notes
 
 - No hard dependencies between plans.
+- **008 and 009** were added by the operator on 2026-10-15 (base commit
+  `b9f6b9b`), from the `/grill-with-docs` session that produced `GLOSSARY.md`
+  and `docs/adr/0001`. They touch disjoint files and can run in either order.
+- **008 drops the `cheating_reports` and `feature_flags` tables that 001's
+  migration and verification still reference.** If 001 runs after 008, drop
+  those lines from 001 (its `alter table … enable row level security` for both
+  tables, and the `/rest/v1/feature_flags` check).
+- **009 and 002** both touch `tips.ts`: if 002 runs after 009, keep 009's
+  Auto-tip merge in the server functions, upstream of the extracted scorers.
 - **002 is a prerequisite for any future leaderboard/compliance perf work**
   (the successor to superseded finding #4 — see below; `withCache` itself is
   removed by 005). Pin the scoring behavior with tests (002) before
@@ -86,5 +97,6 @@ they are not re-audited from scratch next run:
   `import.meta.env.DEV` and never enter the production bundle — by design.
 - **Hardcoded name-prefix "report Ryan for cheating" logic in `leaderboard.tsx`**
   (`startsWith("Ryan")`, `startsWith("Brooke")`): an intentional inside joke,
-  not a bug. Left as-is unless the owner wants it removed.
+  not a bug. Left as-is unless the owner wants it removed. **The owner did
+  (2026-10-15): removed by plan 008, with the rest of the cheating feature.**
 - **`.env` committed**: it is not — `.gitignore` covers `.env`; confirmed.
