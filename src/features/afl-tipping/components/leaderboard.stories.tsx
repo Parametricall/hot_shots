@@ -54,7 +54,6 @@ const meta = preview.meta({
     layout: "centered",
     services: {
       ...leaderboardService(LEADERBOARD),
-      cheatingReportsService: {},
     },
   },
 });

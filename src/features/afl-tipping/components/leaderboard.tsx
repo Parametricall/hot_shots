@@ -1,24 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/tanstack-react-start";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Trophy, Medal, Award, AlertCircle, Flag, MoreVertical } from "lucide-react";
+import { Trophy, Medal, Award, AlertCircle } from "lucide-react";
 import { WoodenSpoon } from "~/components/wooden-spoon";
 import { cn } from "~/lib/utils";
-import { toast } from "sonner";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
-import ServiceRegistry from "~/app/service-registry";
-
-const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 
 function getRankIcon(rank: number, lastRank?: number) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
@@ -33,18 +23,9 @@ interface LeaderboardRowProps {
   rank: number;
   lastRank: number;
   isCurrentUser: boolean;
-  onReport?: () => void;
-  showMenuColumn?: boolean;
 }
 
-function LeaderboardRow({
-  entry,
-  rank,
-  lastRank,
-  isCurrentUser,
-  onReport,
-  showMenuColumn,
-}: LeaderboardRowProps) {
+function LeaderboardRow({ entry, rank, lastRank, isCurrentUser }: LeaderboardRowProps) {
   return (
     <div
       className={cn(
@@ -75,26 +56,6 @@ function LeaderboardRow({
           <div className="text-xs text-muted-foreground">Margin</div>
         </div>
       </div>
-
-      {showMenuColumn && (
-        <div className="w-8 flex justify-center">
-          {onReport ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded">
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onReport} className="text-red-600">
-                  <Flag className="h-4 w-4 mr-2" />
-                  Report for cheating
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
-      )}
     </div>
   );
 }
@@ -151,35 +112,6 @@ export function Leaderboard() {
     ...aflQueries.leaderboard(),
   });
   const { user } = useUser();
-  const queryClient = useQueryClient();
-  const isAdmin = user?.id === ADMIN_USER_ID;
-
-  const { data: cheatingFlag } = useQuery(aflQueries.featureFlag("cheating_report"));
-  const cheatingEnabled = cheatingFlag?.enabled ?? false;
-
-  const toggleMutation = useMutation({
-    mutationFn: () =>
-      ServiceRegistry.getService("featureFlagsService").setFeatureFlag({
-        data: { key: "cheating_report", enabled: !cheatingEnabled },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: aflQueries.featureFlag("cheating_report").queryKey,
-      });
-    },
-  });
-
-  const reportMutation = useMutation({
-    mutationFn: ServiceRegistry.getService("cheatingReportsService").reportCheating,
-    onSuccess: () => {
-      toast.success("Report submitted. The authorities have been notified.");
-      queryClient.invalidateQueries({ queryKey: aflQueries.cheatingReports().queryKey });
-    },
-    onError: () => {
-      toast.error("Failed to submit report");
-    },
-  });
-
   if (isLoading || (!leaderboard && isFetching)) return <LeaderboardSkeleton />;
 
   if (isError) {
@@ -221,12 +153,6 @@ export function Leaderboard() {
     }
   }
 
-  const currentUserIsRyan =
-    leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Ryan") ?? false;
-  const currentUserIsBrooke =
-    leaderboard.find((e) => e.userId === user?.id)?.displayName.startsWith("Brooke") ?? false;
-  const showMenuColumn = cheatingEnabled && !currentUserIsRyan && !currentUserIsBrooke;
-
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -235,25 +161,9 @@ export function Leaderboard() {
           Tipping Leaderboard
         </CardTitle>
       </CardHeader>
-      {isAdmin && (
-        <div className="flex justify-end px-4 pb-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => toggleMutation.mutate()}
-            disabled={toggleMutation.isPending}
-            className="text-xs"
-          >
-            <Flag className={cn("h-3.5 w-3.5 mr-1", cheatingEnabled && "text-red-500")} />
-            {cheatingEnabled ? "Reporting on" : "Reporting off"}
-          </Button>
-        </div>
-      )}
       <CardContent className="p-0">
         {leaderboard.map((entry, index) => {
           const isCurrentUser = entry.userId === user?.id;
-          const canReport =
-            showMenuColumn && entry.displayName.startsWith("Ryan") && !isCurrentUser;
           return (
             <LeaderboardRow
               key={entry.userId}
@@ -261,12 +171,6 @@ export function Leaderboard() {
               rank={ranks[index]!}
               lastRank={ranks[ranks.length - 1]!}
               isCurrentUser={isCurrentUser}
-              showMenuColumn={showMenuColumn}
-              onReport={
-                canReport
-                  ? () => reportMutation.mutate({ data: { userId: entry.userId } })
-                  : undefined
-              }
             />
           );
         })}
