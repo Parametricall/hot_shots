@@ -70,6 +70,7 @@ export type AflUserTip = {
   tipTeamId: number;
   margin?: number;
   isUnderdog?: boolean;
+  isAutoTip?: boolean; // the Home team, given because the Tipster missed Lockout
 };
 
 export type AflGroupTipEntry = {
@@ -81,6 +82,7 @@ export type AflGroupTipEntry = {
   tipTeamId: number | null; // null if game hasn't started (server-enforced)
   margin?: number | null; // only present for the first game of the round, after it starts
   hasMargin?: boolean; // true if user has set a margin (pre-game, without revealing value)
+  isAutoTip?: boolean; // the Home team, given because the Tipster missed Lockout
 };
 
 export type AflLeaderboardEntry = {

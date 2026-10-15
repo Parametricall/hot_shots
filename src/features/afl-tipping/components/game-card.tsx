@@ -24,7 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useTipMutation } from "~/features/afl-tipping/hooks/use-tip-mutation";
 
@@ -74,6 +74,18 @@ function GameCardRoot({
   className,
 }: GameCardRootProps) {
   const mutation = useTipMutation();
+  const hasStarted = useGameStartTimer(game.unixTime);
+  const queryClient = useQueryClient();
+  const prevHasStarted = useRef(hasStarted);
+
+  // An Auto-tip only exists once Lockout has passed, so refetch the Tipster's tips then
+  useEffect(() => {
+    if (hasStarted && !prevHasStarted.current) {
+      queryClient.invalidateQueries({ queryKey: aflQueries.allGetTipsKey() });
+    }
+    prevHasStarted.current = hasStarted;
+  }, [hasStarted, queryClient]);
+
   const submitTip = useCallback(
     (gameId: number, teamId: number, margin?: number) => {
       mutation.mutate({ data: { gameId, teamId, margin } });
@@ -300,6 +312,19 @@ function GameCardTipStatusNotice() {
   );
 }
 
+// Shown when the Tipster missed Lockout and was given the home team (docs/adr/0001).
+function GameCardAutoTipNotice() {
+  const { homeTeam, tip } = useGameCard();
+
+  if (!tip?.isAutoTip) return null;
+
+  return (
+    <div className="px-3 py-1.5 border-t bg-muted text-center text-[11px] leading-tight text-muted-foreground">
+      You didn&apos;t tip this game, so you were given {homeTeam.name} (the home team).
+    </div>
+  );
+}
+
 // Matchup section - no accordion dependencies
 interface GameCardMatchupProps {
   className?: string;
@@ -317,6 +342,7 @@ function GameCardMatchup({ className, children }: GameCardMatchupProps) {
         <GameCardTeamButton team={awayTeam} isAwayTeam />
       </div>
       <GameCardTipStatusNotice />
+      <GameCardAutoTipNotice />
     </div>
   );
 }

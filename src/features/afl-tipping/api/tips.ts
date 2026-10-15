@@ -13,6 +13,7 @@ import serviceRegistry from "~/app/service-registry";
 import { GameRules } from "./game-rules";
 import { computePlayerStats } from "./player-stats";
 import type { AllTipsRow } from "./tips.repository";
+import { findAutoTips, toAutoTipRow } from "./auto-tips";
 
 const SubmitTipSchema = z.object({
   gameId: z.number(), // Squiggle game id
@@ -32,15 +33,23 @@ async function ensureUserAuthenticated(): Promise<string> {
   return userId;
 }
 
-async function fetchAllClerkUsers(): Promise<
-  Map<string, { displayName: string; avatarUrl: string | null }>
-> {
+type TipsterInfo = { displayName: string; avatarUrl: string | null; joinedAt: number };
+
+async function fetchTipsterJoinedAt(userId: string): Promise<number> {
+  const clerkClient = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY!,
+  });
+  const user = await clerkClient.users.getUser(userId);
+  return user.createdAt;
+}
+
+async function fetchAllClerkUsers(): Promise<Map<string, TipsterInfo>> {
   const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY!,
   });
 
   const BATCH_SIZE = 100;
-  const userMap = new Map<string, { displayName: string; avatarUrl: string | null }>();
+  const userMap = new Map<string, TipsterInfo>();
   let offset = 0;
   let hasMore = true;
   while (hasMore) {
@@ -55,6 +64,7 @@ async function fetchAllClerkUsers(): Promise<
           user.emailAddresses[0]?.emailAddress ||
           "Unknown User",
         avatarUrl: user.imageUrl ?? null,
+        joinedAt: user.createdAt,
       });
     }
     hasMore = users.length === BATCH_SIZE;
@@ -109,9 +119,40 @@ export const getTips = createServerFn({ method: "GET" })
     const userId = await ensureUserAuthenticated();
 
     const { getTipsByUser } = serviceRegistry.getService("tipsRepository");
+    const { getGames } = serviceRegistry.getService("squiggleService");
 
-    return await getTipsByUser(userId, gameIds);
+    const [storedTips, allGames, joinedAt] = await Promise.all([
+      getTipsByUser(userId, gameIds),
+      getGames(),
+      fetchTipsterJoinedAt(userId),
+    ]);
+
+    const autoTips = findAutoTips({
+      games: allGames.filter((g) => gameIds.includes(g.id)),
+      tips: storedTips.map((t) => ({ game_id: t.gameId, user_id: userId })),
+      joinedAtByTipster: new Map([[userId, joinedAt]]),
+      now: Date.now(),
+    }).map((a): AflUserTip => ({ gameId: a.gameId, tipTeamId: a.tipTeamId, isAutoTip: true }));
+
+    return [...storedTips, ...autoTips];
   });
+
+/** Stored tips plus the Auto-tips owed to Tipsters who missed a started Game. */
+function withAutoTips(
+  tips: AllTipsRow[],
+  games: AflGame.Type[],
+  userMap: Map<string, TipsterInfo>,
+): AllTipsRow[] {
+  const joinedAtByTipster = new Map([...userMap].map(([id, u]) => [id, u.joinedAt]));
+  const gamesById = new Map(games.map((g) => [g.id, g]));
+  const autoTipRows = findAutoTips({
+    games,
+    tips,
+    joinedAtByTipster,
+    now: Date.now(),
+  }).map((a) => toAutoTipRow(a, gamesById.get(a.gameId)!));
+  return [...tips, ...autoTipRows];
+}
 
 function buildCompletedGameWinners(games: AflGame.Type[]): Map<number, number | null> {
   const winners = new Map<number, number | null>();
@@ -169,7 +210,7 @@ function scoreTips(
 }
 
 function assembleLeaderboard(
-  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+  userMap: Map<string, TipsterInfo>,
   userStats: Map<string, { correct: number; marginDiff: number }>,
 ): AflLeaderboardEntry[] {
   const leaderboard: AflLeaderboardEntry[] = Array.from(userMap.entries()).map(
@@ -198,15 +239,16 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(async ()
   await ensureUserAuthenticated();
 
   const repo = serviceRegistry.getService("tipsRepository");
-  const allTips: AllTipsRow[] = await repo.getAllTips();
+  const storedTips: AllTipsRow[] = await repo.getAllTips();
 
   const { getGames } = serviceRegistry.getService("squiggleService");
   const games: AflGame.Type[] = await getGames();
+  const userMap = await fetchAllClerkUsers();
 
+  const allTips = withAutoTips(storedTips, games, userMap);
   const completedGameWinners = buildCompletedGameWinners(games);
   const firstGameMargins = buildFirstGameMargins(games);
   const userStats = scoreTips(allTips, completedGameWinners, firstGameMargins);
-  const userMap = await fetchAllClerkUsers();
 
   return assembleLeaderboard(userMap, userStats);
 });
@@ -217,7 +259,7 @@ const GetGroupTipsSchema = z.object({
 
 function buildTippedEntries(
   allTips: AllTipsRow[],
-  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+  userMap: Map<string, TipsterInfo>,
   startedGameIds: Set<number>,
   marginGameId: number | undefined,
 ): AflGroupTipEntry[] {
@@ -233,6 +275,7 @@ function buildTippedEntries(
       gameId: tip.game_id,
       hasTipped: true,
       tipTeamId: gameStarted ? tip.tip : null,
+      isAutoTip: tip.is_auto_tip === true,
       margin: isMarginGame && gameStarted ? (tip.margin ?? 0) : undefined,
       hasMargin: isMarginGame && !gameStarted ? tip.margin != null : undefined,
     };
@@ -242,7 +285,7 @@ function buildTippedEntries(
 function buildUntippedEntries(
   gameIds: number[],
   allTips: AllTipsRow[],
-  userMap: Map<string, { displayName: string; avatarUrl: string | null }>,
+  userMap: Map<string, TipsterInfo>,
 ): AflGroupTipEntry[] {
   const tippedUsersByGame = new Map<number, Set<string>>();
   for (const gameId of gameIds) {
@@ -285,8 +328,9 @@ export const getGroupTips = createServerFn({ method: "GET" })
     const marginGameId = AflGame.getFirstGameOfRound(games)?.id;
 
     const repo = serviceRegistry.getService("tipsRepository");
-    const allTips = await repo.getTipsByGameIds(gameIds);
+    const storedTips = await repo.getTipsByGameIds(gameIds);
     const userMap = await fetchAllClerkUsers();
+    const allTips = withAutoTips(storedTips, games, userMap);
 
     return [
       ...buildTippedEntries(allTips, userMap, startedGameIds, marginGameId),
@@ -299,13 +343,14 @@ export const getPlayerStats = createServerFn({ method: "GET" }).handler(
     await ensureUserAuthenticated();
 
     const repo = serviceRegistry.getService("tipsRepository");
-    const allTips: AllTipsRow[] = await repo.getAllTips();
+    const storedTips: AllTipsRow[] = await repo.getAllTips();
 
     const { getGames } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames();
-
-    const { byUser, makeEmptyStats } = computePlayerStats(allTips, games);
     const userMap = await fetchAllClerkUsers();
+
+    const allTips = withAutoTips(storedTips, games, userMap);
+    const { byUser, makeEmptyStats } = computePlayerStats(allTips, games);
 
     const entries = Array.from(userMap.entries()).map(([userId, userInfo]) => ({
       userId,

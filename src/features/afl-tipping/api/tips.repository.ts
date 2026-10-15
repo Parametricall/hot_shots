@@ -14,6 +14,7 @@ export interface AllTipsRow {
   tip: number;
   margin: number | null;
   is_underdog: boolean | null;
+  is_auto_tip?: boolean;
   created_at: string;
 }
 

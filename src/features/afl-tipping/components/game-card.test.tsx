@@ -154,3 +154,22 @@ describe("GameCard tip status notice", () => {
     expect(notice.closest("button")).toBeNull();
   });
 });
+
+describe("GameCard auto-tip notice", () => {
+  it("explains that the home team was given for a missed game", () => {
+    renderGameCard({
+      tip: { gameId: 100, tipTeamId: 1, isAutoTip: true },
+      gameOverrides: { unixTime: pastTime, date: new Date(pastTime) },
+    });
+
+    expect(
+      screen.getByText("You didn't tip this game, so you were given Lions (the home team)."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no notice for a normal tip", () => {
+    renderGameCard({ tip: { gameId: 100, tipTeamId: 1 } });
+
+    expect(screen.queryByText(/you were given/)).not.toBeInTheDocument();
+  });
+});

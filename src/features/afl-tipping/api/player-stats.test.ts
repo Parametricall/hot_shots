@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { computePlayerStats, type PlayerStatsTip } from "./player-stats";
+import { toAutoTipRow } from "./auto-tips";
 import { createAflGame } from "~/features/afl-tipping/mocks/factories";
 import type { AflGame } from "~/features/afl-tipping/types";
 
@@ -238,5 +239,54 @@ describe("computePlayerStats", () => {
     expect(empty.rounds).toHaveLength(2);
     expect(empty.rounds[0]).toMatchObject({ round: 1, meetsMinimum: false });
     expect(empty.rounds[1]).toMatchObject({ round: 2, isFinals: true, meetsMinimum: true });
+  });
+});
+
+describe("computePlayerStats with Auto-tips", () => {
+  function autoTip(game: AflGame, userId = "user-1") {
+    return toAutoTipRow({ gameId: game.id, userId, tipTeamId: game.homeTeamId! }, game);
+  }
+
+  it("counts an Auto-tip on the winning home team as a Correct tip", () => {
+    const game = completedGame({ id: 1, round: 1, homeTeamId: 1, awayTeamId: 2, winnerTeamId: 1 });
+    const { byUser } = computePlayerStats([autoTip(game)], [game]);
+    const stats = byUser.get("user-1")!;
+
+    expect(stats.season.correctTips).toBe(1);
+    expect(stats.season.gamesTipped).toBe(1);
+  });
+
+  it("never counts an Auto-tip as an Underdog tip", () => {
+    const game = completedGame({ id: 1, round: 1, homeTeamId: 1, awayTeamId: 2, winnerTeamId: 1 });
+    const { byUser } = computePlayerStats([autoTip(game)], [game]);
+
+    expect(byUser.get("user-1")!.season.totalUnderdogs).toBe(0);
+    expect(byUser.get("user-1")!.rounds[0]!.underdogCount).toBe(0);
+  });
+
+  it("adds the full actual margin to the Margin difference on the Margin game", () => {
+    const game = completedGame({
+      id: 1,
+      round: 1,
+      homeTeamId: 1,
+      awayTeamId: 2,
+      homeScore: 100,
+      awayScore: 80,
+      winnerTeamId: 1,
+    });
+    const { byUser } = computePlayerStats([autoTip(game)], [game]);
+
+    expect(byUser.get("user-1")!.season.totalMarginDiff).toBe(20);
+  });
+
+  it("breaks a Streak when wrong and extends it when right", () => {
+    const g1 = completedGame({ id: 1, round: 1, homeTeamId: 1, awayTeamId: 2, winnerTeamId: 1 });
+    const g2 = completedGame({ id: 2, round: 1, homeTeamId: 1, awayTeamId: 2, winnerTeamId: 2 });
+    const g3 = completedGame({ id: 3, round: 1, homeTeamId: 1, awayTeamId: 2, winnerTeamId: 1 });
+    const { byUser } = computePlayerStats([autoTip(g1), autoTip(g2), autoTip(g3)], [g1, g2, g3]);
+    const stats = byUser.get("user-1")!;
+
+    expect(stats.season.longestStreak).toBe(1);
+    expect(stats.season.currentStreak).toBe(1);
   });
 });

@@ -114,4 +114,42 @@ describe("GroupTipsList", () => {
     expect(screen.getByText("LIO")).toBeInTheDocument();
     expect(screen.getByText("SUN")).toBeInTheDocument();
   });
+
+  it("marks only the auto-tipped Tipster once the game has started", () => {
+    const pastTime = Date.now() - 1000 * 60 * 60;
+    const startedGames = [
+      createAflGame({
+        id: 100,
+        round: 1,
+        homeTeamId: 1,
+        awayTeamId: 2,
+        unixTime: pastTime,
+        date: new Date(pastTime),
+      }),
+    ];
+    const queryClient = createTestQueryClient();
+    populateData(queryClient, {
+      games: startedGames,
+      groupTips: [
+        createAflGroupTipEntry({
+          userId: "user-1",
+          displayName: "Alice",
+          gameId: 100,
+          tipTeamId: 1,
+          isAutoTip: true,
+        }),
+        createAflGroupTipEntry({
+          userId: "user-2",
+          displayName: "Bob",
+          gameId: 100,
+          tipTeamId: 1,
+        }),
+      ],
+    });
+    renderGroupTips(queryClient);
+
+    expect(screen.getAllByText("auto")).toHaveLength(1);
+    expect(screen.getByText("Alice").closest("[data-slot=badge]")).toHaveTextContent("auto");
+    expect(screen.getByText("Bob").closest("[data-slot=badge]")).not.toHaveTextContent("auto");
+  });
 });

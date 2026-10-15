@@ -46,6 +46,14 @@ function UserBadge({
           ({tip.margin}pts)
         </span>
       )}
+      {tip.isAutoTip && (
+        <span
+          className="font-normal text-xs text-muted-foreground"
+          title="Didn't tip: auto-tipped the home team"
+        >
+          auto
+        </span>
+      )}
       {tip.hasMargin === false && (
         <span className="text-red-500 font-normal text-xs" title="No margin set">
           ! no margin
