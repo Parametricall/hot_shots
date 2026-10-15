@@ -26,14 +26,20 @@ The hub itself (`src/features/hub/`) is also its own installable PWA
 Run from the repo root:
 
 ```bash
-npm run dev               # Start dev server (port 3000)
-npm run build             # Production build (vite build + tsc check)
-npm run lint              # oxlint
-npm run format            # Prettier format
+npm run dev               # Start dev server (port 3000) — vp dev
+npm run build             # Production build (tsc check + vp build)
+npm run check             # vp check (format check + lint in one pass)
+npm run lint              # vp lint (Oxlint)
+npm run format            # vp fmt (Oxfmt)
 npm run typecheck         # TypeScript check (tsc --noEmit)
-npm run test:ci            # Vitest (unit + component projects)
-npm run storybook   # Storybook dev server (port 6006)
+npm run test:ci           # vp test (Vitest unit + component projects)
+npm run storybook         # Storybook dev server (port 6006)
 ```
+
+The toolchain is [Vite+](https://viteplus.dev) (`vite-plus`, CLI `vp`). Lint (`lint`) and format
+(`fmt`) config live in `vite.config.ts` — there is no `.oxlintrc.json` or `.prettierrc`. Vitest
+projects still live in `vitest.config.ts`. `vite` is aliased to `@voidzero-dev/vite-plus-core` and
+pinned (with `vitest`) via `overrides` in `package.json`; bump them together with `vite-plus`.
 
 ## Architecture
 
@@ -155,7 +161,7 @@ Run `npm run format` before committing if you've created new files.
 
 ### Writing Tests
 
-- Use Vitest + React Testing Library
+- Use Vitest + React Testing Library; import test APIs from `vite-plus/test` (not `vitest`)
 - Mock `~/app/service-registry` with `vi.mock()` to control API responses
 - Mock `@clerk/tanstack-react-start` when components use auth hooks
 - Use `createTestQueryClient()` and `renderWithClient()` from `~/test/render`

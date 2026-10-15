@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 // jsdom does not implement matchMedia; provide a no-op stub
 Object.defineProperty(window, "matchMedia", {

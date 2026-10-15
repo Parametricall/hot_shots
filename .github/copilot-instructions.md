@@ -21,7 +21,7 @@ You are working on an AFL (Australian Football League) tipping application built
 - Use TypeScript for all new files
 - Prefer functional components with hooks
 - Use arrow functions for component definitions
-- Follow oxlint and Prettier configurations
+- Follow the Vite+ lint (Oxlint) and fmt (Oxfmt) configuration in `vite.config.ts`
 - Use meaningful variable and function names (e.g., `fetchRoundFixtures`, not `getData`)
 - **Always use the service registry abstraction for all API calls.**
 

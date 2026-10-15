@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vite-plus/test";
 import { screen, waitFor } from "@testing-library/react";
 import { Leaderboard } from "./leaderboard";
 import { createTestQueryClient, renderWithClient } from "~/test/render";

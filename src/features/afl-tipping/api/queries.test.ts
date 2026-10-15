@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { createAflGame } from "~/features/afl-tipping/mocks/factories";
 import type { AflGame } from "~/features/afl-tipping/types";
 

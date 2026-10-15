@@ -1,6 +1,6 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite-plus";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
-import { playwright } from "@vitest/browser-playwright";
+import { playwright } from "vite-plus/test/browser-playwright";
 import path from "node:path";
 
 const dirname = import.meta.dirname;
