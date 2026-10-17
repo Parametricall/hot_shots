@@ -7,12 +7,6 @@ import { DEMO_SEASON } from "./snapshot";
  * so a newer Season's snapshot ignores older saved state instead of mixing it in.
  */
 
-export const DEMO_VISITOR = {
-  userId: "demo-visitor",
-  displayName: "You",
-  avatarUrl: null,
-} as const;
-
 export type VisitorState = { position: number | undefined; tips: AllTipsRow[] };
 
 export type ReadVisitorResult =

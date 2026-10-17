@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { useUser } from "@clerk/tanstack-react-start";
 import { LayoutGrid } from "lucide-react";
 import * as React from "react";
 
@@ -8,6 +7,8 @@ const UserButton = React.lazy(() =>
 );
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { ComponentProps } from "react";
+import { useCurrentUser } from "~/features/auth/use-current-user";
+import { IS_DEMO } from "~/lib/demo";
 import { cn } from "~/lib/utils";
 
 const logo = "/dummy-footy-logo.png";
@@ -24,7 +25,7 @@ function getInitials(fullName: string | null | undefined): string {
 }
 
 export function Header(props: ComponentProps<"header">) {
-  const { user } = useUser();
+  const user = useCurrentUser();
   const { className, ...headerProps } = props;
   return (
     <header
@@ -55,29 +56,27 @@ export function Header(props: ComponentProps<"header">) {
               <>
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-xs text-muted-foreground">Signed in as</span>
-                  <span className="text-sm font-medium text-foreground">
-                    {user.fullName ?? user.primaryEmailAddress?.emailAddress}
-                  </span>
+                  <span className="text-sm font-medium text-foreground">{user.displayName}</span>
                 </div>
                 <div className="relative">
                   <Avatar size="lg" className="border-2 border-primary">
-                    <AvatarImage
-                      src={user.hasImage ? user.imageUrl : undefined}
-                      alt={user.fullName ?? "User"}
-                    />
-                    <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+                    <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
+                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 opacity-0">
-                    <React.Suspense fallback={null}>
-                      <UserButton
-                        appearance={{
-                          elements: {
-                            userButtonAvatarBox: "w-10! h-10!",
-                          },
-                        }}
-                      />
-                    </React.Suspense>
-                  </div>
+                  {/* The Demo has no account to manage. */}
+                  {!IS_DEMO && (
+                    <div className="absolute inset-0 opacity-0">
+                      <React.Suspense fallback={null}>
+                        <UserButton
+                          appearance={{
+                            elements: {
+                              userButtonAvatarBox: "w-10! h-10!",
+                            },
+                          }}
+                        />
+                      </React.Suspense>
+                    </div>
+                  )}
                 </div>
               </>
             )}

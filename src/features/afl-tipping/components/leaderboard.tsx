@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@clerk/tanstack-react-start";
+import { useCurrentUser } from "~/features/auth/use-current-user";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -111,7 +111,7 @@ export function Leaderboard() {
   } = useQuery({
     ...aflQueries.leaderboard(),
   });
-  const { user } = useUser();
+  const user = useCurrentUser();
   if (isLoading || (!leaderboard && isFetching)) return <LeaderboardSkeleton />;
 
   if (isError) {

@@ -14,7 +14,8 @@ import { now as siteNow } from "~/lib/clock";
 import { gamesAsOf, tipsAsOf } from "./season-as-of";
 import { requireSnapshot } from "./squiggle.service.demo";
 import { loadSnapshot, type LoadSnapshotResult } from "./snapshot";
-import { DEMO_VISITOR, visitorStore } from "./visitor-store";
+import { DEMO_VISITOR } from "./demo-visitor";
+import { visitorStore } from "./visitor-store";
 
 /**
  * The Competition as the Demo plays it (docs/adr/0004). The same rules as the

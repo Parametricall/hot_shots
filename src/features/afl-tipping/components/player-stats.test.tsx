@@ -9,8 +9,8 @@ import {
 } from "~/features/afl-tipping/mocks/factories";
 import type { AflPlayerStatsEntry } from "~/features/afl-tipping/types";
 
-vi.mock("@clerk/tanstack-react-start", () => ({
-  useUser: () => ({ user: { id: "user-1" } }),
+vi.mock("~/features/auth/use-current-user", () => ({
+  useCurrentUser: () => ({ id: "user-1", displayName: "Test User", imageUrl: null }),
 }));
 
 const mockGetPlayerStats = vi.fn().mockResolvedValue([]);

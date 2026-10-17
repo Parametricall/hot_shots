@@ -11,10 +11,6 @@ import { Suspense } from "react";
 
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
-vi.mock("@clerk/tanstack-react-start", () => ({
-  useUser: () => ({ user: { id: "user-1" } }),
-}));
-
 vi.mock("~/app/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({

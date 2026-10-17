@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@clerk/tanstack-react-start";
+import { useCurrentUser } from "~/features/auth/use-current-user";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -220,7 +220,7 @@ export function PlayerStatsSkeleton() {
 
 export function PlayerStats() {
   const { data: stats, isLoading, isError, refetch } = useQuery(aflQueries.playerStats());
-  const { user } = useUser();
+  const user = useCurrentUser();
 
   const { data: games } = useQuery(aflQueries.allGames());
   const activeRound = useMemo(() => (games ? AflGame.getActiveRound(games) : 0), [games]);

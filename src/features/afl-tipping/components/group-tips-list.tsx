@@ -16,7 +16,7 @@ import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-t
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useCallback, useEffect, useRef } from "react";
-import { useUser } from "@clerk/tanstack-react-start";
+import { useCurrentUser } from "~/features/auth/use-current-user";
 
 function UserBadge({
   tip,
@@ -238,7 +238,7 @@ function GameGroupTipCard({
   const hasStarted = useGameStartTimer(game.unixTime);
   const queryClient = useQueryClient();
   const prevHasStarted = useRef(hasStarted);
-  const { user } = useUser();
+  const user = useCurrentUser();
   const currentUserId = user?.id;
 
   useEffect(() => {

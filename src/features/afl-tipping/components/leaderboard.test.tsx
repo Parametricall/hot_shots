@@ -5,8 +5,8 @@ import { createTestQueryClient, renderWithClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
 
-vi.mock("@clerk/tanstack-react-start", () => ({
-  useUser: () => ({ user: { id: "user-1" } }),
+vi.mock("~/features/auth/use-current-user", () => ({
+  useCurrentUser: () => ({ id: "user-1", displayName: "Test User", imageUrl: null }),
 }));
 
 const mockGetLeaderboard = vi.fn().mockResolvedValue([]);
