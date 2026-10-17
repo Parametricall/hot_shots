@@ -36,7 +36,14 @@ export default defineConfig(({ mode }) => {
             },
           }),
         mode === "development" && devtools(),
-        !isStorybook && nitro(),
+        !isStorybook &&
+          nitro({
+            vercel: {
+              // /api/live-scores holds a stream open for a whole Game. When the cap cuts it, the
+              // browser reconnects and the live scores hook resyncs, by design.
+              functionRules: { "/api/live-scores": { maxDuration: 300 } },
+            },
+          }),
         viteReact(),
       ].filter(Boolean),
     ),
