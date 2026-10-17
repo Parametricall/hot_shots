@@ -14,7 +14,7 @@ fully before starting, honor its STOP conditions, and update your row in the tab
 | ---- | --------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | -------------------------------------------------------------------------------------------- |
 | 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                           |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day) |
-| 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | IN PROGRESS (code done; operator: create the Demo Vercel project, add the README link)       |
+| 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                |
 | 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | IN PROGRESS (local steps done; operator steps 3, 5, 6 remain)                                |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)

@@ -3,6 +3,9 @@
 A site of sports tipping Apps. AFL Tipping is the first: friends tip the winner of each Game in a
 Season, get ranked on the Leaderboard, and play against Squiggle's Model.
 
+**[Live demo](https://hot-shots-demo.vercel.app/)**: the whole site over a snapshot of a past
+Season, with no sign-up. Move the Demo clock forward to see your Tips scored.
+
 <!-- screenshots -->
 
 ## Stack
