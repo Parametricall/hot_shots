@@ -1,3 +1,4 @@
+import type { LiveGameUpdate } from "~/features/afl-tipping/api/squiggle/sse-schemas";
 import type { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import type {
   AflGame,
@@ -36,9 +37,21 @@ export type AflService = {
   getPlayerStats: () => Promise<AflPlayerStatsEntry[]>;
 };
 
+export type LiveScoresSubscription = {
+  onUpdate: (update: LiveGameUpdate) => void;
+  /** The stream reconnected after an error, so updates may have been missed. */
+  onResync: () => void;
+};
+
+/** Live Game updates from Squiggle's Event API. `subscribe` returns the unsubscribe function. */
+export type LiveScoresService = {
+  subscribe: (subscription: LiveScoresSubscription) => () => void;
+};
+
 export type ServiceTypes = {
   squiggleService: SquiggleService;
   aflService: AflService;
+  liveScoresService: LiveScoresService;
   tipsRepository: typeof tipsRepository;
 };
 

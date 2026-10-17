@@ -8,6 +8,7 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import serviceRegistry from "~/app/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
+import { service as liveScoresService } from "~/features/afl-tipping/api/live-scores.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 
@@ -17,6 +18,7 @@ import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 if (import.meta.env.VITE_DEMO !== "true") {
   serviceRegistry.registerService("squiggleService", squiggleService);
   serviceRegistry.registerService("aflService", aflService);
+  serviceRegistry.registerService("liveScoresService", liveScoresService);
   serviceRegistry.registerService("tipsRepository", tipsRepository);
 }
 

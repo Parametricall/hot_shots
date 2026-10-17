@@ -1,6 +1,7 @@
 import serviceRegistry from "~/app/service-registry";
 import { setDemoNow } from "~/lib/clock";
 import { aflServiceDemo } from "./afl.service.demo";
+import { liveScoresServiceDemo } from "./live-scores.service.demo";
 import { buildPositions, positionIndexAt, startingPosition } from "./demo-positions";
 import { loadSnapshot } from "./snapshot";
 import { squiggleServiceDemo } from "./squiggle.service.demo";
@@ -18,6 +19,7 @@ import { visitorStore } from "./visitor-store";
 export async function startDemo(): Promise<void> {
   serviceRegistry.registerService("squiggleService", squiggleServiceDemo);
   serviceRegistry.registerService("aflService", aflServiceDemo);
+  serviceRegistry.registerService("liveScoresService", liveScoresServiceDemo);
 
   if (typeof window === "undefined") return;
 
