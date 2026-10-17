@@ -17,6 +17,7 @@
     "dev": "vp dev",
     "inspect-dev": "cross-env NODE_OPTIONS=--inspect vp dev",
     "build": "tsc --noEmit && vp build",
+    "dev:demo": "cross-env VITE_DEMO=true vp dev",
     "start": "node .output/server/index.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

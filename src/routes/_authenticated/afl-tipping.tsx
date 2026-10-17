@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
@@ -6,6 +7,18 @@ import {
   MobileTippingFrame,
 } from "~/features/afl-tipping/components/tipping-frames";
 import { useIsMobile } from "~/lib/use-is-mobile";
+
+// The Demo's Time control. The condition is written out, not IS_DEMO: a constant imported from
+// another module is not folded until after chunking, so the Demo-only import would still ship
+// in production.
+const DemoTimeControl =
+  import.meta.env.VITE_DEMO === "true"
+    ? lazy(() =>
+        import("~/features/afl-tipping/demo/components/demo-time-control").then((m) => ({
+          default: m.DemoTimeControl,
+        })),
+      )
+    : undefined;
 
 const TABS = [
   { id: "tips", label: "My Tips" },
@@ -44,27 +57,37 @@ function AflTippingLayout() {
     </TabsList>
   );
 
+  // The Time control is fixed to the bottom of the screen, so the page leaves room for it.
+  const frameClassName = DemoTimeControl ? "pb-28 md:pb-20" : undefined;
+  const timeControl = DemoTimeControl && (
+    <Suspense fallback={null}>
+      <DemoTimeControl />
+    </Suspense>
+  );
+
   if (isMobile) {
     return (
-      <MobileTippingFrame>
+      <MobileTippingFrame className={frameClassName}>
         <Tabs value={activeTab} className="gap-0 flex-1 flex flex-col min-h-0">
           {tabsList}
           <div className="flex-1 flex flex-col min-h-0">
             <Outlet />
           </div>
         </Tabs>
+        {timeControl}
       </MobileTippingFrame>
     );
   }
 
   return (
-    <DesktopTippingFrame>
+    <DesktopTippingFrame className={frameClassName}>
       <Tabs value={activeTab} className="gap-2">
         {tabsList}
         <div className="pt-2">
           <Outlet />
         </div>
       </Tabs>
+      {timeControl}
     </DesktopTippingFrame>
   );
 }

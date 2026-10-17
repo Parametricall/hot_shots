@@ -11,9 +11,14 @@ import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.
 import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 
-serviceRegistry.registerService("squiggleService", squiggleService);
-serviceRegistry.registerService("aflService", aflService);
-serviceRegistry.registerService("tipsRepository", tipsRepository);
+// The Demo registers its own services in getRouter. The condition is written out, not IS_DEMO:
+// a constant imported from another module is not folded until after chunking, so Demo-only
+// imports behind it would still ship in production.
+if (import.meta.env.VITE_DEMO !== "true") {
+  serviceRegistry.registerService("squiggleService", squiggleService);
+  serviceRegistry.registerService("aflService", aflService);
+  serviceRegistry.registerService("tipsRepository", tipsRepository);
+}
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
@@ -35,7 +40,11 @@ export async function getRouter() {
     },
   });
 
-  if (typeof window !== "undefined") {
+  if (import.meta.env.VITE_DEMO === "true") {
+    // The Demo registers its own services and keeps no query cache in the browser (docs/adr/0004).
+    const { startDemo } = await import("~/features/afl-tipping/demo/start-demo");
+    await startDemo();
+  } else if (typeof window !== "undefined") {
     const persister = createAsyncStoragePersister({
       storage: window.localStorage,
       deserialize: (data) =>
