@@ -9,7 +9,8 @@ see Auto-tips land on Games they skipped, and watch the Leaderboard change.
 
 The seam is the service registry (`src/app/service-registry.ts`). The Demo registers
 `squiggleServiceDemo` and `aflServiceDemo` in place of the real services, so queries and
-components don't change. Both read a snapshot of the Season (Squiggle's raw responses and the
+components don't change. Where the Demo has nothing to show, it registers a no-op: live scores
+(`docs/adr/0005`) have none, because its Games finish when the Demo clock passes them. Both read a snapshot of the Season (Squiggle's raw responses and the
 made-up Tipsters' Tips, `src/features/afl-tipping/demo/season-2026.json`, written by
 `scripts/snapshot-demo-season.ts`) that is loaded on demand and never reaches a production bundle.
 Every rule the server functions apply (Lockout, Auto-tips, the Leaderboard, Group Tips, player
