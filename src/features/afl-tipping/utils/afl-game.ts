@@ -1,3 +1,7 @@
+import {
+  LIVE_POST_START_WINDOW_MS,
+  LIVE_PRE_GAME_WINDOW_MS,
+} from "~/features/afl-tipping/constants";
 import { now } from "~/lib/clock";
 import type { AflGame } from "../types";
 
@@ -6,6 +10,18 @@ export type { AflGame as Type } from "../types";
 export const hasStarted = (game: AflGame, at: number = now()) => at >= game.unixTime;
 
 export const isComplete = (game: AflGame): boolean => game.complete === 100;
+
+export const isLive = (game: AflGame, at: number = now()) =>
+  hasStarted(game, at) && !isComplete(game);
+
+/**
+ * Whether live scores could arrive for the Game: it is incomplete and starts within the pre-game
+ * window, or started less than the post-start window ago.
+ */
+export const isLiveOrImminent = (game: AflGame, at: number = now()) =>
+  !isComplete(game) &&
+  game.unixTime - at <= LIVE_PRE_GAME_WINDOW_MS &&
+  at - game.unixTime <= LIVE_POST_START_WINDOW_MS;
 
 export function byId(id: AflGame["id"] | undefined) {
   return (game: AflGame) => game.id === id;

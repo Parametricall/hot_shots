@@ -6,6 +6,13 @@ export const REGULAR_SEASON_ROUNDS = 25;
 // Polling intervals
 export const GAME_STATUS_CHECK_INTERVAL_MS = 60000; // 1 minute
 
+// Live scores: hold the Squiggle stream open from this long before the first bounce (enough to
+// catch it, without holding idle connections) until this long after it. The cap after the start
+// stops a Game that never reaches complete 100 (abandoned, or missing from Squiggle) from
+// holding a connection open for every visitor for ever.
+export const LIVE_PRE_GAME_WINDOW_MS = 1000 * 60 * 30;
+export const LIVE_POST_START_WINDOW_MS = 1000 * 60 * 60 * 6;
+
 // Cache durations (in milliseconds)
 export const CACHE_DURATIONS = {
   STANDINGS: 1000 * 60 * 60, // 1 hour

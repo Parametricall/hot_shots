@@ -75,3 +75,45 @@ describe("AflGame.groupByRound", () => {
     expect(grouped[2]).toHaveLength(1);
   });
 });
+
+describe("AflGame.isLive", () => {
+  it("is true for a started Game that is not complete", () => {
+    expect(AflGame.isLive(createAflGame({ unixTime: Date.now() - 1000, complete: 40 }))).toBe(true);
+  });
+
+  it("is false before the start and after completion", () => {
+    expect(AflGame.isLive(createAflGame({ unixTime: Date.now() + 100000 }))).toBe(false);
+    expect(AflGame.isLive(createAflGame({ unixTime: Date.now() - 1000, complete: 100 }))).toBe(
+      false,
+    );
+  });
+});
+
+describe("AflGame.isLiveOrImminent", () => {
+  const MINUTE = 60 * 1000;
+  const HOUR = 60 * MINUTE;
+  const at = Date.now();
+  const game = (offsetMs: number, complete = 0) =>
+    createAflGame({ unixTime: at + offsetMs, date: new Date(at + offsetMs), complete });
+
+  it("is true from 30 minutes before the start", () => {
+    expect(AflGame.isLiveOrImminent(game(29 * MINUTE), at)).toBe(true);
+    expect(AflGame.isLiveOrImminent(game(31 * MINUTE), at)).toBe(false);
+  });
+
+  it("is true while the Game is under way", () => {
+    expect(AflGame.isLiveOrImminent(game(-2 * HOUR, 60), at)).toBe(true);
+  });
+
+  it("is false once the Game is complete", () => {
+    expect(AflGame.isLiveOrImminent(game(-3 * HOUR, 100), at)).toBe(false);
+  });
+
+  it("is false for a Game that started more than 6 hours ago and never completed", () => {
+    expect(AflGame.isLiveOrImminent(game(-7 * HOUR, 50), at)).toBe(false);
+  });
+
+  it("reads the site clock by default, so the Demo clock applies", () => {
+    expect(AflGame.isLiveOrImminent(game(10 * MINUTE))).toBe(true);
+  });
+});
