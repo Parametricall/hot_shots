@@ -15,6 +15,15 @@ _Avoid_: home, landing page, portal
 One installable tipping game on the site, such as AFL Tipping.
 _Avoid_: site, module, product
 
+**Demo**:
+The public copy of the site, where a visitor plays through a past Season in their own browser
+against made-up Tipsters.
+_Avoid_: sandbox, staging, preview (Vercel's preview deployments are something else)
+
+**Demo clock**:
+The moment in that Season the Demo is showing. The Time control moves it.
+_Avoid_: simulated date, time machine
+
 ### People and the competition
 
 **Tipster**:

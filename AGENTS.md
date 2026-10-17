@@ -24,6 +24,11 @@ PWA-installable hub (see `docs/adr/0003-every-app-on-one-origin.md` for why). Ea
 The hub itself (`src/features/hub/`) is also its own installable PWA
 (`public/hub.webmanifest`) and lists every app via `features/hub/apps.ts`.
 
+`VITE_DEMO=true` builds the Demo (`npm run dev:demo`): the same site run in the browser over a
+snapshot, with no Clerk or Supabase. New data must reach components through the service registry,
+or the Demo won't have it. Gate a Demo-only import with the condition written out, not `IS_DEMO`
+(`docs/adr/0004` says why).
+
 ## Commands
 
 Run from the repo root:
