@@ -49,7 +49,7 @@ function renderLiveScores(queryClient: QueryClient, games: AflGame[]) {
   );
   return renderHook(
     () => {
-      const { data } = useQuery({
+      const { data } = useQuery<AflGame[]>({
         queryKey: aflQueries.allGamesKey(),
         queryFn: skipToken, // the Games are already in the cache
         staleTime: Infinity,
