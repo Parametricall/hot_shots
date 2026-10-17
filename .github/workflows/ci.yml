@@ -17,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.head_ref || github.ref_name }}
 
       - uses: actions/setup-node@v4
@@ -26,11 +27,17 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run format
+      # A fork PR's token is read-only, so only same-repo branches get the auto-commit.
+      - if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: npm run format
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style: auto-format with vp fmt"
+
+      - if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: npm run format:check
 
   checks:
     name: Lint, typecheck, test
@@ -39,6 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.head_ref || github.ref_name }}
 
       - uses: actions/setup-node@v4

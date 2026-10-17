@@ -16,7 +16,7 @@ fully before starting, honor its STOP conditions, and update your row in the tab
 | 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | TODO                                                                              |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | TODO                                                                              |
 | 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | TODO                                                                              |
-| 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | TODO                                                                              |
+| 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | IN PROGRESS (local steps done; operator steps 3, 5, 6 remain)                     |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
@@ -54,7 +54,6 @@ Recorded so they aren't re-audited from scratch:
   serverless that isn't shared across instances. Depends on 010 Step 1.
 - **#5 Verbose logging** (security hygiene, S): `tips.repository.ts` and other `console.*` sites
   log user IDs and tip contents on every write. The Supabase config fields are gone (2026-10-15).
-- **#6 Stale `README.md`** (docs/DX, S): now plan 011, Step 2.
 - **Every `VITE_*` variable is inlined into the client bundle** (security, found 2026-10-15):
   Clerk's `getEnvVariable` reads `import.meta.env[name]` dynamically, so Vite inlines the whole
   set, not just the ones the app reads. No secret may be a `VITE_*` variable; `.env.example` says

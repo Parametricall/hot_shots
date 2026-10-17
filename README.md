@@ -1,72 +1,49 @@
-# Welcome to TanStack.com!
+# Hot Shots
 
-This site is built with TanStack Router!
+A site of sports tipping Apps. AFL Tipping is the first: friends tip the winner of each Game in a
+Season, get ranked on the Leaderboard, and play against Squiggle's Model.
 
-- [TanStack Router Docs](https://tanstack.com/router)
+<!-- screenshots -->
 
-It's deployed automagically with Netlify!
+## Stack
 
-- [Netlify](https://netlify.com/)
+React 19, TanStack Start / Router / Query, Clerk, Supabase, Tailwind CSS v4 with shadcn/ui, Zod,
+Vite+ (Oxlint, Oxfmt, Vitest), Storybook with Chromatic, deployed on Vercel.
 
-## Development
+## How it's built
 
-From your terminal:
+- Every third-party call goes through the service registry
+  ([`src/app/service-registry.ts`](src/app/service-registry.ts)), so each one can be mocked.
+- The database is reachable only from server functions, and row-level security denies the
+  publishable key every row ([ADR 0002](docs/adr/0002-supabase-is-server-only.md)).
+- Every App lives on one origin and installs as its own PWA
+  ([ADR 0003](docs/adr/0003-every-app-on-one-origin.md)).
+- A missed Tip becomes a Home team Auto-tip
+  ([ADR 0001](docs/adr/0001-missed-tips-become-home-team-auto-tips.md)).
 
-```sh
-pnpm install
-pnpm dev
-```
+All decisions are recorded in [`docs/adr/`](docs/adr/), and the project's vocabulary is in
+[`GLOSSARY.md`](GLOSSARY.md). Repo conventions are in [`AGENTS.md`](AGENTS.md).
 
-This starts your app in development mode, rebuilding assets on file changes.
+## Running it locally
 
-## Editing and previewing the docs of TanStack projects locally
-
-The documentations for all TanStack projects except for `React Charts` are hosted on [https://tanstack.com](https://tanstack.com), powered by this TanStack Router app.
-In production, the markdown doc pages are fetched from the GitHub repos of the projects, but in development they are read from the local file system.
-
-Follow these steps if you want to edit the doc pages of a project (in these steps we'll assume it's [`TanStack/form`](https://github.com/tanstack/form)) and preview them locally :
-
-1. Create a new directory called `tanstack`.
-
-```sh
-mkdir tanstack
-```
-
-2. Enter the directory and clone this repo and the repo of the project there.
+You need Node 24 and two accounts: a [Clerk](https://clerk.com) application and a
+[Supabase](https://supabase.com) project (or run Supabase locally with `npx supabase start`).
 
 ```sh
-cd tanstack
-git clone git@github.com:TanStack/tanstack.com.git
-git clone git@github.com:TanStack/form.git
+npm ci
+cp .env.example .env   # then fill it in; the file explains each variable
+npm run dev            # http://localhost:3000
 ```
 
-> [!NOTE]
-> Your `tanstack` directory should look like this:
->
-> ```
-> tanstack/
->    |
->    +-- form/
->    |
->    +-- tanstack.com/
-> ```
+## Scripts
 
-> [!WARNING]
-> Make sure the name of the directory in your local file system matches the name of the project's repo. For example, `tanstack/form` must be cloned into `form` (this is the default) instead of `some-other-name`, because that way, the doc pages won't be found.
-
-3. Enter the `tanstack/tanstack.com` directory, install the dependencies and run the app in dev mode:
-
-```sh
-cd tanstack.com
-pnpm i
-# The app will run on https://localhost:3000 by default
-pnpm dev
-```
-
-4. Now you can visit http://localhost:3000/form/latest/docs/overview in the browser and see the changes you make in `tanstack/form/docs`.
-
-> [!NOTE]
-> The updated pages need to be manually reloaded in the browser.
-
-> [!WARNING]
-> You will need to update the `docs/config.json` file (in the project's repo) if you add a new doc page!
+| Command             | What it does                               |
+| ------------------- | ------------------------------------------ |
+| `npm run dev`       | Start the dev server (port 3000)           |
+| `npm run build`     | Production build (type check + `vp build`) |
+| `npm run check`     | Format check and lint in one pass          |
+| `npm run lint`      | Lint (Oxlint)                              |
+| `npm run format`    | Format (Oxfmt)                             |
+| `npm run typecheck` | TypeScript check (`tsc --noEmit`)          |
+| `npm run test:ci`   | Unit and component tests (Vitest)          |
+| `npm run storybook` | Storybook dev server (port 6006)           |
