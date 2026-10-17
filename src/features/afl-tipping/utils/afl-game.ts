@@ -1,8 +1,9 @@
+import { now } from "~/lib/clock";
 import type { AflGame } from "../types";
 
 export type { AflGame as Type } from "../types";
 
-export const hasStarted = (game: AflGame) => Date.now() >= game.unixTime;
+export const hasStarted = (game: AflGame, at: number = now()) => at >= game.unixTime;
 
 export const isComplete = (game: AflGame): boolean => game.complete === 100;
 

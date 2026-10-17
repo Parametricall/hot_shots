@@ -10,13 +10,12 @@ fully before starting, honor its STOP conditions, and update your row in the tab
 
 ## Status
 
-| Plan | Title                                                                 | Priority | Effort | Risk | Depends on | Status                                                                            |
-| ---- | --------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | --------------------------------------------------------------------------------- |
-| 002  | Extract & unit-test leaderboard-scoring and underdog-compliance       | P2       | M      | LOW  | —          | REJECTED (stale: compliance moved to `player-stats.ts`; 010 Step 1 does the rest) |
-| 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                |
-| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | TODO                                                                              |
-| 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | TODO                                                                              |
-| 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | IN PROGRESS (local steps done; operator steps 3, 5, 6 remain)                     |
+| Plan | Title                                                                 | Priority | Effort | Risk | Depends on | Status                                                             |
+| ---- | --------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | ------------------------------------------------------------------ |
+| 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560) |
+| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | TODO                                                               |
+| 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | TODO                                                               |
+| 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | IN PROGRESS (local steps done; operator steps 3, 5, 6 remain)      |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 

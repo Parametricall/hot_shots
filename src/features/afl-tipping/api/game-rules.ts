@@ -2,13 +2,14 @@
 
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 
-export interface CanSubmitTipParams {
+export type CanSubmitTipParams = {
   game: AflGame.Type;
-}
+  now?: number; // epoch ms; defaults to the site clock
+};
 
 export const GameRules = {
-  canSubmitTip({ game }: CanSubmitTipParams): boolean {
-    return !AflGame.hasStarted(game);
+  canSubmitTip({ game, now }: CanSubmitTipParams): boolean {
+    return !AflGame.hasStarted(game, now);
   },
 
   /**
