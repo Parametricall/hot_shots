@@ -4,14 +4,17 @@ import {
   squiggleTeamsDtoToDomain,
   squiggleModelTipListDtoToDomain,
 } from "~/features/afl-tipping/api/squiggle/schemas";
-import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
+import {
+  SQUIGGLE_API_HOST,
+  SQUIGGLE_USER_AGENT,
+} from "~/features/afl-tipping/api/squiggle/constants";
 
 async function squiggleFetch(searchParams: URLSearchParams) {
   const url = new URL(`${SQUIGGLE_API_HOST}/?${searchParams.toString().replace(/&/g, ";")}`);
   try {
     const res = await fetch(url, {
       headers: new Headers({
-        "User-Agent": "Alex's Tipping App - parametricall@users.noreply.github.com",
+        "User-Agent": SQUIGGLE_USER_AGENT,
       }),
     });
     if (!res.ok) {
