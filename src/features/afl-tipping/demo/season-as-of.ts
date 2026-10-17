@@ -1,3 +1,4 @@
+import type { AllTipsRow } from "~/features/afl-tipping/api/tips.repository";
 import type { AflGame, AflStanding } from "~/features/afl-tipping/types";
 import type { LoadedSnapshot } from "./snapshot";
 
@@ -68,4 +69,18 @@ export function standingsAsOf(
       pointsAgainst: 0,
       percentage: 0,
     }));
+}
+
+/**
+ * The made-up Tipsters' Tips that exist at `at`: those on Games up to the
+ * current Round (the earliest Round with a Game still to start). The snapshot
+ * has Tips for the whole Season, but a real Competition never has Tips for
+ * Rounds that have not opened yet, and extra Rounds would show up in the stats.
+ */
+export function tipsAsOf(tips: AllTipsRow[], games: AflGame[], at: number): AllTipsRow[] {
+  const upcoming = games.filter((g) => g.unixTime > at);
+  if (upcoming.length === 0) return tips;
+  const currentRound = Math.min(...upcoming.map((g) => g.round));
+  const roundOfGame = new Map(games.map((g) => [g.id, g.round]));
+  return tips.filter((tip) => (roundOfGame.get(tip.game_id) ?? Infinity) <= currentRound);
 }

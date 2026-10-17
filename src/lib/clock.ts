@@ -24,6 +24,13 @@ export function setDemoNow(at: number): void {
   for (const listener of listeners) listener();
 }
 
+/** Back to the real clock. Tests use it; nothing in the app needs to. */
+export function clearDemoNow(): void {
+  if (demoNow === undefined) return;
+  demoNow = undefined;
+  for (const listener of listeners) listener();
+}
+
 /** For `useSyncExternalStore`. */
 export function subscribeDemoNow(listener: () => void): () => void {
   listeners.add(listener);

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vite-plus/test";
 import { createAflGame, createAflStanding } from "~/features/afl-tipping/mocks/factories";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
-import { gameAsOf, gamesAsOf, standingsAsOf } from "./season-as-of";
+import type { AllTipsRow } from "~/features/afl-tipping/api/tips.repository";
+import { gameAsOf, gamesAsOf, standingsAsOf, tipsAsOf } from "./season-as-of";
 
 const T0 = new Date("2026-06-04T09:00:00Z").getTime();
 const HOUR = 60 * 60 * 1000;
@@ -78,5 +79,27 @@ describe("standingsAsOf", () => {
     expect(standingsAsOf(snapshot, games, T0 + 5 * HOUR)).toBe(round1);
     expect(standingsAsOf(snapshot, games, T0 + 19 * HOUR)).toBe(round1);
     expect(standingsAsOf(snapshot, games, T0 + 20 * HOUR)).toBe(round2);
+  });
+});
+
+describe("tipsAsOf", () => {
+  const games = [finished(1, 1, 0), finished(2, 2, 20), finished(3, 3, 40)];
+  const row = (gameId: number): AllTipsRow => ({
+    game_id: gameId,
+    user_id: "u",
+    tip: 1,
+    margin: null,
+    is_underdog: false,
+    created_at: "2026-06-01T00:00:00.000Z",
+  });
+  const tips = [row(1), row(2), row(3)];
+
+  it("keeps Tips up to the current Round and drops later Rounds", () => {
+    expect(tipsAsOf(tips, games, T0 - HOUR).map((t) => t.game_id)).toEqual([1]);
+    expect(tipsAsOf(tips, games, T0 + 10 * HOUR).map((t) => t.game_id)).toEqual([1, 2]);
+  });
+
+  it("keeps everything once every Game has started", () => {
+    expect(tipsAsOf(tips, games, T0 + 100 * HOUR)).toBe(tips);
   });
 });

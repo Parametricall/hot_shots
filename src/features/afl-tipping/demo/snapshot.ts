@@ -8,6 +8,9 @@ import {
 import type { AllTipsRow } from "~/features/afl-tipping/api/tips.repository";
 import type { AflGame, AflModelTip, AflStanding, AflTeam } from "~/features/afl-tipping/types";
 
+/** The Season the Demo plays. `loadSnapshot` imports this Season's file. */
+export const DEMO_SEASON = 2026;
+
 /**
  * The Demo's committed copy of a past Season (docs/adr/0004), written by
  * `scripts/snapshot-demo-season.ts`. The Squiggle parts are Squiggle's raw
