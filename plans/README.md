@@ -5,8 +5,9 @@ Open plans only. A plan is deleted once it's done and verified; what it decided 
 
 Plans 002–003 came from an improve-skill audit on 2026-07-03, against commit `612bab8`; their
 numbers match the audit's finding numbers. 004 was added by the operator on 2026-07-04, and 010
-and 011 on 2026-10-17 (010 after a design review with the operator). Each executor: read the plan
-fully before starting, honor its STOP conditions, and update your row in the table when done.
+and 011 on 2026-10-17 (010 after a design review with the operator); 011 (make the repo public)
+was done on 2026-10-18. Each executor: read the plan fully before starting, honor its STOP
+conditions, and update your row in the table when done.
 
 ## Status
 
@@ -15,15 +16,13 @@ fully before starting, honor its STOP conditions, and update your row in the tab
 | 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                           |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day) |
 | 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                |
-| 011  | Make the repo public                                                  | P1       | S      | LOW  | —          | IN PROGRESS (local steps done; operator steps 3, 5, 6 remain)                                |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
 ## Order and dependencies
 
-Suggested: **011** first (small, and the repo can go public before the Demo exists), then
-**003** (mechanical, confirms the toolchain still builds), then **010**, then **004**. Schedule
-004's final verification for a game day (Thu–Sun in-season) so its live end-to-end step can run.
+Suggested: **003** (mechanical, confirms the toolchain still builds), then **010**, then **004**.
+Schedule 004's final verification for a game day (Thu–Sun in-season) so its live end-to-end step can run.
 
 Run each plan's drift check first:
 
@@ -34,7 +33,6 @@ Run each plan's drift check first:
   rules, not the handlers, so the Demo gets it too.
 - **010 before any leaderboard perf work** (finding #4 below): its Step 1 pins the scoring
   behaviour with tests before anything changes how those functions are called.
-- **010 then 011's README link**: 011 leaves the Live demo link out; 010's last step adds it.
 - **004 mentions plan 005**, which has landed: the server-side `withCache` and `api/cache.ts` are
   gone. Nothing in 004 depends on them. 004 must also reach the browser through the service
   registry (`docs/adr/0004`, written by 010), or the Demo won't get live scores; the Demo has none
