@@ -16,7 +16,7 @@ import type { AllTipsRow } from "./tips.repository";
  * Leaderboard, Group Tips and player stats. Every input is explicit, including
  * `now`, so the same code runs in the server functions (`tips.ts`) and in the
  * Demo's `aflServiceDemo` (docs/adr/0004), and a unit test can pin it. Nothing
- * here may import Clerk, Supabase or the service registry.
+ * here may import the session, Supabase or the service registry.
  */
 
 export type Tipster = { displayName: string; avatarUrl: string | null; joinedAt: number };

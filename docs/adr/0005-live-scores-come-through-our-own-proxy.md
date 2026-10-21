@@ -2,7 +2,7 @@
 
 Game cards show live scores, the game clock and completion from Squiggle's Event API (SSE,
 `sse.squiggle.com.au/events`). The browser opens one `EventSource` on `/api/live-scores`, a server
-route that checks the Clerk session and relays Squiggle's stream. Only the `events` and `test`
+route that checks the session and relays Squiggle's stream. Only the `events` and `test`
 channels can be asked for, and the route adds a heartbeat so idle connections aren't cut between
 scoring events. A hook mounted once in the tipping page shell writes each update straight into the
 cached lists of Games, and unsubscribes by itself when the last Game completes. It reaches the
@@ -15,7 +15,7 @@ a no-op in its place: its Games finish when the Demo clock passes them.
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Browser `EventSource` straight to Squiggle | Squiggle allowlists origins. `localhost:3000` works, arbitrary production origins get a 403. Would work in dev and silently never in production      |
 | Poll the REST API on an interval           | Squiggle asks for no one-shot fetches against live data, scores would lag by the interval, and every open tab would poll whether or not a Game is on |
-| Relay through our own route (chosen)       | Server-to-server requests have no Origin header and aren't blocked; the Clerk check stops it being an open proxy                                     |
+| Relay through our own route (chosen)       | Server-to-server requests have no Origin header and aren't blocked; the session check stops it being an open proxy                                   |
 
 ## Consequences
 

@@ -57,7 +57,12 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
 export type SignInResult = { ok: true } | { ok: false; reason: string; detail?: string };
 
 const EmailSchema = z.object({ email: z.string().trim().toLowerCase().pipe(z.email()) });
-const VerifySchema = EmailSchema.extend({ code: z.string().trim().regex(/^\d{6,8}$/) });
+const VerifySchema = EmailSchema.extend({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6,8}$/),
+});
 
 function otpReason(error: { status?: number; message: string; code?: string }): string {
   if (error.message.includes("not-invited")) return "not-invited";
