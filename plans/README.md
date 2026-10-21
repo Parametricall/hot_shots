@@ -6,7 +6,8 @@ Open plans only. A plan is deleted once it's done and verified; what it decided 
 Plans 002–003 came from an improve-skill audit on 2026-07-03, against commit `612bab8`; their
 numbers match the audit's finding numbers. 004 was added by the operator on 2026-07-04, and 010
 and 011 on 2026-10-17 (010 after a design review with the operator); 011 (make the repo public)
-was done on 2026-10-18. Each executor: read the plan fully before starting, honor its STOP
+was done on 2026-10-18. 013 was added on 2026-10-21 after a conversation with the operator
+(`docs/adr/0006`). Each executor: read the plan fully before starting, honor its STOP
 conditions, and update your row in the table when done.
 
 ## Status
@@ -16,6 +17,7 @@ conditions, and update your row in the table when done.
 | 003  | Remediate `npm audit` dependency vulnerabilities                      | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                           |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`) | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day) |
 | 010  | A public, browser-only Demo with a Demo clock                         | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                |
+| 013  | Replace Clerk with Supabase Auth                                      | P1       | L      | HIGH | —          | TODO (cutover before Opening Round 2027)                                                     |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
@@ -37,6 +39,8 @@ Run each plan's drift check first:
   gone. Nothing in 004 depends on them. 004 must also reach the browser through the service
   registry (`docs/adr/0004`, written by 010), or the Demo won't get live scores; the Demo has none
   anyway, so a no-op Demo service is fine.
+- **013 has a deadline**: its cutover must happen in the off-season, before Opening Round 2027.
+  If plan 012 rewrites history first, re-run 013's drift check against the new `main`.
 - **Database access is server-only** (`docs/adr/0002`). If 004 or anything later needs the
   browser to reach Supabase directly, it adds explicit RLS policies for exactly that table and
   operation.
