@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 // DRAFT: the operator reviews this text before the cutover (plans/013, Step 1). Meta and Google
 // require a public privacy policy URL, and Meta requires data deletion instructions.
-const CONTACT_EMAIL = "alexanderhollis96@gmail.com";
+const CONTACT_EMAIL = "hot-shots-support@googlegroups.com";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({ meta: [{ title: "Privacy | Hot Shots" }] }),
