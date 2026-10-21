@@ -1,4 +1,5 @@
-import { useUser } from "@clerk/tanstack-react-start";
+import { useQuery } from "@tanstack/react-query";
+import { currentUserQueryOptions } from "~/features/auth/queries";
 import { IS_DEMO } from "~/lib/demo";
 
 export type CurrentUser = { id: string; displayName: string; imageUrl: string | null };
@@ -8,15 +9,10 @@ export type CurrentUser = { id: string; displayName: string; imageUrl: string | 
 // imported, even if only Demo code uses it.
 const DEMO_USER: CurrentUser = { id: "demo-visitor", displayName: "You", imageUrl: null };
 
-/** The signed-in Tipster, or `undefined` while signed out. */
-function useClerkCurrentUser(): CurrentUser | undefined {
-  const { user } = useUser();
-  if (!user) return undefined;
-  return {
-    id: user.id,
-    displayName: user.fullName ?? user.primaryEmailAddress?.emailAddress ?? "Unknown User",
-    imageUrl: user.hasImage ? user.imageUrl : null,
-  };
+/** The signed-in Profile, or `undefined` while loading or signed out. */
+function useProfileCurrentUser(): CurrentUser | undefined {
+  const { data } = useQuery(currentUserQueryOptions);
+  return data ?? undefined;
 }
 
 /** In the Demo there is no sign-in: the visitor is always "You" (docs/adr/0004). */
@@ -28,4 +24,4 @@ function useDemoVisitor(): CurrentUser {
  * Who is using the site. Chosen when the module loads, so the same hook runs on
  * every render, and so production builds never include the Demo one.
  */
-export const useCurrentUser = IS_DEMO ? useDemoVisitor : useClerkCurrentUser;
+export const useCurrentUser = IS_DEMO ? useDemoVisitor : useProfileCurrentUser;

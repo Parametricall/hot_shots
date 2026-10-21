@@ -9,7 +9,7 @@ import type { Decorator } from "@storybook/react-vite";
 import { definePreview } from "@storybook/react-vite";
 import { HTMLProps, Suspense, useState } from "react";
 import { cn } from "~/lib/utils";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import ServiceRegistry, { ServiceTypes } from "~/app/service-registry";
 import {
   createMemoryHistory,
@@ -19,7 +19,8 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import { ClerkMockContext, DEFAULT_USER, type MockUser } from "./mocks/clerk-mock-user";
+import { currentUserQueryKey } from "~/features/auth/queries";
+import type { CurrentUser } from "~/features/auth/use-current-user";
 
 import "~/styles/app.css";
 
@@ -88,14 +89,18 @@ export const withRouter: Decorator = function WithRouter(Story) {
   return <RouterProvider router={router} />;
 };
 
-export const withMockUser = (overrides: Partial<MockUser> = {}): Decorator => {
+export const DEFAULT_USER: CurrentUser = {
+  id: "user-storybook",
+  displayName: "Jane Doe",
+  imageUrl: null,
+};
+
+/** Signs the story in as a Profile by seeding the current-user query on the story's client. */
+export const withMockUser = (overrides: Partial<CurrentUser> = {}): Decorator => {
   return function WithMockUser(Story) {
-    const user: MockUser = { ...DEFAULT_USER, ...overrides };
-    return (
-      <ClerkMockContext.Provider value={user}>
-        <Story />
-      </ClerkMockContext.Provider>
-    );
+    const queryClient = useQueryClient();
+    queryClient.setQueryData(currentUserQueryKey, { ...DEFAULT_USER, ...overrides });
+    return <Story />;
   };
 };
 

@@ -1,10 +1,5 @@
-import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { createStart } from "@tanstack/react-start";
-import { IS_DEMO } from "~/lib/demo";
 
-export const startInstance = createStart(() => {
-  return {
-    // The Demo has no sign-in and no Clerk keys (docs/adr/0004).
-    requestMiddleware: IS_DEMO ? [] : [clerkMiddleware()],
-  };
-});
+// No request middleware: the session is read, and refreshed, by `getSessionUserId` in the
+// handlers that need it (docs/adr/0006).
+export const startInstance = createStart(() => ({}));

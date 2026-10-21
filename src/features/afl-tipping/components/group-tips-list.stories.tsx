@@ -1,4 +1,9 @@
-import preview, { centeredYDecorator, containerDecorator, withSuspense } from "#.storybook/preview";
+import preview, {
+  centeredYDecorator,
+  containerDecorator,
+  withMockUser,
+  withSuspense,
+} from "#.storybook/preview";
 import { GroupTipsList } from "~/features/afl-tipping/components/group-tips-list";
 import {
   createAflGame,
@@ -69,7 +74,7 @@ const upcomingGame = createAflGame({
 });
 
 const mockUsers = {
-  // user-storybook matches the default Clerk mock id in .storybook/mocks/clerk.tsx,
+  // user-storybook matches DEFAULT_USER in .storybook/preview.tsx (withMockUser),
   // so this entry represents the current viewing user for highlight purposes.
   me: { userId: "user-storybook", displayName: "Jane Doe", avatarUrl: null },
   alice: { userId: "user-1", displayName: "Alice Johnson", avatarUrl: "/dummy-footy-logo.png" },
@@ -96,6 +101,7 @@ const meta = preview.meta({
   parameters: { layout: "padded" },
   decorators: [
     withSuspense,
+    withMockUser(),
     withCurrentRound(1),
     containerDecorator("max-w-xl"),
     centeredYDecorator,

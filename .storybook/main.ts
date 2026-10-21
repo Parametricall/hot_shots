@@ -31,8 +31,8 @@ export default defineMain({
     config.resolve = {
       ...resolve,
       tsconfigPaths: true,
-      // Use regex for exact match so `@clerk/tanstack-react-start/server` isn't
-      // prefix-matched into `./mocks/clerk.tsx/server`.
+      // Use regex for exact match so `@tanstack/react-start/server` isn't
+      // prefix-matched into a longer path.
       alias: [
         ...existingAliases,
         // Vite 8.1's experimental `tsconfigPaths` stopped applying the `~/*`
@@ -41,14 +41,6 @@ export default defineMain({
         {
           find: /^~\//,
           replacement: `${path.resolve(dirname, "../src")}/`,
-        },
-        {
-          find: /^@clerk\/tanstack-react-start\/server$/,
-          replacement: path.resolve(dirname, "./mocks/clerk-server.ts"),
-        },
-        {
-          find: /^@clerk\/tanstack-react-start$/,
-          replacement: path.resolve(dirname, "./mocks/clerk.tsx"),
         },
         {
           find: /^@tanstack\/react-start\/server$/,

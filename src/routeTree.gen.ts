@@ -11,12 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
 import { Route as ApiLiveScoresRouteImport } from './routes/api/live-scores'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
 import { Route as AuthenticatedAflTippingGroupTipsRouteImport } from './routes/_authenticated/afl-tipping/group-tips'
 import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
@@ -31,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -57,11 +62,6 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
-} as any)
-const SignInSplatRoute = SignInSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => SignInRoute,
 } as any)
 const AuthenticatedAflTippingIndexRoute =
   AuthenticatedAflTippingIndexRouteImport.update({
@@ -101,12 +101,12 @@ const AuthOauthProviderRoute = AuthOauthProviderRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/sign-in': typeof SignInRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
@@ -116,11 +116,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/sign-in': typeof SignInRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/sign-in/$': typeof SignInSplatRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
@@ -132,12 +132,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/sign-in': typeof SignInRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_authenticated/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/sign-in/$': typeof SignInSplatRoute
   '/_authenticated/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
   '/_authenticated/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/_authenticated/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
@@ -149,12 +149,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/afl-tipping'
     | '/api/live-scores'
     | '/auth/callback'
-    | '/sign-in/$'
     | '/afl-tipping/group-tips'
     | '/afl-tipping/standings'
     | '/afl-tipping/stats'
@@ -164,11 +164,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/api/live-scores'
     | '/auth/callback'
-    | '/sign-in/$'
     | '/afl-tipping/group-tips'
     | '/afl-tipping/standings'
     | '/afl-tipping/stats'
@@ -179,12 +179,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/_authenticated/afl-tipping'
     | '/api/live-scores'
     | '/auth/callback'
-    | '/sign-in/$'
     | '/_authenticated/afl-tipping/group-tips'
     | '/_authenticated/afl-tipping/standings'
     | '/_authenticated/afl-tipping/stats'
@@ -196,7 +196,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  SignInRoute: typeof SignInRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   ApiLiveScoresRoute: typeof ApiLiveScoresRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -217,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -253,13 +261,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/sign-in/$': {
-      id: '/sign-in/$'
-      path: '/$'
-      fullPath: '/sign-in/$'
-      preLoaderRoute: typeof SignInSplatRouteImport
-      parentRoute: typeof SignInRoute
     }
     '/_authenticated/afl-tipping/': {
       id: '/_authenticated/afl-tipping/'
@@ -342,21 +343,11 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface SignInRouteChildren {
-  SignInSplatRoute: typeof SignInSplatRoute
-}
-
-const SignInRouteChildren: SignInRouteChildren = {
-  SignInSplatRoute: SignInSplatRoute,
-}
-
-const SignInRouteWithChildren =
-  SignInRoute._addFileChildren(SignInRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  SignInRoute: SignInRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   ApiLiveScoresRoute: ApiLiveScoresRoute,
   AuthCallbackRoute: AuthCallbackRoute,

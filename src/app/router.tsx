@@ -74,7 +74,7 @@ export async function getRouter() {
     // background on mount.
     // Note: all queries are persisted, including user-specific ones. Phones
     // here are single-user; if account switching ever matters, clear the
-    // persister on Clerk sign-out.
+    // persister on sign-out.
     await restorePromise;
     queryClient.invalidateQueries({
       predicate: (query) => query.queryKey[1] !== "teams",
