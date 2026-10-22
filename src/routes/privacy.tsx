@@ -21,8 +21,8 @@ function PrivacyPage() {
       <h2 className="text-lg font-semibold">What we keep</h2>
       <ul className="list-disc pl-6">
         <li>
-          Your email address and your name, and your profile photo if Google or Facebook shares one,
-          from the account you sign in with. We ask for nothing else from them.
+          Your email address and your name, and your profile photo if Google shares one, from the
+          account you sign in with. We ask for nothing else from them.
         </li>
         <li>The tips you make, and the date you joined.</li>
         <li>
