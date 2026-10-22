@@ -24,10 +24,21 @@ _Avoid_: sandbox, staging, preview (Vercel's preview deployments are something e
 The moment in that Season the Demo is showing. The Time control moves it.
 _Avoid_: simulated date, time machine
 
+**Profile**:
+A person on the site, with the name and photo every App shows for them. A Profile isn't a
+Tipster until they open an App.
+_Avoid_: account, user, member
+
+**Invitation**:
+Permission for one email address to join the site. Nobody can sign in for the first time without
+one.
+_Avoid_: invite code, allowlist, whitelist
+
 ### People and the competition
 
 **Tipster**:
-A person who tips in a Competition.
+A person who tips in a Competition. A Profile becomes a Tipster in an App, and has joined it, the
+first time they open that App.
 _Avoid_: player (AFL players are the footballers), user, member
 
 **Competition**:

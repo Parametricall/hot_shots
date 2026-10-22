@@ -7,7 +7,7 @@ import {
  * Squiggle's Event API (SSE) through our own server. Squiggle only allows a
  * short list of browser origins, so the browser reads
  * `/api/live-scores` (src/routes/api/live-scores.ts) and this module relays it.
- * Nothing here imports Clerk: the route authenticates, this only relays.
+ * Nothing here imports the session: the route authenticates, this only relays.
  */
 
 /** Idle streams get cut by proxies, so a comment line goes out this often between events. */

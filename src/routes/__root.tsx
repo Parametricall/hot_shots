@@ -7,9 +7,7 @@ import appCss from "~/styles/app.css?url";
 import { AppLoadingScreen } from "~/components/AppLoadingScreen";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
-import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { Toaster } from "~/components/ui/sonner";
-import { IS_DEMO } from "~/lib/demo";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -89,7 +87,7 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const page = (
+  return (
     <html>
       <head>
         <HeadContent />
@@ -105,7 +103,4 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   );
-
-  // The Demo has no sign-in and no Clerk keys (docs/adr/0004).
-  return IS_DEMO ? page : <ClerkProvider>{page}</ClerkProvider>;
 }

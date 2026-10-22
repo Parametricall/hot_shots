@@ -6,5 +6,6 @@
 // loadable instead.
 
 export const getCookie = (): string | undefined => undefined;
+export const getCookies = (): Record<string, string> => ({});
 export const setCookie = (): void => {};
 export const deleteCookie = (): void => {};

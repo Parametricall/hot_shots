@@ -1,4 +1,4 @@
-import preview from "#.storybook/preview";
+import preview, { withMockUser } from "#.storybook/preview";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
 import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
 import { expect, within, waitFor } from "storybook/test";
@@ -56,6 +56,7 @@ const meta = preview.meta({
       ...leaderboardService(LEADERBOARD),
     },
   },
+  decorators: [withMockUser()],
 });
 
 export const Default = meta.story({

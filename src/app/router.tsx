@@ -11,6 +11,7 @@ import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.
 import { service as liveScoresService } from "~/features/afl-tipping/api/live-scores.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
+import { tipstersRepository } from "~/features/afl-tipping/api/tipsters.repository";
 
 // The Demo registers its own services in getRouter. The condition is written out, not IS_DEMO:
 // a constant imported from another module is not folded until after chunking, so Demo-only
@@ -20,6 +21,7 @@ if (import.meta.env.VITE_DEMO !== "true") {
   serviceRegistry.registerService("aflService", aflService);
   serviceRegistry.registerService("liveScoresService", liveScoresService);
   serviceRegistry.registerService("tipsRepository", tipsRepository);
+  serviceRegistry.registerService("tipstersRepository", tipstersRepository);
 }
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
@@ -72,7 +74,7 @@ export async function getRouter() {
     // background on mount.
     // Note: all queries are persisted, including user-specific ones. Phones
     // here are single-user; if account switching ever matters, clear the
-    // persister on Clerk sign-out.
+    // persister on sign-out.
     await restorePromise;
     queryClient.invalidateQueries({
       predicate: (query) => query.queryKey[1] !== "teams",

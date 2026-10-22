@@ -1,12 +1,17 @@
-import { Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { LayoutGrid } from "lucide-react";
-import * as React from "react";
-
-const UserButton = React.lazy(() =>
-  import("@clerk/tanstack-react-start").then((m) => ({ default: m.UserButton })),
-);
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { ComponentProps } from "react";
+import { signOut } from "~/features/auth/api/session";
 import { useCurrentUser } from "~/features/auth/use-current-user";
 import { IS_DEMO } from "~/lib/demo";
 import { cn } from "~/lib/utils";
@@ -26,7 +31,16 @@ function getInitials(fullName: string | null | undefined): string {
 
 export function Header(props: ComponentProps<"header">) {
   const user = useCurrentUser();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { className, ...headerProps } = props;
+
+  const handleSignOut = async () => {
+    await signOut();
+    queryClient.clear();
+    window.localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
+    await navigate({ to: "/sign-in" });
+  };
   return (
     <header
       className={cn("px-2 bg-background/80 backdrop-blur-lg border-b", className)}
@@ -58,26 +72,30 @@ export function Header(props: ComponentProps<"header">) {
                   <span className="text-xs text-muted-foreground">Signed in as</span>
                   <span className="text-sm font-medium text-foreground">{user.displayName}</span>
                 </div>
-                <div className="relative">
+                {/* The Demo has no account to sign out of. */}
+                {IS_DEMO ? (
                   <Avatar size="lg" className="border-2 border-primary">
                     <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
                     <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                   </Avatar>
-                  {/* The Demo has no account to manage. */}
-                  {!IS_DEMO && (
-                    <div className="absolute inset-0 opacity-0">
-                      <React.Suspense fallback={null}>
-                        <UserButton
-                          appearance={{
-                            elements: {
-                              userButtonAvatarBox: "w-10! h-10!",
-                            },
-                          }}
-                        />
-                      </React.Suspense>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="rounded-full outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      aria-label={`Account menu for ${user.displayName}`}
+                    >
+                      <Avatar size="lg" className="border-2 border-primary">
+                        <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
+                        <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                      </Avatar>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </>
             )}
           </div>
