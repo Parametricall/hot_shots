@@ -46,6 +46,11 @@ export function HubPage() {
           </Card>
         ))}
       </div>
+      <footer className="mt-auto">
+        <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
+          Privacy
+        </Link>
+      </footer>
     </main>
   );
 }
