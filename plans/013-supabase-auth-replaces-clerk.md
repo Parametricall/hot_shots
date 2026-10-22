@@ -408,9 +408,9 @@ ADR 0006).
      (`avatar_url` or `picture`): migrated Profiles start without one (Step
      7). Then 302 to `safeRedirectPath(next)`. On an `error` parameter or a
      failed exchange, 302 to `/sign-in?error=<reason>` and log the detail.
-     When the hook turned the sign-in away, `reason` is `not-invited`. Find
-     out how Supabase passes the hook's message back (likely
-     `error_description`) in Step 7.4's test, and match on it there.
+     When the hook turned the sign-in away, `reason` is `not-invited`.
+     Supabase passes the hook's message back as `error_description=not-invited`
+     on the redirect (confirmed in Step 7.4), and the callback matches on it.
 4. **Server functions** in `session.ts`:
    - `signOut()`: `supabase.auth.signOut({ scope: "local" })`.
    - Emailed code only: `sendSignInCode({ email })` calls `signInWithOtp`
@@ -612,6 +612,16 @@ and check `joined_at` doesn't change.
    now with a `google` identity; one Profile; the hook didn't turn it away.
    Also record here how the hook's `not-invited` reaches the callback (Step
    4.3).
+
+   **Done, 2026-10-21/22, against local with Clerk's development instance.**
+   The script created the operator's address as an email-only user; their
+   Google sign-in added a `google` identity to that same id, with one
+   Profile, its `clerk_user_id` and Clerk `joined_at` kept and the Google
+   photo filled in. An uninvited Google account was turned away: the hook
+   logged `403: not-invited` on `/callback`, the redirect carried
+   `error_description=not-invited`, and the sign-in page showed the
+   invite-list message, with no user created. An uninvited emailed code gets
+   `403 {"msg":"not-invited"}` from `/otp`, also with no user created.
 
 **Verify**: `npm run test:ci`, `npm run storybook` (the header, the group
 tips list and every story using `withMockUser` render), `npm run build`.
