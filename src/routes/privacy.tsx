@@ -36,7 +36,7 @@ function PrivacyPage() {
         To check you were invited, show your name and photo to the other tipsters, and score the
         competition. Other tipsters can see your name, photo and tips. We don&apos;t sell or share
         your details with anyone else. Your accounts and tips are stored with our database and
-        sign-in provider, Supabase.
+        sign-in provider, Supabase. Sign-in codes are emailed through our email provider, Resend.
       </p>
 
       <h2 id="delete" className="text-lg font-semibold">
