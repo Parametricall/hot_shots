@@ -677,14 +677,20 @@ nobody.
      end if;
    end $$;
 
+   -- Production still has Clerk's `auth.jwt() ->> 'sub'` default, which can't be cast to uuid.
+   -- The server always sets user_id, so drop it.
    alter table afl_tipping
+     alter column user_id drop default,
      alter column user_id type uuid using user_id::uuid,
      add constraint afl_tipping_user_id_fkey
        foreign key (user_id) references afl_tipsters (profile_id) on delete cascade;
    ```
 
    On a fresh local database the table is empty, so it is a no-op there. If
-   the exception fires, the whole migration rolls back: STOP.
+   the exception fires, the whole migration rolls back: STOP. Without
+   `drop default`, production fails with `default for column "user_id"
+   cannot be cast automatically to type uuid` (found on 2026-10-22 against a
+   schema dump; the local schema never had the default).
 
 6. Merge the branch and deploy to production right away.
 7. **Check**:
@@ -715,7 +721,8 @@ from profiles where afl_tipping.user_id = profiles.id::text;
 ```
 
 People invited and joined after the cutover have no Clerk id, so their Tips
-can't go back. Say so if rolling back.
+can't go back. Say so if rolling back. The dropped `user_id` default stays
+dropped: the Clerk code sets `user_id` on every Tip it writes.
 
 ### Step 9: Remove Clerk (two weeks after Step 8, if nothing rolled back)
 
