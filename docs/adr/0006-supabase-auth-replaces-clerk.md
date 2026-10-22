@@ -2,7 +2,8 @@
 
 Clerk's free plan ends every session 7 days after sign-in, so Tipsters had to sign in every week
 of the Season, and many of them forget their passwords. We sign in with Supabase Auth instead:
-Google and Facebook, plus an emailed one-time code for people without either, and no passwords.
+Google, plus an emailed one-time code for anyone without a Google account on their invited
+address, and no passwords.
 On the free plan sessions have no time limit, so a person stays signed in on a device until they
 sign out. Every auth call (starting a sign-in, the OAuth callback, refreshing the session,
 signing out) runs on the server, which keeps the session in `HttpOnly` cookies it sets itself.
@@ -10,7 +11,7 @@ The browser still never talks to Supabase (`docs/adr/0002`).
 
 The site is invite-only. A "Before User Created" hook, a Postgres function Supabase Auth runs
 before creating any account, turns away every email address with no row in `invitations`. That
-covers Google, Facebook and the emailed code alike.
+covers Google and the emailed code alike.
 
 Clerk's user list splits in two, because the site is a Hub of Apps (`docs/adr/0003`). `profiles`
 holds each person's name and photo for the whole site. `afl_tipsters` records who has joined AFL
@@ -28,19 +29,31 @@ doesn't get Auto-tips for that App's earlier Games.
 | Supabase Auth with a browser client             | supabase-js in the browser writes the session cookie from JavaScript. Safari caps those cookies at 7 days on every iPhone browser, which brings the weekly sign-in back, and it breaks ADR 0002 |
 | Supabase Auth, server-set cookies (chosen)      | Free, no new vendor, no session limit, and a cookie the server sets with a response header isn't capped                                                                                         |
 
+Which sign-in methods:
+
+| Option                | Why not                                                                                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Facebook Login        | Planned at first, dropped on 2026-10-22: Meta won't publish an app until it's connected to a verified business portfolio, which needs a registered business behind the site |
+| Passwords             | Tipsters forget them, which is half of why we left Clerk                                                                                                                    |
+| Google + emailed code | Chosen: Google needs no review for `openid`, `email` and `profile`, and the code covers everyone else, including anyone who only uses Facebook                              |
+
 How to keep strangers out:
 
-| Option                                               | Why not                                                                                                                                                          |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Turn off sign-ups, create each account in advance    | Creates accounts for people who never accept, needs the first Google or Facebook sign-in to attach to that account with sign-ups off, and keeps no invite record |
-| Let anyone sign in, gate each App on an invite check | A stranger still gets an account and a session, and every App has to remember the check                                                                          |
-| `invitations` table plus a Before User Created hook  | Chosen: no account exists until an invited email signs in, the hook runs on the free plan, and the table records who was invited                                 |
+| Option                                               | Why not                                                                                                                                              |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Turn off sign-ups, create each account in advance    | Creates accounts for people who never accept, needs the first Google sign-in to attach to that account with sign-ups off, and keeps no invite record |
+| Let anyone sign in, gate each App on an invite check | A stranger still gets an account and a session, and every App has to remember the check                                                              |
+| `invitations` table plus a Before User Created hook  | Chosen: no account exists until an invited email signs in, the hook runs on the free plan, and the table records who was invited                     |
 
 ## Consequences
 
-- **Invitations match by email.** A person must sign in with a Google or Facebook account that
-  uses the address they were invited with. A Facebook account registered with a phone number, or
-  under another address, is turned away, and the fix is a second Invitation for that address.
+- **Invitations match by email.** A person must sign in with a Google account that uses the
+  address they were invited with, or with a code sent to that address. A Google account under
+  another address is turned away; the fix is the emailed code, or a second Invitation for that
+  address.
+- **The emailed code is the only way in without Google**, so SMTP must work before the cutover,
+  and a broken mail provider locks out everyone without Google. Adding Facebook later means
+  verifying a business with Meta first.
 - **Deleting an Invitation doesn't remove anyone.** It only stops the address from creating an
   account. To remove a person, delete their Supabase Auth user; their Profile and Tipster rows
   go with it.

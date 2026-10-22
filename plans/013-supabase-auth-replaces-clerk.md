@@ -36,10 +36,10 @@
 Clerk's free plan ends every session 7 days after sign-in. During the 2026
 Season, Tipsters had to sign in every week and complained about it. Many are
 older and forget passwords. Supabase Auth, on the plan we already use, gives
-sessions with no time limit, plus Google and Facebook sign-in, for free.
+sessions with no time limit, plus Google sign-in and emailed codes, for free.
 
-The operator wants the site invite-only: a stranger with a Google or Facebook
-account must not be able to sign in.
+The operator wants the site invite-only: a stranger with a Google account or
+an email address must not be able to sign in.
 
 It's the off-season, so nobody is tipping. That makes this the cheapest time
 for a cutover that changes every Tipster's id.
@@ -158,6 +158,11 @@ picks otherwise, update the ADR in the same commit.
      the one they're invited with): needs an SMTP provider and a domain to
      send from (Step 2). Without one, leave it out and add it later.
    - **Passwords**: recommend none.
+
+   **Decided**: Google and the emailed code, no passwords. Facebook was
+   chosen at first and dropped on 2026-10-22: Meta won't publish the app
+   without a verified business portfolio (ADR 0006).
+
 2. **Who is on Clerk now**: in the Clerk dashboard → Users, the number of
    users and how each signed in (password, Google, other). The script in
    Step 7 invites every one of them, by their Clerk email.
@@ -173,8 +178,8 @@ picks otherwise, update the ADR in the same commit.
 The executor writes these out as a checklist for the operator and waits.
 Replace `<ref>` with the project ref from `SUPABASE_URL`.
 
-1. **Supabase → Authentication → Sign In / Providers**: turn on Google and
-   Facebook. Leave "Allow new users to sign up" **on**: the hook (Step 3)
+1. **Supabase → Authentication → Sign In / Providers**: turn on Google.
+   Leave "Allow new users to sign up" **on**: the hook (Step 3)
    decides who may join, and turning sign-ups off would block invited people
    too. Turn on Email only if the emailed code was chosen. The app never
    offers passwords; if the dashboard can turn off password sign-in
@@ -197,24 +202,23 @@ Replace `<ref>` with the project ref from `SUPABASE_URL`.
      redirect URIs: `https://<ref>.supabase.co/auth/v1/callback` and, for
      local, `http://127.0.0.1:54321/auth/v1/callback`.
    - Paste the client ID and secret into Supabase's Google provider.
-5. **Meta for Developers**: create an app (use case "Authenticate and request
+5. **Dropped (2026-10-22)**, kept for the record. Meta for Developers: create an app (use case "Authenticate and request
    data from users with Facebook Login"). Add the `email` permission
    (`public_profile` is included). Valid OAuth Redirect URIs: the same two
    callback URLs. Set the privacy policy URL and the data deletion
    instructions URL (`https://<production>/privacy#delete`). Switch the app
-   to **Live**. Paste the app ID and secret into Supabase.
-6. **SMTP** (emailed code only): a provider with a free tier (Resend, Postmark
+   to **Live**. Paste the app ID and secret into Supabase. Going Live
+   needs a verified business portfolio, which is why Facebook was dropped.
+6. **SMTP** (required: the emailed code is the only way in without Google): a provider with a free tier (Resend, Postmark
    or Brevo, for example), with a verified sending domain. Supabase →
    Authentication → SMTP Settings. Edit the "Magic Link" email template so it
    shows `{{ .Token }}` (the six-digit code) instead of a link.
 7. **Vercel**, Production and Preview environments: add
    `SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_…` key, server-only, no
    `VITE_` prefix). Leave the Clerk variables in place until Step 9.
-8. **Local**: the operator adds the Google and Facebook secrets to `.env` as
+8. **Local**: the operator adds the Google secret and client ID to `.env` as
    `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` and
-   `SUPABASE_AUTH_EXTERNAL_FACEBOOK_SECRET`, and the client IDs as
-   `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and
-   `SUPABASE_AUTH_EXTERNAL_FACEBOOK_CLIENT_ID`, for Step 3's `config.toml`.
+   `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, for Step 3's `config.toml`.
 
 The hook itself is switched on in Step 8, after its migration reaches
 production.
@@ -332,9 +336,9 @@ In `supabase/config.toml`:
 - `site_url = "http://localhost:3000"`, and add
   `"http://localhost:3000/auth/callback"` to `additional_redirect_urls`.
   (The current entry is `https://127.0.0.1:3000`, which is wrong anyway.)
-- `[auth.external.google]` and `[auth.external.facebook]`: `enabled = true`,
-  `client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"` (and the
-  Facebook one), `secret = "env(…_SECRET)"`, `skip_nonce_check = false`.
+- `[auth.external.google]`: `enabled = true`,
+  `client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"`,
+  `secret = "env(…_SECRET)"`, `skip_nonce_check = false`.
 - `[auth.hook.before_user_created]`: `enabled = true`,
   `uri = "pg-functions://postgres/public/hook_before_user_created"`. If the
   installed Supabase CLI rejects the key, STOP: the local stack can't test
@@ -388,7 +392,7 @@ ADR 0006).
      `redirect_url` or `next` is followed, and in the two sign-in routes'
      `validateSearch`.
 3. **Server routes** in `src/routes/auth/`:
-   - `oauth.$provider.ts`, GET: `provider` must be `google` or `facebook`
+   - `oauth.$provider.ts`, GET: `provider` must be `google`
      (else 404). It calls `signInWithOAuth` and returns a 302 to `data.url`.
      The PKCE verifier lands in a cookie through `setAll`:
 
@@ -398,7 +402,6 @@ ADR 0006).
        options: {
          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
          skipBrowserRedirect: true,
-         scopes: provider === "facebook" ? "email" : undefined,
        },
      });
      ```
@@ -501,21 +504,22 @@ and check `joined_at` doesn't change.
    trigger an accessible name ("Account menu for {displayName}").
 6. **Sign-in page** (`src/features/auth/pages/sign-in.tsx`), using the
    shadcn `Button` and `Card`:
-   - At the top: "Hot Shots is invite-only. Sign in with the Google or
-     Facebook account that uses the email address you were invited with."
-   - "Continue with Google" and "Continue with Facebook" are plain `<a>`
-     links to `/auth/oauth/google?next=<redirect_url>`. Navigating the whole
+   - At the top: "Hot Shots is invite-only. Sign in with the Google account
+     that uses the email address you were invited with, or get a code sent to
+     that address."
+   - "Continue with Google" is a plain `<a>`
+     link to `/auth/oauth/google?next=<redirect_url>`. Navigating the whole
      page is what makes the OAuth redirect work.
    - Under the Google button, in muted small text: "Google will say you're
      continuing to <ref>.supabase.co. That's our sign-in service." Put the
      actual host in, from `SUPABASE_URL` passed down by the route loader.
-   - Emailed code only: an email field and "Email me a code". Then a
+   - An email field and "Email me a code". Then a
      six-digit code field (`inputMode="numeric"`,
      `autoComplete="one-time-code"`) with "Sign in" and "Send a new code".
    - Each `reason`, from the code functions or from `?error=`, shows as a
-     plain sentence above the buttons. For `not-invited`: "That account's
-     email address isn't on the invite list. Try the Google or Facebook
-     account that uses the address you were invited with." Don't suggest
+     plain sentence above the buttons. For `not-invited`: "That email
+     address isn't on the invite list. Use the Google account that has the
+     address you were invited with, or get a code sent to that address." Don't suggest
      getting the other address invited: for a migrated Tipster that makes a
      second, empty Profile (Step 9.1).
    - Keep the `queryClient.clear()` effect and `data-app-ready`.
@@ -535,8 +539,8 @@ and check `joined_at` doesn't change.
    - **Invite**: Supabase → Table Editor → `invitations` → Insert row, with
      the email in lower case. Then send them the site's link yourself. No
      email goes out.
-   - **They can't sign in**: their Google or Facebook account uses another
-     address. Ask which one, and invite that too, unless they're a migrated
+   - **They can't sign in**: their Google account uses another address.
+     Suggest the emailed code first. Otherwise ask which address, and invite that too, unless they're a migrated
      Tipster (Step 9.1's fix applies).
    - **Stop an address joining**: delete its row. **Remove a person**:
      Supabase → Authentication → Users → delete. Their Profile, Tipster row
@@ -593,12 +597,12 @@ and check `joined_at` doesn't change.
      user up instead. The trigger creates the Profile.
    - Update the Profile: `display_name`, `clerk_user_id`, and
      `avatar_url = null`. Clerk's image URLs die with the Clerk app; the
-     callback fills in Google's or Facebook's photo on first sign-in.
+     callback fills in Google's photo on first sign-in.
    - Upsert `afl_tipsters` with `joined_at = new Date(clerkUser.createdAt)`,
      overwriting any later date.
    - Print one line per user: Clerk id, email, how they signed in to Clerk
      (`externalAccounts[].provider` and its email, or "password"), new id,
-     and created / existing / skipped. Flag anyone whose Google or Facebook
+     and created / existing / skipped. Flag anyone whose Google
      email differs from their primary email: they'll be turned away at
      sign-in (Step 9.1). Write the full mapping to a file under the OS temp
      directory. It contains emails, so never write it into the repo.
@@ -696,8 +700,8 @@ nobody.
      and streams signed in). There won't be a live Game; checking the status
      code is enough.
 8. **Tell the Tipsters** (operator): sign-in has changed. They should use
-   the Google or Facebook account with the email Hot Shots knew them by (or
-   the emailed code), and they'll stay signed in from now on. Send the
+   the Google account with the email Hot Shots knew them by, or the emailed
+   code, and they'll stay signed in from now on. Send the
    script's flagged Tipsters (item 4) a personal note.
 
 **Rollback**, before Step 9 only: turn off the hook, redeploy the previous
@@ -715,14 +719,14 @@ can't go back. Say so if rolling back.
 
 ### Step 9: Remove Clerk (two weeks after Step 8, if nothing rolled back)
 
-1. **Stragglers**: a migrated Tipster whose Google or Facebook account uses a
+1. **Stragglers**: a migrated Tipster whose Google account uses a
    different address from their Clerk one is turned away (the script flagged
    them). Inviting the new address would give them a second, empty Profile.
    Instead, change the existing account's email: in Supabase → Authentication
    → Users, or `auth.admin.updateUserById(id, { email: newEmail, email_confirm: true })`,
-   and add an Invitation for the new address. Their next Google or Facebook
-   sign-in links to the old account, Tips and all. If the emailed code is
-   on, they can also just use it with their old address.
+   and add an Invitation for the new address. Their next Google
+   sign-in links to the old account, Tips and all. They can also just use the
+   emailed code with their old address.
 2. `npm uninstall @clerk/tanstack-react-start`. Check that `@clerk/backend`
    is gone from `package-lock.json`. Delete `scripts/migrate-clerk-users.ts`
    (git history keeps it).
@@ -771,8 +775,7 @@ cutover date. Delete this plan in the same commit as the README change
 ## Done criteria
 
 - [ ] Step 1 decisions recorded, and ADR 0006 matches them
-- [ ] Google and Facebook sign-in work in production, plus the emailed code
-      if chosen
+- [ ] Google sign-in and the emailed code work in production
 - [ ] An uninvited account is turned away, from every sign-in method, with a
       sentence that says why
 - [ ] The session cookies are `HttpOnly`, set by the server, and survive a
@@ -825,7 +828,7 @@ cutover date. Delete this plan in the same commit as the README change
 - **Free-plan pausing**: a free Supabase project pauses after a week without
   activity. Over the off-season it may already be paused. Restore it before
   the cutover, and check it again before Opening Round.
-- **Display names don't follow later changes** to the Google or Facebook
+- **Display names don't follow later changes** to the Google
   name. The trigger only runs on sign-up. If people want to change theirs,
   that's a small "Your name" setting, out of scope here.
 - **The session-length decision** and the reasons not to set a limit are in

@@ -15,7 +15,7 @@
  *
  * Each person keeps their Clerk sign-up date as `afl_tipsters.joined_at`, so 2026 Auto-tips don't
  * change (docs/adr/0001). Their photo is left empty: Clerk's image URLs die with the Clerk app,
- * and the sign-in callback fills in Google's or Facebook's on first sign-in.
+ * and the sign-in callback fills in Google's on first sign-in.
  *
  * The full Clerk id -> new id mapping is written to the OS temp directory. It contains emails, so
  * it never goes in the repo.
@@ -127,7 +127,7 @@ function signedInWith(user: User): string {
   return accounts.length > 0 ? accounts.join(", ") : "password";
 }
 
-/** Someone whose Google or Facebook email differs from the invited one is turned away. */
+/** Someone whose Google email differs from the invited one is turned away. */
 function emailMismatch(user: User, email: string): string | undefined {
   const other = user.externalAccounts
     .map((a) => a.emailAddress?.toLowerCase())
@@ -165,7 +165,7 @@ async function migrateUser(user: User): Promise<Report> {
   if (!apply) return { ...base, newId: null, outcome: "created", note: `dry run; ${note ?? ""}` };
 
   // The admin API skips the Before User Created hook, so the Invitation is what lets this
-  // person back in through Google, Facebook or an emailed code.
+  // person back in through Google or an emailed code.
   const { error: inviteError } = await supabase
     .from("invitations")
     .upsert({ email }, { onConflict: "email", ignoreDuplicates: true });

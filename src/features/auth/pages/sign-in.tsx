@@ -28,7 +28,7 @@ function getDevUsers() {
 
 const REASON_MESSAGES: Record<string, string> = {
   "not-invited":
-    "That account's email address isn't on the invite list. Try the Google or Facebook account that uses the address you were invited with.",
+    "That email address isn't on the invite list. Use the Google account that has the address you were invited with, or get a code sent to that address.",
   "rate-limited": "Too many attempts. Wait a few minutes, then try again.",
   "code-expired": "That code has expired. Send a new one.",
   "code-wrong": "That code isn't right. Check it and try again.",
@@ -51,7 +51,7 @@ export function SignInPage() {
     window.localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
   }, [queryClient]);
 
-  const oauthHref = (provider: "google" | "facebook") =>
+  const oauthHref = (provider: "google") =>
     `/auth/oauth/${provider}?next=${encodeURIComponent(next)}`;
 
   return (
@@ -63,8 +63,8 @@ export function SignInPage() {
         <CardHeader>
           <CardTitle>Sign in to Hot Shots</CardTitle>
           <CardDescription>
-            Hot Shots is invite-only. Sign in with the Google or Facebook account that uses the
-            email address you were invited with.
+            Hot Shots is invite-only. Sign in with the Google account that uses the email address
+            you were invited with, or get a code sent to that address.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -82,9 +82,6 @@ export function SignInPage() {
               service.
             </p>
           )}
-          <Button asChild size="lg" variant="outline">
-            <a href={oauthHref("facebook")}>Continue with Facebook</a>
-          </Button>
           <EmailCodeForm next={next} onFailure={setReason} />
         </CardContent>
       </Card>

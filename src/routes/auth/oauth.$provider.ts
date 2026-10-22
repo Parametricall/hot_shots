@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { safeRedirectPath } from "~/features/auth/api/session";
 import { getSupabaseAuthClient } from "~/lib/supabase";
 
-const PROVIDERS = ["google", "facebook"] as const;
+const PROVIDERS = ["google"] as const;
 type Provider = (typeof PROVIDERS)[number];
 
 /**
@@ -25,7 +25,6 @@ export const Route = createFileRoute("/auth/oauth/$provider")({
           options: {
             redirectTo: `${url.origin}/auth/callback?next=${encodeURIComponent(next)}`,
             skipBrowserRedirect: true,
-            scopes: provider === "facebook" ? "email" : undefined,
           },
         });
         if (error || !data.url) {
