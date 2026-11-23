@@ -66,6 +66,8 @@ export default defineConfig(({ mode }) => {
       singleQuote: false,
       trailingComma: "all",
       bracketSpacing: true,
+      // Matches .gitattributes, so formatting never fights a checkout over line endings.
+      endOfLine: "lf",
       // Prettier never sorted package.json; keep its key order stable.
       sortPackageJson: false,
       // .claude/skills are third-party: formatting them turns every `npx skills update` diff
