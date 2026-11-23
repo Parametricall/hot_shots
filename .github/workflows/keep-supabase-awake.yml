@@ -42,9 +42,10 @@ jobs:
 
       # GitHub disables scheduled workflows in a public repo after 60 days without a
       # commit, which a quiet off-season can reach. Re-enabling the workflow through the
-      # API resets that timer.
+      # API resets that timer. Not `gh workflow enable`: it only looks among disabled
+      # workflows, so it can't find this one while it's running.
       - name: Keep this schedule enabled
         if: always()
-        run: gh workflow enable "${{ github.workflow }}" --repo "${{ github.repository }}"
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keep-supabase-awake.yml/enable"
         env:
           GH_TOKEN: ${{ github.token }}
