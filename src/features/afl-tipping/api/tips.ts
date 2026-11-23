@@ -35,10 +35,15 @@ const GetTipsSchema = z.object({
 });
 
 /**
- * Who is calling, as a Tipster. Opening any AFL Tipping page joins the signed-in Profile to AFL
- * Tipping the first time (docs/adr/0006), so every handler goes through here.
+ * Who is calling, as a Tipster, and when they entered `season`'s Competition (null if they
+ * haven't). Opening any AFL Tipping page joins the signed-in Profile to AFL Tipping the first time
+ * (docs/adr/0006), and opening it while `season` is the Current Season, and not over, enters them
+ * in that Season's Competition (docs/adr/0007). Viewing a past Season enters nothing. Every
+ * handler goes through here.
  */
-async function ensureTipster(): Promise<{ userId: string; joinedAt: number }> {
+async function ensureTipster(
+  season: number,
+): Promise<{ userId: string; enteredAt: number | null }> {
   const userId = await getSessionUserId();
   if (!userId) {
     throw new Error("User not authenticated");
@@ -47,13 +52,38 @@ async function ensureTipster(): Promise<{ userId: string; joinedAt: number }> {
   if (!joined.ok) {
     throw new Error(`Failed to join AFL Tipping: ${joined.reason}`, { cause: joined.detail });
   }
-  return { userId, joinedAt: joined.joinedAt };
+
+  const { current, seasons } = await serviceRegistry.getService("squiggleService").getSeasons();
+  if (!seasons.includes(season)) {
+    throw new Error(`Unknown Season: ${season}`);
+  }
+
+  const entries = serviceRegistry.getService("competitionEntriesRepository");
+  if (season === current.season && current.status !== "over") {
+    const entered = await entries.enter(userId, season);
+    if (!entered.ok) {
+      throw new Error(`Failed to enter the ${season} Competition: ${entered.reason}`, {
+        cause: entered.detail,
+      });
+    }
+    return { userId, enteredAt: entered.enteredAt };
+  }
+
+  const entry = await entries.getEntry(userId, season);
+  if (!entry.ok) {
+    throw new Error(`Failed to load the ${season} entry: ${entry.reason}`, { cause: entry.detail });
+  }
+  return { userId, enteredAt: entry.enteredAt };
 }
 
-async function fetchTipsters(): Promise<Tipsters> {
-  const result = await serviceRegistry.getService("tipstersRepository").getTipsters();
+async function fetchEntrants(season: number): Promise<Tipsters> {
+  const result = await serviceRegistry
+    .getService("competitionEntriesRepository")
+    .getEntrants(season);
   if (!result.ok) {
-    throw new Error(`Failed to load Tipsters: ${result.reason}`, { cause: result.detail });
+    throw new Error(`Failed to load the ${season} Tipsters: ${result.reason}`, {
+      cause: result.detail,
+    });
   }
   return result.tipsters;
 }
@@ -63,7 +93,7 @@ export const submitTip = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { season, gameId, teamId, margin } = data;
     try {
-      const { userId } = await ensureTipster();
+      const { userId } = await ensureTipster(season);
 
       const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
       const games: AflGame.Type[] = await getGames(season);
@@ -79,7 +109,7 @@ export const submitTip = createServerFn({ method: "POST" })
       }
 
       const repo = serviceRegistry.getService("tipsRepository");
-      await repo.saveTip(gameId, userId, teamId, margin, verdict.isUnderdog);
+      await repo.saveTip(season, gameId, userId, teamId, margin, verdict.isUnderdog);
       return { success: true };
     } catch (err) {
       console.error("[submitTip] failed", {
@@ -95,7 +125,7 @@ export const getTips = createServerFn({ method: "GET" })
   .validator(GetTipsSchema)
   .handler(async ({ data }): Promise<AflUserTip[]> => {
     const { season, gameIds } = data;
-    const { userId, joinedAt } = await ensureTipster();
+    const { userId, enteredAt } = await ensureTipster(season);
 
     const { getTipsByUser } = serviceRegistry.getService("tipsRepository");
     const { getGames } = serviceRegistry.getService("squiggleService");
@@ -105,7 +135,15 @@ export const getTips = createServerFn({ method: "GET" })
       getGames(season),
     ]);
 
-    return buildTipsterTips({ storedTips, games, gameIds, userId, joinedAt, now: Date.now() });
+    return buildTipsterTips({
+      storedTips,
+      games,
+      gameIds,
+      userId,
+      // A Tipster who never entered this Season gets no Auto-tips.
+      joinedAt: enteredAt ?? Number.POSITIVE_INFINITY,
+      now: Date.now(),
+    });
   });
 
 const SeasonOnlySchema = z.object({
@@ -115,14 +153,14 @@ const SeasonOnlySchema = z.object({
 export const getLeaderboard = createServerFn({ method: "GET" })
   .validator(SeasonOnlySchema)
   .handler(async ({ data }) => {
-    await ensureTipster();
+    await ensureTipster(data.season);
 
     const repo = serviceRegistry.getService("tipsRepository");
-    const tips: AllTipsRow[] = await repo.getAllTips();
+    const tips: AllTipsRow[] = await repo.getAllTips(data.season);
 
     const { getGames } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames(data.season);
-    const tipsters = await fetchTipsters();
+    const tipsters = await fetchEntrants(data.season);
 
     return buildLeaderboard({ tips, games, tipsters, now: Date.now() });
   });
@@ -135,7 +173,7 @@ const GetGroupTipsSchema = z.object({
 export const getGroupTips = createServerFn({ method: "GET" })
   .validator(GetGroupTipsSchema)
   .handler(async ({ data }): Promise<AflGroupTipEntry[]> => {
-    await ensureTipster();
+    await ensureTipster(data.season);
 
     const { season, round } = data;
     const { getGames } = serviceRegistry.getService("squiggleService");
@@ -143,7 +181,7 @@ export const getGroupTips = createServerFn({ method: "GET" })
 
     const repo = serviceRegistry.getService("tipsRepository");
     const tips = await repo.getTipsByGameIds(roundGames.map((g) => g.id));
-    const tipsters = await fetchTipsters();
+    const tipsters = await fetchEntrants(data.season);
 
     return buildGroupTips({ tips, roundGames, tipsters, now: Date.now() });
   });
@@ -151,14 +189,14 @@ export const getGroupTips = createServerFn({ method: "GET" })
 export const getPlayerStats = createServerFn({ method: "GET" })
   .validator(SeasonOnlySchema)
   .handler(async ({ data }): Promise<AflPlayerStatsEntry[]> => {
-    await ensureTipster();
+    await ensureTipster(data.season);
 
     const repo = serviceRegistry.getService("tipsRepository");
-    const tips: AllTipsRow[] = await repo.getAllTips();
+    const tips: AllTipsRow[] = await repo.getAllTips(data.season);
 
     const { getGames } = serviceRegistry.getService("squiggleService");
     const games: AflGame.Type[] = await getGames(data.season);
-    const tipsters = await fetchTipsters();
+    const tipsters = await fetchEntrants(data.season);
 
     return buildPlayerStats({ tips, games, tipsters, now: Date.now() });
   });

@@ -1,14 +1,14 @@
 import { getSupabaseServerClient } from "~/lib/supabase";
 import { AflUserTip } from "~/features/afl-tipping/types";
 
-interface TipRow {
+type TipRow = {
   game_id: number;
   tip: number;
   margin: number | null;
   is_underdog: boolean | null;
-}
+};
 
-export interface AllTipsRow {
+export type AllTipsRow = {
   game_id: number;
   user_id: string;
   tip: number;
@@ -16,10 +16,11 @@ export interface AllTipsRow {
   is_underdog: boolean | null;
   is_auto_tip?: boolean;
   created_at: string;
-}
+};
 
 export const tipsRepository = {
   async saveTip(
+    season: number,
     gameId: number,
     userId: string,
     teamId: number,
@@ -27,6 +28,7 @@ export const tipsRepository = {
     isUnderdog?: boolean,
   ): Promise<void> {
     console.log("[saveTip] start", {
+      season,
       gameId,
       userId,
       teamId,
@@ -37,6 +39,7 @@ export const tipsRepository = {
     try {
       const { error } = await supabaseClient.from("afl_tipping").upsert(
         {
+          season,
           game_id: gameId,
           user_id: userId,
           tip: teamId,
@@ -90,7 +93,7 @@ export const tipsRepository = {
     return (tips ?? []) as AllTipsRow[];
   },
 
-  async getAllTips(): Promise<AllTipsRow[]> {
+  async getAllTips(season: number): Promise<AllTipsRow[]> {
     const supabaseClient = await getSupabaseServerClient();
     // Supabase caps an unbounded select at 1000 rows, so page through explicitly —
     // otherwise later rounds (highest game_ids) silently drop off once the table
@@ -101,6 +104,7 @@ export const tipsRepository = {
       const { data, error } = await supabaseClient
         .from("afl_tipping")
         .select("game_id, user_id, tip, margin, is_underdog")
+        .eq("season", season)
         .order("game_id", { ascending: true })
         .order("user_id", { ascending: true })
         .range(from, from + PAGE_SIZE - 1);

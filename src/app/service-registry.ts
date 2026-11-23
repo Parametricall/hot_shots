@@ -1,4 +1,5 @@
 import type { LiveGameUpdate } from "~/features/afl-tipping/api/squiggle/sse-schemas";
+import type { competitionEntriesRepository } from "~/features/afl-tipping/api/competition-entries.repository";
 import type { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import type { tipstersRepository } from "~/features/afl-tipping/api/tipsters.repository";
 import type {
@@ -57,6 +58,7 @@ export type ServiceTypes = {
   liveScoresService: LiveScoresService;
   tipsRepository: typeof tipsRepository;
   tipstersRepository: typeof tipstersRepository;
+  competitionEntriesRepository: typeof competitionEntriesRepository;
 };
 
 class ServiceRegistry {
