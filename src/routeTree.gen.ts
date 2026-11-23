@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiLiveScoresRouteImport } from './routes/api/live-scores'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
@@ -52,6 +53,11 @@ const AuthenticatedAflTippingRoute = AuthenticatedAflTippingRouteImport.update({
   id: '/afl-tipping',
   path: '/afl-tipping',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLiveScoresRoute = ApiLiveScoresRouteImport.update({
   id: '/api/live-scores',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_authenticated/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/afl-tipping'
+    | '/api/health'
     | '/api/live-scores'
     | '/auth/callback'
     | '/afl-tipping/group-tips'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sign-in'
     | '/sign-up'
+    | '/api/health'
     | '/api/live-scores'
     | '/auth/callback'
     | '/afl-tipping/group-tips'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/_authenticated/afl-tipping'
+    | '/api/health'
     | '/api/live-scores'
     | '/auth/callback'
     | '/_authenticated/afl-tipping/group-tips'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiLiveScoresRoute: typeof ApiLiveScoresRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthOauthProviderRoute: typeof AuthOauthProviderRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/afl-tipping'
       preLoaderRoute: typeof AuthenticatedAflTippingRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/live-scores': {
       id: '/api/live-scores'
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiLiveScoresRoute: ApiLiveScoresRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthOauthProviderRoute: AuthOauthProviderRoute,
