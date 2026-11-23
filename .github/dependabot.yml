@@ -1,0 +1,17 @@
+# Keeps the actions in .github/workflows/ up to date. npm packages aren't covered:
+# `build:` commits bump those by hand, keeping pinned sets in step (AGENTS.md).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Australia/Melbourne
+    # One PR for every action that has an update, not one PR each.
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      # Workflows take the `repo` scope (AGENTS.md); Dependabot adds the colon.
+      prefix: repo
