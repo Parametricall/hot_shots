@@ -511,7 +511,22 @@ operator chose from "Out of scope".
 
 ## Notes
 
-- Squiggle findings from Step 2: _(executor fills in)_
+- Squiggle findings from Step 2 (run 2026-11-24, with the repo's User-Agent):
+  1. `q=games;year=2026` returns 218 Games and `q=games;year=2027` returns 218 (the
+     2027 Fixture is already published). No Game id appears in both (2026 ids start
+     at 38494, 2027 at 40308). Game ids are unique across Seasons, so the STOP
+     condition did not trigger and `(game_id, user_id)` stays a safe primary key.
+  2. **Deviation**: `q=games;complete=!100` with no year is rejected. Squiggle answers
+     `{"games":[{"error":"missing_parameter","message":"The 'games' query requires
+     additional parameters, including at least one of 'year' or 'game'."}]}`, so
+     today's `fetchIncompleteGames` fails (only `incompleteGames()` calls it). With a
+     year it works: `year=2027;complete=!100` returns the 2027 Fixture, and
+     `year=2028` returns `{"games":[]}`. Step 4 therefore gives `fetchIncompleteGames`
+     a Season, and `getSeasons` asks for last year, this year and next year
+     (Melbourne time) in parallel, then falls back to `fetchGames` for the newest
+     Season with Games.
+  3. `q=standings;year=2026` returns the final 2026 Ladder (18 teams, Fremantle
+     first on 23 played).
 - `fetchIncompleteGames` is used today only by `incompleteGames()`. It
   becomes the main input to `getSeasons`, so cache it with
   `CACHE_DURATIONS.GAMES` there, not `INCOMPLETE_GAMES`. Check what each
