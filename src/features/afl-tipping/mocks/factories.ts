@@ -143,6 +143,7 @@ export function createAflGame(overrides: Partial<AflGame> = {}) {
   const futureTime = Date.now() + 1000 * 60 * 60 * 24; // 24 hours in future
   return {
     id: 0,
+    season: 2026,
     round: 0,
     roundName: "Round 1",
     venue: VENUES.gabba,

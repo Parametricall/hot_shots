@@ -47,6 +47,7 @@ describe("squiggleGamesDtoToDomain", () => {
     expect(games).toHaveLength(1);
     expect(games[0]).toEqual({
       id: 8706,
+      season: 2026,
       round: 5,
       roundName: "Round 5",
       venue: VENUES.mcg,

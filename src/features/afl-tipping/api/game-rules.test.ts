@@ -5,6 +5,7 @@ import type { AflGame } from "~/features/afl-tipping/types";
 function makeGame(overrides: Partial<AflGame> = {}): AflGame {
   return {
     id: 1,
+    season: 2026,
     round: 1,
     roundName: "Round 1",
     venue: { name: "MCG" },

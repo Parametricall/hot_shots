@@ -122,6 +122,7 @@ const squiggleVenueDomainMap: Record<string, Venue> = {
 
 const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>((dto) => ({
   id: dto.id,
+  season: dto.year,
   round: dto.round,
   roundName: dto.roundname,
   venue: squiggleVenueDomainMap[dto.venue] ?? { name: dto.venue },

@@ -31,6 +31,7 @@ export type AflStanding = {
 };
 
 export type AflGame = {
+  season: number;
   id: number;
   round: number;
   roundName: string;

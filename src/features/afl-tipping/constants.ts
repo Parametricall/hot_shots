@@ -3,6 +3,9 @@ import { Venue } from "~/features/afl-tipping/types";
 // Season structure
 export const REGULAR_SEASON_ROUNDS = 25;
 
+// The first Season with Tips. Squiggle has older ones, but nobody tipped them.
+export const FIRST_SEASON = 2026;
+
 // Polling intervals
 export const GAME_STATUS_CHECK_INTERVAL_MS = 60000; // 1 minute
 
