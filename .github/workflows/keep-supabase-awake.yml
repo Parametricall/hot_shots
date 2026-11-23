@@ -1,0 +1,50 @@
+name: Keep Supabase awake
+
+# Supabase pauses a free project after a week without activity, and the AFL off-season
+# guarantees that. This runs the Playwright health test against production, which makes
+# /api/health query the database.
+#
+# It runs twice a week, not weekly: GitHub can start a scheduled run late or drop it when
+# Actions is busy, and a single weekly run that slips would let the week lapse.
+# A failed run means the database is unreachable (or already paused), and GitHub emails
+# you about it.
+
+on:
+  schedule:
+    # 03:17 UTC Mon and Thu. An off-the-hour minute avoids GitHub's busiest start times.
+    - cron: "17 3 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # For the re-enable step below.
+  actions: write
+
+jobs:
+  ping:
+    name: Ping the database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run test:e2e
+        env:
+          # A repository variable (Settings > Secrets and variables > Actions > Variables).
+          BASE_URL: ${{ vars.PRODUCTION_URL }}
+
+      # GitHub disables scheduled workflows in a public repo after 60 days without a
+      # commit, which a quiet off-season can reach. Re-enabling the workflow through the
+      # API resets that timer.
+      - name: Keep this schedule enabled
+        if: always()
+        run: gh workflow enable "${{ github.workflow }}" --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
