@@ -17,7 +17,7 @@ describe("safeRedirectPath", () => {
   it.each(["//evil.com", "/\\evil.com", "https://evil.com", undefined, 42, null])(
     "refuses %s",
     (value) => {
-      expect(safeRedirectPath(value)).toBe("/afl-tipping/tips");
+      expect(safeRedirectPath(value)).toBe("/afl-tipping");
     },
   );
 });

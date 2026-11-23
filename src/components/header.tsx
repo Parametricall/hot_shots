@@ -48,7 +48,7 @@ export function Header(props: ComponentProps<"header">) {
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-16">
-          <Link to="/afl-tipping/tips" className="flex items-center gap-3">
+          <Link to="/afl-tipping" className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
               <img src={logo} alt="Logo" className="w-12 h-12 rounded-xl" />
             </div>

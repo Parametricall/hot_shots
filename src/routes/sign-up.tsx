@@ -5,7 +5,7 @@ import { IS_DEMO } from "~/lib/demo";
 // The route stays so old bookmarks still work.
 export const Route = createFileRoute("/sign-up")({
   beforeLoad: () => {
-    if (IS_DEMO) throw redirect({ to: "/afl-tipping/tips" });
+    if (IS_DEMO) throw redirect({ to: "/afl-tipping" });
     throw redirect({ to: "/sign-in" });
   },
 });

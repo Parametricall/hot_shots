@@ -29,7 +29,7 @@ function renderHub(launchAppId: string | null = null) {
     history: createMemoryHistory({ initialEntries: ["/"] }),
     routeTree: rootRoute.addChildren([
       indexRoute,
-      createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping/tips" }),
+      createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping" }),
     ]),
   });
   return render(<RouterProvider router={router} />);

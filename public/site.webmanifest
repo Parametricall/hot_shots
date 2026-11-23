@@ -2,7 +2,7 @@
   "id": "/afl-tipping/tips",
   "name": "Hot Shots - AFL",
   "short_name": "AFL Tips",
-  "start_url": "/afl-tipping/tips",
+  "start_url": "/afl-tipping",
   "scope": "/afl-tipping/",
   "icons": [
     {

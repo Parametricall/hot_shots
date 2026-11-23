@@ -25,7 +25,7 @@ function withHubRouter(launchAppId: (typeof APPS)[number]["id"] | null): Decorat
         history: createMemoryHistory({ initialEntries: ["/"] }),
         routeTree: rootRoute.addChildren([
           indexRoute,
-          createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping/tips" }),
+          createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping" }),
         ]),
       });
     });

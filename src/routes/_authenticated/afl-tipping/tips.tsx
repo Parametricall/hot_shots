@@ -1,27 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { MyTips } from "~/features/afl-tipping/pages/my-tips";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
-import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 
+// Installed PWAs keep the `start_url` they were installed with, and links are already shared, so
+// the URLs from before Seasons stay for good and send on to the Current Season. They match ahead
+// of `$season`, because TanStack Router ranks a static segment above a dynamic one.
 export const Route = createFileRoute("/_authenticated/afl-tipping/tips")({
-  // Fire-and-forget prefetches: don't block navigation (the page has its own
-  // suspense skeleton), just start every request the page needs as early as
-  // possible instead of letting components discover them in a waterfall.
-  loader: ({ context: { queryClient } }) => {
-    queryClient.prefetchQuery(aflQueries.teams());
-    queryClient
-      .ensureQueryData(aflQueries.seasons())
-      .then(async ({ current: { season } }) => {
-        const games = await queryClient.ensureQueryData(aflQueries.allGames(season));
-        const round = AflGame.getActiveRound(games);
-        if (round == undefined) return;
-        queryClient.prefetchQuery(aflQueries.modelTips(season, round));
-        const gameIds = games.filter(AflGame.byRound(round)).map((game) => game.id);
-        queryClient.prefetchQuery(aflQueries.getTips(season, gameIds));
-      })
-      .catch(() => {
-        // Prefetch only — the page's own queries surface any errors
-      });
+  validateSearch: z.object({ round: z.number().int().nonnegative().optional() }),
+  beforeLoad: async ({ context: { queryClient }, search }) => {
+    const { current } = await queryClient.ensureQueryData(aflQueries.seasons());
+    throw redirect({
+      to: "/afl-tipping/$season/tips",
+      params: { season: current.season },
+      search: { round: search.round },
+      replace: true,
+    });
   },
-  component: MyTips,
 });

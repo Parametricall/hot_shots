@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { getSupabaseAuthClient, getSupabaseServerClient } from "~/lib/supabase";
 
-const DEFAULT_REDIRECT = "/afl-tipping/tips";
+const DEFAULT_REDIRECT = "/afl-tipping";
 
 /**
  * Where to send someone after sign-in: `value` if it is a path on this site, else the tips page.

@@ -15,5 +15,5 @@
       "purpose": "any maskable"
     }
   ],
-  "shortcuts": [{ "name": "AFL Tipping", "url": "/afl-tipping/tips" }]
+  "shortcuts": [{ "name": "AFL Tipping", "url": "/afl-tipping" }]
 }

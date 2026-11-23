@@ -1,11 +1,11 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { getRouteApi } from "@tanstack/react-router";
+
+const seasonRoute = getRouteApi("/_authenticated/afl-tipping/$season");
 
 /**
- * The Season the page is showing. Components read it here and never take it as a prop several
- * levels down. Until the routes carry the Season in their path, it is the Current Season.
+ * The Season the page is showing, from the URL (`/afl-tipping/2027/tips`). Components read it here
+ * and never take it as a prop passed down several levels.
  */
 export function useSeason(): number {
-  const { data } = useSuspenseQuery(aflQueries.seasons());
-  return data.current.season;
+  return seasonRoute.useParams({ select: (params) => params.season });
 }

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/sign-in")({
   }),
   // The Demo has no sign-in: go straight to AFL Tipping.
   beforeLoad: () => {
-    if (IS_DEMO) throw redirect({ to: "/afl-tipping/tips" });
+    if (IS_DEMO) throw redirect({ to: "/afl-tipping" });
   },
   loader: async () => ({ supabaseHost: await getSupabaseHost() }),
   component: SignInPage,
