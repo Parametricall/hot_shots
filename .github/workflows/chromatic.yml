@@ -24,7 +24,9 @@ jobs:
 
       - run: npm ci
 
-      - uses: chromaui/action@latest
+      # Pinned, not @latest, so a new Chromatic release can't change CI unannounced. The
+      # action bundles the Chromatic CLI: bump it with the chromatic devDependency.
+      - uses: chromaui/action@v18.15.1
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           onlyChanged: true
