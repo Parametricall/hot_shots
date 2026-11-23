@@ -534,3 +534,18 @@ operator chose from "Out of scope".
 - The query cache is persisted with `buster: __BUILD_ID__`, so the key
   changes in Step 4 need no cache migration. The first launch after the
   deploy refetches.
+- Executor notes (2026-11-24):
+  - Step 5's "save the production 2026 Leaderboard" needs the deployed site, so it is left for
+    the operator before Step 10. The migration also guards against Tips made outside 2026 by
+    `created_at`; it can't check Game ids, so the "every Tip is a 2026 Game" check is still the
+    operator's.
+  - The migration was run against a scratch Postgres 17 container with stubbed Supabase roles and
+    `auth.users` (another project's local Supabase owns the default ports here), not
+    `npx supabase db reset`. A Tip for a Season with no entry is refused by the new foreign key.
+  - `getSeasons` is cached for a minute per server instance, because every server function now
+    calls it. `competition-entries.repository.ts` has a `getEntry` the plan didn't list, for the
+    Auto-tips of a Season the Tipster hasn't entered.
+  - The Season route param parses with `Number`, not zod: a parse error shows the error
+    component, while an unknown Season should be Not Found.
+  - `getIncompleteGames`, `incompleteGames()` and `CACHE_DURATIONS.INCOMPLETE_GAMES` are gone;
+    `getSeasons` replaced them (see the Squiggle findings).
