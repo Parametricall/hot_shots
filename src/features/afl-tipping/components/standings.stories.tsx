@@ -1,4 +1,4 @@
-import preview, { centeredYDecorator, containerDecorator } from "#.storybook/preview";
+import preview, { centeredYDecorator, containerDecorator, withSeason } from "#.storybook/preview";
 import { Standings } from "~/features/afl-tipping/components/standings";
 import { createAflStanding, createAflTeam } from "~/features/afl-tipping/mocks/factories";
 import { expect, userEvent, waitFor, within } from "storybook/test";
@@ -88,7 +88,7 @@ const meta = preview.meta({
     layout: "padded",
     services: standingsServices(STANDINGS, TEAMS),
   },
-  decorators: [containerDecorator("max-w-2xl"), centeredYDecorator],
+  decorators: [withSeason(), containerDecorator("max-w-2xl"), centeredYDecorator],
 });
 
 export const Default = meta.story({

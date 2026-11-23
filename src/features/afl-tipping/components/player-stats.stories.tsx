@@ -1,4 +1,4 @@
-import preview, { withMockUser } from "#.storybook/preview";
+import preview, { withMockUser, withSeason } from "#.storybook/preview";
 import { PlayerStats } from "~/features/afl-tipping/components/player-stats";
 import {
   createAflPlayerRoundStats,
@@ -93,7 +93,7 @@ const meta = preview.meta({
     layout: "centered",
     services: playerStatsService(PLAYER_STATS),
   },
-  decorators: [withMockUser()],
+  decorators: [withSeason(), withMockUser()],
 });
 
 export const Default = meta.story({

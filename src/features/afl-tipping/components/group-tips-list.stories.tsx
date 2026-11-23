@@ -2,6 +2,7 @@ import preview, {
   centeredYDecorator,
   containerDecorator,
   withMockUser,
+  withSeason,
   withSuspense,
 } from "#.storybook/preview";
 import { GroupTipsList } from "~/features/afl-tipping/components/group-tips-list";
@@ -100,6 +101,7 @@ const meta = preview.meta({
   component: GroupTipsList,
   parameters: { layout: "padded" },
   decorators: [
+    withSeason(),
     withSuspense,
     withMockUser(),
     withCurrentRound(1),

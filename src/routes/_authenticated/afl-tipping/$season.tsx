@@ -3,6 +3,10 @@ import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
+import { PastSeasonBanner } from "~/features/afl-tipping/components/past-season-banner";
+import { SeasonSwitcher } from "~/features/afl-tipping/components/season-switcher";
+import type { SeasonTab } from "~/features/afl-tipping/components/season-tab-path";
+import { Trophy } from "lucide-react";
 import { useIsMobile } from "~/lib/use-is-mobile";
 
 const TABS = [
@@ -36,25 +40,35 @@ function SeasonLayout() {
   const season = useSeason();
   const { location } = useRouterState();
   // /afl-tipping/<season>/<tab>
-  const activeTab = location.pathname.split("/")[3] ?? "summary";
+  const activeTab = (location.pathname.split("/")[3] ?? "summary") as SeasonTab;
   const isMobile = useIsMobile();
 
   const tabsList = (
-    <TabsList className="w-full mb-2 shrink-0 md:p-0.75 md:rounded-lg">
-      {TABS.map((tab) => (
-        <TabsTrigger key={tab.id} value={tab.id} asChild>
-          <Link to={`/afl-tipping/$season/${tab.id}`} params={{ season }} search={(prev) => prev}>
-            {tab.label}
+    <div className="mb-2 flex shrink-0 items-center gap-2">
+      <TabsList className="min-w-0 flex-1 md:p-0.75 md:rounded-lg">
+        <TabsTrigger value="summary" asChild className="flex-none px-3">
+          <Link to="/afl-tipping/$season" params={{ season }} search={(prev) => prev}>
+            <Trophy aria-hidden />
+            <span className="sr-only">Season summary</span>
           </Link>
         </TabsTrigger>
-      ))}
-    </TabsList>
+        {TABS.map((tab) => (
+          <TabsTrigger key={tab.id} value={tab.id} asChild>
+            <Link to={`/afl-tipping/$season/${tab.id}`} params={{ season }} search={(prev) => prev}>
+              {tab.label}
+            </Link>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <SeasonSwitcher tab={activeTab} />
+    </div>
   );
 
   if (isMobile) {
     return (
       <Tabs value={activeTab} className="gap-0 flex-1 flex flex-col min-h-0">
         {tabsList}
+        <PastSeasonBanner />
         <div className="flex-1 flex flex-col min-h-0">
           <Outlet />
         </div>
@@ -65,6 +79,7 @@ function SeasonLayout() {
   return (
     <Tabs value={activeTab} className="gap-2">
       {tabsList}
+      <PastSeasonBanner />
       <div className="pt-2">
         <Outlet />
       </div>

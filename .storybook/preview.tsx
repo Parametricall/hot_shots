@@ -89,6 +89,43 @@ export const withRouter: Decorator = function WithRouter(Story) {
   return <RouterProvider router={router} />;
 };
 
+/**
+ * Runs the story at `/afl-tipping/<season>`, under the same route ids as the app, so components
+ * that read the Season with `useSeason()` find it.
+ */
+export const withSeason = (season = 2026): Decorator => {
+  return function WithSeason(Story) {
+    const [router] = useState(() => {
+      const rootRoute = createRootRoute({ component: () => <Outlet /> });
+      const authenticatedRoute = createRoute({
+        getParentRoute: () => rootRoute,
+        id: "_authenticated",
+      });
+      const aflRoute = createRoute({
+        getParentRoute: () => authenticatedRoute,
+        path: "afl-tipping",
+      });
+      const seasonRoute = createRoute({
+        getParentRoute: () => aflRoute,
+        path: "$season",
+        params: {
+          parse: (params: { season: string }) => ({ season: Number(params.season) }),
+          stringify: (params: { season: number }) => ({ season: String(params.season) }),
+        },
+        component: () => <Story />,
+      });
+      return createRouter({
+        history: createMemoryHistory({ initialEntries: [`/afl-tipping/${season}`] }),
+        routeTree: rootRoute.addChildren([
+          authenticatedRoute.addChildren([aflRoute.addChildren([seasonRoute])]),
+        ]),
+      });
+    });
+
+    return <RouterProvider router={router} />;
+  };
+};
+
 export const DEFAULT_USER: CurrentUser = {
   id: "user-storybook",
   displayName: "Jane Doe",

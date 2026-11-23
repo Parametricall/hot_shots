@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
+import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { SeasonSummaryPage } from "~/features/afl-tipping/pages/season-summary";
 
-// The Season summary replaces this in the next step.
 export const Route = createFileRoute("/_authenticated/afl-tipping/$season/")({
-  component: Leaderboard,
+  loader: ({ params: { season }, context: { queryClient } }) => {
+    void queryClient.prefetchQuery(aflQueries.allGames(season));
+    void queryClient.prefetchQuery(aflQueries.leaderboard(season));
+  },
+  component: SeasonSummaryPage,
 });
