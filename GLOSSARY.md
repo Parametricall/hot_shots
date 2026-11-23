@@ -42,8 +42,13 @@ first time they open that App.
 _Avoid_: player (AFL players are the footballers), user, member
 
 **Competition**:
-One Season of an App's tipping game. Every Tipster is in it.
+One Season of an App's tipping game. Every Tipster who has entered it is in it.
 _Avoid_: group, league, comp
+
+**Entering a Competition**:
+A Tipster enters a Season's Competition the first time they open the App while that Season is the
+Current Season and isn't over. Auto-tips start from entry, not from joining the App.
+_Avoid_: signing up for a Season, re-joining
 
 ### The season
 
@@ -62,6 +67,16 @@ _Avoid_: week
 **Season**:
 One year's Rounds.
 _Avoid_: year
+
+**Current Season**:
+The Season tipping is open for, or the newest Season if none is. It is the earliest Season with a
+Game still to finish. If no Season has one, it is the newest Season Squiggle has Games for.
+_Avoid_: this season, active season
+
+**Season summary**:
+The page for one Season of an App: the Leaderboard's top three and, once the Season is over, the
+Wooden spoon.
+_Avoid_: home page, season home, overview, dashboard
 
 **Finals**:
 The Rounds after the home-and-away Rounds, ending in the Grand Final.
@@ -108,7 +123,7 @@ _Avoid_: pick, prediction, selection
 
 **Auto-tip**:
 The Tip a Tipster gets for a Game they hadn't tipped by Lockout: the Home team. Only Games whose
-Lockout comes after the Tipster joined get one. It counts like any other Tip, except that it is
+Lockout comes after the Tipster entered the Competition get one. It counts like any other Tip, except that it is
 never an Underdog tip, and it is shown as an Auto-tip wherever Tips are shown.
 _Avoid_: default tip, missed tip
 
@@ -166,3 +181,8 @@ _Avoid_: standings, table
 The ranking of Tipsters in a Competition: by Score, then by lowest Margin difference. Tipsters
 still level share the rank.
 _Avoid_: standings, ladder, rankings
+
+**Wooden spoon**:
+Last place on the Leaderboard of a Season that is over. Tipsters level on last place share it. A
+Competition of three or fewer has none, since everyone is on the podium.
+_Avoid_: booby prize, last place

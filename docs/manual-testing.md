@@ -11,8 +11,9 @@ Status: deployed. The real-device checks below are still to do. See
 ### Hub (`/`)
 
 - [ ] `/` shows the Hub with one card per App (AFL Tipping today)
-- [ ] Tapping the AFL card opens `/afl-tipping/tips` without a full page reload
-- [ ] Header logo goes to `/afl-tipping/tips`; the "All apps" link goes to `/`
+- [ ] Tapping the AFL card opens `/afl-tipping` (which lands on My Tips of the Current Season)
+      without a full page reload
+- [ ] Header logo goes to `/afl-tipping`; the "All apps" link goes to `/`
 - [ ] SSR HTML of `/` has exactly one manifest link (`/hub.webmanifest`)
 - [ ] SSR HTML of `/afl-tipping/*` has exactly one manifest link (`/site.webmanifest`)
 - [ ] `/sign-in` and `/sign-up` link no manifest
@@ -20,7 +21,7 @@ Status: deployed. The real-device checks below are still to do. See
 ### Launch preference
 
 - [ ] Hub card has an "Open this app when I launch Hot Shots" switch; only one can be on at a time
-- [ ] With it on, `/?launch=pwa` redirects to `/afl-tipping/tips`
+- [ ] With it on, `/?launch=pwa` redirects to `/afl-tipping`
 - [ ] With it on, plain `/` (via "All apps") still shows the Hub
 - [ ] With it off, `/?launch=pwa` shows the Hub
 - [ ] iOS: the setting has to be made inside the installed Hub, not Safari (own cookie jar)
@@ -29,18 +30,70 @@ Status: deployed. The real-device checks below are still to do. See
 
 - [ ] Signed out, open `/afl-tipping/standings`, sign in, land back on standings
 - [ ] `redirect_url` that doesn't start with `/` is ignored (open-redirect guard)
-- [ ] Dev login buttons honour `redirect_url`, default `/afl-tipping/tips`
+- [ ] Dev login buttons honour `redirect_url`, default `/afl-tipping`
 
 ### PWA installs (real phones, after production deploy)
 
 - [ ] Existing AFL install (made before the deploy) still opens to tips, standalone, signed in, no
-      reinstall prompt or duplicate icon
+      reinstall prompt or duplicate icon. Its `start_url` is the old `/afl-tipping/tips`, which
+      redirects to the Current Season
 - [ ] Fresh install from `/` gives a "Hot Shots" Hub icon; tapping AFL stays in the Hub window
-- [ ] Fresh install from `/afl-tipping/tips` gives the AFL-only icon, opens to tips
+- [ ] Fresh install from `/afl-tipping` gives the AFL-only icon, opens to tips
 - [ ] Both installed side by side: distinct icons and names, each opens in the right place
 - [ ] Chrome DevTools, Application, Manifest: correct `id` and `scope` on each page, installable
 - [ ] Offline launch of the AFL-only PWA shows the cached shell
 - [ ] Android: long-press the Hub icon shows the "AFL Tipping" shortcut
+
+## Seasons
+
+Status: not deployed. See `docs/adr/0007-tipsters-enter-each-season.md` and plan 014. Run these in
+`vp dev` (or `npm run dev:demo` for the Demo checks), then the installed-PWA checks on real phones.
+
+### Routes
+
+- [ ] `/afl-tipping` lands on My Tips of the Current Season (`/afl-tipping/<season>/tips`), or on
+      the Season summary (`/afl-tipping/<season>`) when the Current Season is over
+- [ ] With the app already open once, reopening `/afl-tipping` redirects with no loading screen
+- [ ] `/afl-tipping/tips?round=3` lands on `/afl-tipping/<current>/tips?round=3`; likewise
+      `/afl-tipping/group-tips`, `/afl-tipping/standings` and `/afl-tipping/stats`
+- [ ] `/afl-tipping/1999/tips` and `/afl-tipping/abc` show Not Found
+- [ ] The back button after a redirect doesn't bounce back to `/afl-tipping`
+- [ ] If Squiggle is down and nothing is cached, `/afl-tipping` shows an error with a retry, not a
+      guessed Season
+
+### Season summary, switcher and banner
+
+- [ ] The trophy tab shows the Season summary; five tabs still fit at 360px
+- [ ] In progress: a "Tip Round N" button, the top three so far, your own rank, no Wooden spoon
+- [ ] Over: "<season> Season, final", the podium, the Wooden spoon, your finish, "Full Leaderboard"
+- [ ] Tied Tipsters on a podium rank are all shown with "=2nd" style ranks; Tipsters level on last
+      place share the Wooden spoon; three or fewer Tipsters means no Wooden spoon
+- [ ] The Season switcher is hidden with one Season. With two it lists them newest first, marks
+      the Current Season, keeps the open tab and drops `?round`
+- [ ] On a past Season a banner reads "You're viewing <season>. Back to <current>", linking to the
+      Current Season's My Tips, or its summary when that is over
+- [ ] A past Season's My Tips is read-only: every Game is locked
+
+### Entering a Competition
+
+- [ ] Opening the App in the Current Season gives the Tipster an `afl_competition_entries` row for it
+- [ ] Viewing a past Season enters nothing
+- [ ] A Tip saves with `afl_tipping.season` set to the Game's Season
+- [ ] A 2026 Tipster who hasn't opened the App in 2027 isn't on the 2027 Leaderboard
+- [ ] The 2026 Leaderboard after the migration matches the one saved before it (scores, Margin
+      differences and ranks)
+
+### Demo (`npm run dev:demo`)
+
+- [ ] `/afl-tipping` opens on My Tips at the start position
+- [ ] Time control to "Season over", then `/afl-tipping` lands on the 2026 summary with a podium
+      and a Wooden spoon
+- [ ] No Season switcher shows
+
+### Installed PWA
+
+- [ ] iOS: an install made before this change launches and lands on the Current Season
+- [ ] Android: same, and the Hub shortcut "AFL Tipping" lands on the Current Season
 
 ## Cheating feature removed
 

@@ -24,5 +24,7 @@ never saw.
   still make not tipping the Margin game an advantage: a Margin of 0 never overshoots, while a
   Tipster who tips the wrong team pays for both. If that shows up in practice, default the Margin
   to the largest winning margin in the Round instead.
+- "Joined" means entered the Season's Competition (`docs/adr/0007`): each Season starts its
+  Tipsters' Auto-tips afresh.
 - A Tipster who signs up and never tips still collects home-team Correct tips. Accepted, to keep
   the rule simple.

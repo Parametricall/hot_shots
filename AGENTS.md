@@ -105,9 +105,11 @@ Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start serv
 Use hierarchical query keys:
 
 ```typescript
-["fixtures", "round", roundNumber];
-["tips", "user", userId, "round", roundNumber];
+["afl", "season", 2027, "games"];
+["afl", "season", 2027, "getTips", { gameIds }];
 ```
+
+Every AFL query below the Season takes the Season. Read it with `useSeason()`.
 
 ## Domain Types
 
