@@ -23,7 +23,7 @@ const CLOCK_HORIZON_MS = 24 * 60 * 60 * 1000;
  * It is mounted once, in the tipping page shell. It stops by itself: when the last
  * Game completes, `games` changes, `shouldConnect` flips and the cleanup unsubscribes.
  */
-export function useLiveScores(games: AflGame[]): void {
+export function useLiveScores(season: number, games: AflGame[]): void {
   const queryClient = useQueryClient();
   const [nowMs, setNowMs] = useState(() => now());
 
@@ -45,11 +45,11 @@ export function useLiveScores(games: AflGame[]): void {
   useEffect(() => {
     if (!shouldConnect) return;
     return serviceRegistry.getService("liveScoresService").subscribe({
-      onUpdate: (update) => writeLiveGameUpdateToCache(queryClient, update),
+      onUpdate: (update) => writeLiveGameUpdateToCache(queryClient, season, update),
       // After a reconnect, updates may have been missed: refetch every list of Games.
       onResync: () => {
-        void queryClient.invalidateQueries({ queryKey: aflQueries.allGamesKey() });
+        void queryClient.invalidateQueries({ queryKey: aflQueries.allGamesKey(season) });
       },
     });
-  }, [shouldConnect, queryClient]);
+  }, [shouldConnect, queryClient, season]);
 }

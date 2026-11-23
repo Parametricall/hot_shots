@@ -81,16 +81,16 @@ function GameCardRoot({
   // An Auto-tip only exists once Lockout has passed, so refetch the Tipster's tips then
   useEffect(() => {
     if (hasStarted && !prevHasStarted.current) {
-      queryClient.invalidateQueries({ queryKey: aflQueries.allGetTipsKey() });
+      queryClient.invalidateQueries({ queryKey: aflQueries.allGetTipsKey(game.season) });
     }
     prevHasStarted.current = hasStarted;
-  }, [hasStarted, queryClient]);
+  }, [hasStarted, queryClient, game.season]);
 
   const submitTip = useCallback(
     (gameId: number, teamId: number, margin?: number) => {
-      mutation.mutate({ data: { gameId, teamId, margin } });
+      mutation.mutate({ data: { season: game.season, gameId, teamId, margin } });
     },
-    [mutation],
+    [mutation, game.season],
   );
 
   return (
@@ -552,7 +552,7 @@ function Last5Indicators({
 function GameCardStats({ className, enabled = false }: { className?: string; enabled?: boolean }) {
   const { game, homeTeam, awayTeam } = useGameCard();
   const { data: stats, isLoading } = useQuery({
-    ...aflQueries.gameStats(game.id),
+    ...aflQueries.gameStats(game.season, game.id),
     enabled,
   });
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, ChevronDownIcon } from "lucide-react";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -70,6 +71,7 @@ export function StandingsSkeleton() {
 }
 
 export function Standings() {
+  const season = useSeason();
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const {
@@ -79,7 +81,7 @@ export function Standings() {
     isFetching: isStandingsFetching,
     refetch: refetchStandings,
   } = useQuery({
-    ...aflQueries.standings(),
+    ...aflQueries.standings(season),
   });
   const {
     data: teams,

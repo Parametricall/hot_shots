@@ -2,22 +2,24 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { GameRules } from "~/features/afl-tipping/api/game-rules";
 
 export function UnderdogWarning() {
+  const season = useSeason();
   const currentRound = useCurrentRound();
 
   const { data: roundGames } = useQuery({
-    ...aflQueries.allGames(),
+    ...aflQueries.allGames(season),
     select: (games) => games.filter(AflGame.byRound(currentRound)),
   });
 
   const gameIds = useMemo(() => roundGames?.map((g) => g.id) ?? [], [roundGames]);
 
   const { data: tip } = useQuery({
-    ...aflQueries.getTips(gameIds),
+    ...aflQueries.getTips(season, gameIds),
     enabled: gameIds.length > 0,
   });
 

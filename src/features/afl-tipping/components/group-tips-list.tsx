@@ -11,6 +11,7 @@ import {
 } from "~/features/afl-tipping/utils/afl-tipping";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import { Clock, MapPin } from "lucide-react";
@@ -243,10 +244,10 @@ function GameGroupTipCard({
 
   useEffect(() => {
     if (hasStarted && !prevHasStarted.current) {
-      queryClient.invalidateQueries({ queryKey: aflQueries.allGroupTipsKey() });
+      queryClient.invalidateQueries({ queryKey: aflQueries.allGroupTipsKey(game.season) });
     }
     prevHasStarted.current = hasStarted;
-  }, [hasStarted, queryClient]);
+  }, [hasStarted, queryClient, game.season]);
 
   const tipped = tips.filter((t) => t.hasTipped);
   const notTipped = tips.filter((t) => !t.hasTipped);
@@ -307,6 +308,7 @@ function GameGroupTipCard({
 }
 
 export function GroupTipsList() {
+  const season = useSeason();
   const currentRound = useCurrentRound();
 
   const selectCurrentRoundGames = useCallback(
@@ -315,12 +317,12 @@ export function GroupTipsList() {
   );
 
   const { data: games } = useSuspenseQuery({
-    ...aflQueries.allGames(),
+    ...aflQueries.allGames(season),
     select: selectCurrentRoundGames,
   });
   const { data: teams } = useSuspenseQuery(aflQueries.teams());
   const { data: groupTips, isPending: isGroupTipsPending } = useQuery({
-    ...aflQueries.groupTips(currentRound),
+    ...aflQueries.groupTips(season, currentRound),
   });
 
   if (games.length === 0) {

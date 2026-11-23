@@ -2,6 +2,7 @@ import { PropsWithChildren, ReactNode, Suspense, useCallback, useMemo } from "re
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { useLiveScores } from "~/features/afl-tipping/hooks/use-live-scores";
 import { aflGamesToRounds } from "~/features/afl-tipping/utils/afl-tipping";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
@@ -37,9 +38,10 @@ function TippingPageContent({
   const search = useSearch({ strict: false }) as { round?: number };
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const season = useSeason();
 
-  const { data: games } = useSuspenseQuery(aflQueries.allGames());
-  useLiveScores(games);
+  const { data: games } = useSuspenseQuery(aflQueries.allGames(season));
+  useLiveScores(season, games);
 
   const rounds = useMemo(() => aflGamesToRounds(games), [games]);
   const activeRound = useMemo(() => AflGame.getActiveRound(games), [games]);

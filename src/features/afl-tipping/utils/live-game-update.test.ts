@@ -132,24 +132,19 @@ describe("applyLiveGameUpdate", () => {
 describe("writeLiveGameUpdateToCache", () => {
   function seed() {
     const queryClient = new QueryClient();
-    queryClient.setQueryData(aflQueries.allGames().queryKey, games);
-    queryClient.setQueryData(aflQueries.games(1).queryKey, [games[0]!, games[1]!]);
-    queryClient.setQueryData(aflQueries.incompleteGames().queryKey, games);
+    queryClient.setQueryData(aflQueries.allGames(2026).queryKey, games);
+    queryClient.setQueryData(aflQueries.games(2026, 1).queryKey, [games[0]!, games[1]!]);
     return queryClient;
   }
 
   it("updates every cached list of Games", () => {
     const queryClient = seed();
-    writeLiveGameUpdateToCache(queryClient, { gameId: 1, homeScore: 12 });
+    writeLiveGameUpdateToCache(queryClient, 2026, { gameId: 1, homeScore: 12 });
 
-    const all = queryClient.getQueryData<typeof games>(aflQueries.allGames().queryKey)!;
-    const round = queryClient.getQueryData<typeof games>(aflQueries.games(1).queryKey)!;
-    const incomplete = queryClient.getQueryData<typeof games>(
-      aflQueries.incompleteGames().queryKey,
-    )!;
+    const all = queryClient.getQueryData<typeof games>(aflQueries.allGames(2026).queryKey)!;
+    const round = queryClient.getQueryData<typeof games>(aflQueries.games(2026, 1).queryKey)!;
     expect(all[0]!.homeScore).toBe(12);
     expect(round[0]!.homeScore).toBe(12);
-    expect(incomplete[0]!.homeScore).toBe(12);
     expect(all[0]!.date).toBe(games[0]!.date);
   });
 
@@ -157,31 +152,41 @@ describe("writeLiveGameUpdateToCache", () => {
     const queryClient = seed();
     const decoy = [{ id: 1, name: "Lions" }];
     queryClient.setQueryData(aflQueries.allTeamsKey(), decoy);
-    queryClient.setQueryData([...aflQueries.aflKey(), "gameStats", { gameId: 1 }], decoy);
+    queryClient.setQueryData([...aflQueries.seasonKey(2026), "gameStats", { gameId: 1 }], decoy);
 
-    writeLiveGameUpdateToCache(queryClient, { gameId: 1, homeScore: 12 });
+    writeLiveGameUpdateToCache(queryClient, 2026, { gameId: 1, homeScore: 12 });
 
     expect(queryClient.getQueryData(aflQueries.allTeamsKey())).toBe(decoy);
-    expect(queryClient.getQueryData([...aflQueries.aflKey(), "gameStats", { gameId: 1 }])).toBe(
-      decoy,
-    );
+    expect(
+      queryClient.getQueryData([...aflQueries.seasonKey(2026), "gameStats", { gameId: 1 }]),
+    ).toBe(decoy);
+  });
+
+  it("leaves another Season's Games alone", () => {
+    const queryClient = seed();
+    const other = games.map((g) => ({ ...g, season: 2027 }));
+    queryClient.setQueryData(aflQueries.allGames(2027).queryKey, other);
+
+    writeLiveGameUpdateToCache(queryClient, 2026, { gameId: 1, homeScore: 12 });
+
+    expect(queryClient.getQueryData(aflQueries.allGames(2027).queryKey)).toBe(other);
   });
 
   it("skips a cache the update does not change", () => {
     const queryClient = seed();
     const round2 = [games[2]!];
-    queryClient.setQueryData(aflQueries.games(2).queryKey, round2);
+    queryClient.setQueryData(aflQueries.games(2026, 2).queryKey, round2);
 
-    writeLiveGameUpdateToCache(queryClient, { gameId: 1, homeScore: 12 });
+    writeLiveGameUpdateToCache(queryClient, 2026, { gameId: 1, homeScore: 12 });
 
-    expect(queryClient.getQueryData(aflQueries.games(2).queryKey)).toBe(round2);
+    expect(queryClient.getQueryData(aflQueries.games(2026, 2).queryKey)).toBe(round2);
   });
 
   it("skips a cache that is not a list", () => {
     const queryClient = seed();
-    queryClient.setQueryData([...aflQueries.allGamesKey(), "weird"], { not: "an array" });
+    queryClient.setQueryData([...aflQueries.allGamesKey(2026), "weird"], { not: "an array" });
     expect(() =>
-      writeLiveGameUpdateToCache(queryClient, { gameId: 1, homeScore: 12 }),
+      writeLiveGameUpdateToCache(queryClient, 2026, { gameId: 1, homeScore: 12 }),
     ).not.toThrow();
   });
 });

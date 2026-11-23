@@ -8,6 +8,7 @@ import type {
 } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import serviceRegistry from "~/app/service-registry";
+import { FIRST_SEASON } from "~/features/afl-tipping/constants";
 import type { AllTipsRow } from "./tips.repository";
 import {
   TIP_REJECTION_MESSAGES,
@@ -19,13 +20,17 @@ import {
   type Tipsters,
 } from "./competition";
 
+const SeasonSchema = z.number().int().min(FIRST_SEASON);
+
 const SubmitTipSchema = z.object({
+  season: SeasonSchema,
   gameId: z.number(), // Squiggle game id
   teamId: z.number(), // Squiggle team id
   margin: z.number().min(0).max(200).optional(),
 });
 
 const GetTipsSchema = z.object({
+  season: SeasonSchema,
   gameIds: z.array(z.number()),
 });
 
@@ -56,15 +61,15 @@ async function fetchTipsters(): Promise<Tipsters> {
 export const submitTip = createServerFn({ method: "POST" })
   .validator(SubmitTipSchema)
   .handler(async ({ data }) => {
-    const { gameId, teamId, margin } = data;
+    const { season, gameId, teamId, margin } = data;
     try {
       const { userId } = await ensureTipster();
 
       const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
-      const games: AflGame.Type[] = await getGames();
+      const games: AflGame.Type[] = await getGames(season);
 
       const game = games.find((g) => g.id === gameId);
-      const modelTips = game ? await getModelTips(game.round) : [];
+      const modelTips = game ? await getModelTips(season, game.round) : [];
       const modelTip = modelTips.find((t) => t.gameId === gameId);
 
       const verdict = judgeTip({ game, teamId, modelTip, now: Date.now() });
@@ -89,31 +94,41 @@ export const submitTip = createServerFn({ method: "POST" })
 export const getTips = createServerFn({ method: "GET" })
   .validator(GetTipsSchema)
   .handler(async ({ data }): Promise<AflUserTip[]> => {
-    const { gameIds } = data;
+    const { season, gameIds } = data;
     const { userId, joinedAt } = await ensureTipster();
 
     const { getTipsByUser } = serviceRegistry.getService("tipsRepository");
     const { getGames } = serviceRegistry.getService("squiggleService");
 
-    const [storedTips, games] = await Promise.all([getTipsByUser(userId, gameIds), getGames()]);
+    const [storedTips, games] = await Promise.all([
+      getTipsByUser(userId, gameIds),
+      getGames(season),
+    ]);
 
     return buildTipsterTips({ storedTips, games, gameIds, userId, joinedAt, now: Date.now() });
   });
 
-export const getLeaderboard = createServerFn({ method: "GET" }).handler(async () => {
-  await ensureTipster();
-
-  const repo = serviceRegistry.getService("tipsRepository");
-  const tips: AllTipsRow[] = await repo.getAllTips();
-
-  const { getGames } = serviceRegistry.getService("squiggleService");
-  const games: AflGame.Type[] = await getGames();
-  const tipsters = await fetchTipsters();
-
-  return buildLeaderboard({ tips, games, tipsters, now: Date.now() });
+const SeasonOnlySchema = z.object({
+  season: SeasonSchema,
 });
 
+export const getLeaderboard = createServerFn({ method: "GET" })
+  .validator(SeasonOnlySchema)
+  .handler(async ({ data }) => {
+    await ensureTipster();
+
+    const repo = serviceRegistry.getService("tipsRepository");
+    const tips: AllTipsRow[] = await repo.getAllTips();
+
+    const { getGames } = serviceRegistry.getService("squiggleService");
+    const games: AflGame.Type[] = await getGames(data.season);
+    const tipsters = await fetchTipsters();
+
+    return buildLeaderboard({ tips, games, tipsters, now: Date.now() });
+  });
+
 const GetGroupTipsSchema = z.object({
+  season: SeasonSchema,
   round: z.number(),
 });
 
@@ -122,9 +137,9 @@ export const getGroupTips = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<AflGroupTipEntry[]> => {
     await ensureTipster();
 
-    const { round } = data;
+    const { season, round } = data;
     const { getGames } = serviceRegistry.getService("squiggleService");
-    const roundGames: AflGame.Type[] = await getGames(round);
+    const roundGames: AflGame.Type[] = await getGames(season, round);
 
     const repo = serviceRegistry.getService("tipsRepository");
     const tips = await repo.getTipsByGameIds(roundGames.map((g) => g.id));
@@ -133,20 +148,20 @@ export const getGroupTips = createServerFn({ method: "GET" })
     return buildGroupTips({ tips, roundGames, tipsters, now: Date.now() });
   });
 
-export const getPlayerStats = createServerFn({ method: "GET" }).handler(
-  async (): Promise<AflPlayerStatsEntry[]> => {
+export const getPlayerStats = createServerFn({ method: "GET" })
+  .validator(SeasonOnlySchema)
+  .handler(async ({ data }): Promise<AflPlayerStatsEntry[]> => {
     await ensureTipster();
 
     const repo = serviceRegistry.getService("tipsRepository");
     const tips: AllTipsRow[] = await repo.getAllTips();
 
     const { getGames } = serviceRegistry.getService("squiggleService");
-    const games: AflGame.Type[] = await getGames();
+    const games: AflGame.Type[] = await getGames(data.season);
     const tipsters = await fetchTipsters();
 
     return buildPlayerStats({ tips, games, tipsters, now: Date.now() });
-  },
-);
+  });
 
 export const service = {
   submitTip,

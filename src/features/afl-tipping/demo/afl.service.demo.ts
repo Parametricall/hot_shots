@@ -13,7 +13,7 @@ import type { AflUserTip } from "~/features/afl-tipping/types";
 import { now as siteNow } from "~/lib/clock";
 import { gamesAsOf, tipsAsOf } from "./season-as-of";
 import { requireSnapshot } from "./squiggle.service.demo";
-import { loadSnapshot, type LoadSnapshotResult } from "./snapshot";
+import { DEMO_SEASON, loadSnapshot, type LoadSnapshotResult } from "./snapshot";
 import { DEMO_VISITOR } from "./demo-visitor";
 import { visitorStore } from "./visitor-store";
 
@@ -38,7 +38,7 @@ export function createAflServiceDemo(
   };
 
   /** Everything the rules need, as it stands at the Demo clock. */
-  async function competition() {
+  async function competition(season: number) {
     const snapshot = await requireSnapshot(deps.loadSnapshot);
     const now = deps.now();
     const visitorJoinedAt = snapshot.tipsters[0]?.joinedAt ?? 0;
@@ -66,14 +66,18 @@ export function createAflServiceDemo(
       snapshot,
       visitorJoinedAt,
       tipsters,
-      games: gamesAsOf(snapshot.games, now),
-      allTips: [...tipsAsOf(snapshot.tips, snapshot.games, now), ...visitorTips()],
+      // The Demo has one Season, so any other has no Games, and so no Tips to score.
+      games: season === DEMO_SEASON ? gamesAsOf(snapshot.games, now) : [],
+      allTips:
+        season === DEMO_SEASON
+          ? [...tipsAsOf(snapshot.tips, snapshot.games, now), ...visitorTips()]
+          : [],
     };
   }
 
   return {
-    submitTip: async ({ data: { gameId, teamId, margin } }) => {
-      const { now, snapshot, games } = await competition();
+    submitTip: async ({ data: { season, gameId, teamId, margin } }) => {
+      const { now, snapshot, games } = await competition(season);
       const game = games.find((g) => g.id === gameId);
       const modelTip = snapshot.modelTips.find((t) => t.gameId === gameId);
 
@@ -91,8 +95,8 @@ export function createAflServiceDemo(
       return { success: true };
     },
 
-    getTips: async ({ data: { gameIds } }) => {
-      const { now, games, visitorJoinedAt } = await competition();
+    getTips: async ({ data: { season, gameIds } }) => {
+      const { now, games, visitorJoinedAt } = await competition(season);
       const storedTips = visitorTips()
         .filter((t) => gameIds.includes(t.game_id))
         .map((t): AflUserTip => ({
@@ -111,21 +115,21 @@ export function createAflServiceDemo(
       });
     },
 
-    getLeaderboard: async () => {
-      const { now, games, tipsters, allTips } = await competition();
+    getLeaderboard: async ({ data: { season } }) => {
+      const { now, games, tipsters, allTips } = await competition(season);
       return buildLeaderboard({ tips: allTips, games, tipsters, now });
     },
 
-    getGroupTips: async ({ data: { round } }) => {
-      const { now, games, tipsters, allTips } = await competition();
+    getGroupTips: async ({ data: { season, round } }) => {
+      const { now, games, tipsters, allTips } = await competition(season);
       const roundGames = games.filter((g) => g.round === round);
       const gameIds = new Set(roundGames.map((g) => g.id));
       const tips = allTips.filter((t) => gameIds.has(t.game_id));
       return buildGroupTips({ tips, roundGames, tipsters, now });
     },
 
-    getPlayerStats: async () => {
-      const { now, games, tipsters, allTips } = await competition();
+    getPlayerStats: async ({ data: { season } }) => {
+      const { now, games, tipsters, allTips } = await competition(season);
       return buildPlayerStats({ tips: allTips, games, tipsters, now });
     },
   } satisfies AflService;

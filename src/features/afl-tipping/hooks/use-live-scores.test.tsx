@@ -43,18 +43,18 @@ function game(id: number, startsInMs: number, overrides: Partial<AflGame> = {}) 
 
 /** Runs the hook over the Games in the query cache, as the page shell does. */
 function renderLiveScores(queryClient: QueryClient, games: AflGame[]) {
-  queryClient.setQueryData(aflQueries.allGamesKey(), games);
+  queryClient.setQueryData(aflQueries.allGamesKey(2026), games);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
   return renderHook(
     () => {
       const { data } = useQuery<AflGame[]>({
-        queryKey: aflQueries.allGamesKey(),
+        queryKey: aflQueries.allGamesKey(2026),
         queryFn: skipToken, // the Games are already in the cache
         staleTime: Infinity,
       });
-      useLiveScores(data ?? []);
+      useLiveScores(2026, data ?? []);
     },
     { wrapper },
   );
@@ -116,7 +116,7 @@ describe("useLiveScores", () => {
       });
     });
 
-    const cached = queryClient.getQueryData<AflGame[]>(aflQueries.allGamesKey())!;
+    const cached = queryClient.getQueryData<AflGame[]>(aflQueries.allGamesKey(2026))!;
     expect(cached[0]).toMatchObject({ homeScore: 50, awayScore: 30, timeStr: "Q3  2:00" });
   });
 
@@ -127,7 +127,7 @@ describe("useLiveScores", () => {
 
     act(() => capture.subscription!.onResync());
 
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["afl", "games"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["afl", "season", 2026, "games"] });
   });
 
   it("unsubscribes on unmount", () => {

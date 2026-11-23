@@ -31,7 +31,7 @@ import { aflQueries } from "~/features/afl-tipping/api/queries";
 describe("gameStats select", () => {
   // Extract the select function from the query options
   function selectGameStats(allGames: AflGame[], gameId: number) {
-    const options = aflQueries.gameStats(gameId);
+    const options = aflQueries.gameStats(2026, gameId);
     return options.select!(allGames);
   }
 

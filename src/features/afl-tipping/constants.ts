@@ -20,7 +20,6 @@ export const LIVE_POST_START_WINDOW_MS = 1000 * 60 * 60 * 6;
 export const CACHE_DURATIONS = {
   STANDINGS: 1000 * 60 * 60, // 1 hour
   GAMES: 1000 * 60 * 60, // 1 hour (fixtures rarely change once the season starts)
-  INCOMPLETE_GAMES: 1000 * 60, // 1 minute
   MODEL_TIPS: 1000 * 60 * 60, // 1 hour
   USER_TIPS: 1000 * 60 * 5, // 5 minutes
   LEADERBOARD: 1000 * 60 * 10, // 10 minutes

@@ -1,15 +1,16 @@
 import {
   getTeamsServerFn,
+  getSeasonsServerFn,
   getStandingsServerFn,
   getGamesServerFn,
-  getIncompleteGamesServerFn,
   getModelTipsServerFn,
 } from "~/features/afl-tipping/api/squiggle.serverfns";
 
 export const service = {
   getAllCurrentTeams: () => getTeamsServerFn(),
-  getStandings: () => getStandingsServerFn(),
-  getGames: (round?: number) => getGamesServerFn({ data: { round } }),
-  getIncompleteGames: () => getIncompleteGamesServerFn(),
-  getModelTips: (round: number) => getModelTipsServerFn({ data: { round } }),
+  getSeasons: () => getSeasonsServerFn(),
+  getStandings: (season: number) => getStandingsServerFn({ data: { season } }),
+  getGames: (season: number, round?: number) => getGamesServerFn({ data: { season, round } }),
+  getModelTips: (season: number, round: number) =>
+    getModelTipsServerFn({ data: { season, round } }),
 };

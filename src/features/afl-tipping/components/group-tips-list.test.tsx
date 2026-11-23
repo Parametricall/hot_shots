@@ -13,6 +13,8 @@ import { CurrentRoundProvider } from "~/features/afl-tipping/providers/current-r
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense } from "react";
 
+vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
+
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
 vi.mock("~/features/auth/use-current-user", () => ({
@@ -54,9 +56,9 @@ function populateData(
     groupTips?: ReturnType<typeof createAflGroupTipEntry>[];
   } = {},
 ) {
-  queryClient.setQueryData(aflQueries.allGames().queryKey, opts.games ?? games);
+  queryClient.setQueryData(aflQueries.allGames(2026).queryKey, opts.games ?? games);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
-  queryClient.setQueryData(aflQueries.groupTips(1).queryKey, opts.groupTips ?? []);
+  queryClient.setQueryData(aflQueries.groupTips(2026, 1).queryKey, opts.groupTips ?? []);
 }
 
 function renderGroupTips(queryClient: QueryClient) {

@@ -9,6 +9,8 @@ import {
 } from "~/features/afl-tipping/mocks/factories";
 import type { AflPlayerStatsEntry } from "~/features/afl-tipping/types";
 
+vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
+
 vi.mock("~/features/auth/use-current-user", () => ({
   useCurrentUser: () => ({ id: "user-1", displayName: "Test User", imageUrl: null }),
 }));
@@ -56,8 +58,8 @@ function makeEntries(): AflPlayerStatsEntry[] {
 
 function renderWithStats(entries: AflPlayerStatsEntry[]) {
   const queryClient = createTestQueryClient();
-  queryClient.setQueryData(aflQueries.allPlayerStatsKey(), entries);
-  queryClient.setQueryData(aflQueries.allGamesKey(), []);
+  queryClient.setQueryData(aflQueries.allPlayerStatsKey(2026), entries);
+  queryClient.setQueryData(aflQueries.allGamesKey(2026), []);
   renderWithClient(<PlayerStats />, queryClient);
   return queryClient;
 }

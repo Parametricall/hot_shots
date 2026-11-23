@@ -10,13 +10,14 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/tips")({
   loader: ({ context: { queryClient } }) => {
     queryClient.prefetchQuery(aflQueries.teams());
     queryClient
-      .ensureQueryData(aflQueries.allGames())
-      .then((games) => {
+      .ensureQueryData(aflQueries.seasons())
+      .then(async ({ current: { season } }) => {
+        const games = await queryClient.ensureQueryData(aflQueries.allGames(season));
         const round = AflGame.getActiveRound(games);
         if (round == undefined) return;
-        queryClient.prefetchQuery(aflQueries.modelTips(round));
+        queryClient.prefetchQuery(aflQueries.modelTips(season, round));
         const gameIds = games.filter(AflGame.byRound(round)).map((game) => game.id);
-        queryClient.prefetchQuery(aflQueries.getTips(gameIds));
+        queryClient.prefetchQuery(aflQueries.getTips(season, gameIds));
       })
       .catch(() => {
         // Prefetch only — the page's own queries surface any errors

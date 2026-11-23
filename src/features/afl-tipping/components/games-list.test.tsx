@@ -9,6 +9,8 @@ import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import type { AflGame, AflUserTip } from "~/features/afl-tipping/types";
 import { Suspense } from "react";
 
+vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
+
 vi.mock("/dummy-footy-logo.png?url", () => ({ default: "test-logo.png" }));
 
 vi.mock("~/app/service-registry", () => ({
@@ -62,10 +64,10 @@ function populateQueryData(
 ) {
   const roundGames = allGames.filter((g) => g.round === round);
   const gameIds = roundGames.map((g) => g.id);
-  queryClient.setQueryData(aflQueries.allGames().queryKey, allGames);
+  queryClient.setQueryData(aflQueries.allGames(2026).queryKey, allGames);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
-  queryClient.setQueryData(aflQueries.modelTips(round).queryKey, []);
-  queryClient.setQueryData(aflQueries.getTips(gameIds).queryKey, tips);
+  queryClient.setQueryData(aflQueries.modelTips(2026, round).queryKey, []);
+  queryClient.setQueryData(aflQueries.getTips(2026, gameIds).queryKey, tips);
 }
 
 function renderGamesListForRound(round: number, queryClient: QueryClient) {

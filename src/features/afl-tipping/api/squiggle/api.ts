@@ -61,10 +61,8 @@ export async function fetchAllCurrentTeams() {
   return squiggleTeamsDtoToDomain.parse(dto).teams;
 }
 
-export async function fetchStandings() {
-  const response = await squiggleFetch(
-    buildSearchParams({ q: "standings", year: new Date().getFullYear() }),
-  );
+export async function fetchStandings(season: number) {
+  const response = await squiggleFetch(buildSearchParams({ q: "standings", year: season }));
   if (!response.ok) {
     throw new Error("Failed to fetch standings");
   }
@@ -72,10 +70,10 @@ export async function fetchStandings() {
   return squiggleStandingsDtoToDomain.parse(dto).standings;
 }
 
-export async function fetchGames(round?: number) {
+export async function fetchGames(season: number, round?: number) {
   const params: SquiggleSearchParams = {
     q: "games",
-    year: new Date().getFullYear(),
+    year: season,
     round,
   };
 
@@ -88,9 +86,11 @@ export async function fetchGames(round?: number) {
   return squiggleGamesDtoToDomain.parse(dto).games;
 }
 
-export async function fetchIncompleteGames() {
+/** A Season's Games that aren't complete. Squiggle rejects `complete=!100` without a year. */
+export async function fetchIncompleteGames(season: number) {
   const params: SquiggleSearchParams = {
     q: "games",
+    year: season,
     complete: "!100",
   };
 
@@ -104,11 +104,11 @@ export async function fetchIncompleteGames() {
   });
 }
 
-export async function fetchTips(round: number) {
+export async function fetchTips(season: number, round: number) {
   const response = await squiggleFetch(
     buildSearchParams({
       q: "tips",
-      year: new Date().getFullYear(),
+      year: season,
       round,
       source: 1, // Source ID 1 corresponds to Squiggle's tipping model
     }),
@@ -118,9 +118,4 @@ export async function fetchTips(round: number) {
   }
   const dto = await response.json();
   return squiggleModelTipListDtoToDomain.parse(dto).tips;
-}
-
-export async function fetchSquiggleGame(gameId: number) {
-  const games = await fetchGames();
-  return games.find((g) => g.id === gameId);
 }

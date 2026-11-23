@@ -5,6 +5,8 @@ import { createTestQueryClient, renderWithClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
 
+vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
+
 vi.mock("~/features/auth/use-current-user", () => ({
   useCurrentUser: () => ({ id: "user-1", displayName: "Test User", imageUrl: null }),
 }));
@@ -50,14 +52,14 @@ describe("Leaderboard", () => {
 
   it("shows the empty state when the leaderboard has no entries", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), []);
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), []);
     renderWithClient(<Leaderboard />, queryClient);
     expect(screen.getByText(/No tips have been submitted yet/)).toBeInTheDocument();
   });
 
   it("renders each entry's display name, score and margin diff", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "user-1", displayName: "Alice", score: 7, totalMarginDiff: 5 }),
       makeEntry({ userId: "user-2", displayName: "Bob", score: 4, totalMarginDiff: 20 }),
     ]);
@@ -71,7 +73,7 @@ describe("Leaderboard", () => {
 
   it("shows a number label for rank 4 when it is not last place", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "u1", displayName: "A", score: 10, totalMarginDiff: 0 }),
       makeEntry({ userId: "u2", displayName: "B", score: 8, totalMarginDiff: 0 }),
       makeEntry({ userId: "u3", displayName: "C", score: 6, totalMarginDiff: 0 }),
@@ -86,7 +88,7 @@ describe("Leaderboard", () => {
 
   it("shows a wooden spoon icon for the last place entry", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "u1", displayName: "A", score: 10, totalMarginDiff: 0 }),
       makeEntry({ userId: "u2", displayName: "B", score: 8, totalMarginDiff: 0 }),
       makeEntry({ userId: "u3", displayName: "C", score: 6, totalMarginDiff: 0 }),
@@ -103,7 +105,7 @@ describe("Leaderboard", () => {
   it("assigns the same rank to tied entries and skips ahead for the next distinct entry", () => {
     const queryClient = createTestQueryClient();
     const tied = { score: 5, totalMarginDiff: 10 };
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "u1", displayName: "A", ...tied }),
       makeEntry({ userId: "u2", displayName: "B", ...tied }),
       makeEntry({ userId: "u3", displayName: "C", ...tied }),
@@ -117,7 +119,7 @@ describe("Leaderboard", () => {
 
   it("shows a You badge on the current user's row", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "user-1", displayName: "Me" }),
       makeEntry({ userId: "user-2", displayName: "Other" }),
     ]);
@@ -128,7 +130,7 @@ describe("Leaderboard", () => {
 
   it("does not show a You badge when no entry matches the current user", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allLeaderboardKey(), [
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
       makeEntry({ userId: "user-99", displayName: "Stranger" }),
     ]);
     renderWithClient(<Leaderboard />, queryClient);

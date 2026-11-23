@@ -10,9 +10,11 @@ import {
 } from "~/features/afl-tipping/utils/afl-tipping";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
 
 export function GamesList() {
+  const season = useSeason();
   const currentRound = useCurrentRound();
 
   const selectCurrentRoundGames = useCallback(
@@ -21,19 +23,19 @@ export function GamesList() {
   );
 
   const { data: games } = useSuspenseQuery({
-    ...aflQueries.allGames(),
+    ...aflQueries.allGames(season),
     select: selectCurrentRoundGames,
   });
   const { data: teams } = useSuspenseQuery(aflQueries.teams());
 
   const { data: modelTips, isLoading: isPredictionsLoading } = useQuery({
-    ...aflQueries.modelTips(currentRound),
+    ...aflQueries.modelTips(season, currentRound),
   });
 
   const gameIds = games?.map((g) => g.id);
 
   const { data: tip } = useQuery({
-    ...aflQueries.getTips(gameIds ?? []),
+    ...aflQueries.getTips(season, gameIds ?? []),
     enabled: !!gameIds,
   });
 

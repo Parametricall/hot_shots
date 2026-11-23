@@ -11,6 +11,7 @@ import type {
   AflTeam,
   AflUserTip,
 } from "~/features/afl-tipping/types";
+import type { Seasons } from "~/features/afl-tipping/utils/afl-season";
 
 /**
  * What callers use of each service, as named types rather than `typeof` the
@@ -21,21 +22,22 @@ import type {
  * `router.tsx` checks them against the same types.
  */
 export type SquiggleService = {
+  /** Teams have no Season: Squiggle lists the current 18. */
   getAllCurrentTeams: () => Promise<AflTeam[]>;
-  getStandings: () => Promise<AflStanding[]>;
-  getGames: (round?: number) => Promise<AflGame[]>;
-  getIncompleteGames: () => Promise<AflGame[]>;
-  getModelTips: (round: number) => Promise<AflModelTip[]>;
+  getSeasons: () => Promise<Seasons>;
+  getStandings: (season: number) => Promise<AflStanding[]>;
+  getGames: (season: number, round?: number) => Promise<AflGame[]>;
+  getModelTips: (season: number, round: number) => Promise<AflModelTip[]>;
 };
 
 export type AflService = {
   submitTip: (args: {
-    data: { gameId: number; teamId: number; margin?: number };
+    data: { season: number; gameId: number; teamId: number; margin?: number };
   }) => Promise<{ success: boolean }>;
-  getTips: (args: { data: { gameIds: number[] } }) => Promise<AflUserTip[]>;
-  getLeaderboard: () => Promise<AflLeaderboardEntry[]>;
-  getGroupTips: (args: { data: { round: number } }) => Promise<AflGroupTipEntry[]>;
-  getPlayerStats: () => Promise<AflPlayerStatsEntry[]>;
+  getTips: (args: { data: { season: number; gameIds: number[] } }) => Promise<AflUserTip[]>;
+  getLeaderboard: (args: { data: { season: number } }) => Promise<AflLeaderboardEntry[]>;
+  getGroupTips: (args: { data: { season: number; round: number } }) => Promise<AflGroupTipEntry[]>;
+  getPlayerStats: (args: { data: { season: number } }) => Promise<AflPlayerStatsEntry[]>;
 };
 
 export type LiveScoresSubscription = {

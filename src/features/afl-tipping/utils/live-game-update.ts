@@ -47,13 +47,19 @@ export function applyLiveGameUpdate(games: AflGame[], update: LiveGameUpdate): A
 }
 
 /**
- * Writes one live update into every cached list of Games: the whole Season, each
- * Round and the incomplete Games all sit under `["afl", "games"]`. Caches the
+ * Writes one live update into every cached list of Games: the whole Season and each
+ * Round sit under `["afl", "season", season, "games"]`. Caches the
  * update does not change are left alone. `gameStats` is under another key and
  * recomputes from the Games with `select`, so it needs nothing.
  */
-export function writeLiveGameUpdateToCache(queryClient: QueryClient, update: LiveGameUpdate): void {
-  const cached = queryClient.getQueriesData<AflGame[]>({ queryKey: aflQueries.allGamesKey() });
+export function writeLiveGameUpdateToCache(
+  queryClient: QueryClient,
+  season: number,
+  update: LiveGameUpdate,
+): void {
+  const cached = queryClient.getQueriesData<AflGame[]>({
+    queryKey: aflQueries.allGamesKey(season),
+  });
   for (const [queryKey, games] of cached) {
     if (!Array.isArray(games)) continue;
     const updated = applyLiveGameUpdate(games, update);

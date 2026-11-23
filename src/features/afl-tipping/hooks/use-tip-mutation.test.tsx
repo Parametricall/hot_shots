@@ -43,15 +43,19 @@ describe("useTipMutation", () => {
 
   it("optimistically updates the getTips cache with the new margin", async () => {
     const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
-    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
+    queryClient.setQueryData(aflQueries.getTips(2026, GAME_IDS).queryKey, existingTips);
 
     const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
-    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 1, margin: 25 } }));
+    await act(() =>
+      result.current.mutateAsync({ data: { season: 2026, gameId: 100, teamId: 1, margin: 25 } }),
+    );
 
-    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    const cached = queryClient.getQueryData<AflUserTip[]>(
+      aflQueries.getTips(2026, GAME_IDS).queryKey,
+    );
     expect(cached).toEqual([{ gameId: 100, tipTeamId: 1, margin: 25 }]);
   });
 
@@ -60,15 +64,17 @@ describe("useTipMutation", () => {
     // Consciously switching teams must not carry it over, otherwise
     // getTipSnapshotMismatch would show a false "no longer matches" notice.
     const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1, isUnderdog: false }];
-    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
+    queryClient.setQueryData(aflQueries.getTips(2026, GAME_IDS).queryKey, existingTips);
 
     const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
-    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 2 } }));
+    await act(() => result.current.mutateAsync({ data: { season: 2026, gameId: 100, teamId: 2 } }));
 
-    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    const cached = queryClient.getQueryData<AflUserTip[]>(
+      aflQueries.getTips(2026, GAME_IDS).queryKey,
+    );
     expect(cached).toEqual([
       { gameId: 100, tipTeamId: 2, margin: undefined, isUnderdog: undefined },
     ]);
@@ -76,34 +82,42 @@ describe("useTipMutation", () => {
 
   it("preserves the isUnderdog snapshot when only the margin changes", async () => {
     const existingTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1, isUnderdog: true }];
-    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, existingTips);
+    queryClient.setQueryData(aflQueries.getTips(2026, GAME_IDS).queryKey, existingTips);
 
     const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
-    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 1, margin: 40 } }));
+    await act(() =>
+      result.current.mutateAsync({ data: { season: 2026, gameId: 100, teamId: 1, margin: 40 } }),
+    );
 
-    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    const cached = queryClient.getQueryData<AflUserTip[]>(
+      aflQueries.getTips(2026, GAME_IDS).queryKey,
+    );
     expect(cached).toEqual([{ gameId: 100, tipTeamId: 1, margin: 40, isUnderdog: true }]);
   });
 
   it("adds a new tip when the game has no existing tip", async () => {
-    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, []);
+    queryClient.setQueryData(aflQueries.getTips(2026, GAME_IDS).queryKey, []);
 
     const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
     });
 
-    await act(() => result.current.mutateAsync({ data: { gameId: 200, teamId: 3, margin: 10 } }));
+    await act(() =>
+      result.current.mutateAsync({ data: { season: 2026, gameId: 200, teamId: 3, margin: 10 } }),
+    );
 
-    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    const cached = queryClient.getQueryData<AflUserTip[]>(
+      aflQueries.getTips(2026, GAME_IDS).queryKey,
+    );
     expect(cached).toEqual([{ gameId: 200, tipTeamId: 3, margin: 10 }]);
   });
 
   it("invalidates groupTips cache after mutation settles", async () => {
-    const tipsKey = aflQueries.getTips(GAME_IDS).queryKey;
-    const groupTipsKey = aflQueries.groupTips(1).queryKey;
+    const tipsKey = aflQueries.getTips(2026, GAME_IDS).queryKey;
+    const groupTipsKey = aflQueries.groupTips(2026, 1).queryKey;
 
     queryClient.setQueryData(tipsKey, [{ gameId: 100, tipTeamId: 1 }]);
     queryClient.setQueryData(groupTipsKey, [
@@ -123,14 +137,16 @@ describe("useTipMutation", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await act(() => result.current.mutateAsync({ data: { gameId: 100, teamId: 1, margin: 30 } }));
+    await act(() =>
+      result.current.mutateAsync({ data: { season: 2026, gameId: 100, teamId: 1, margin: 30 } }),
+    );
 
     await waitFor(() => {
       const groupTipsInvalidation = invalidateSpy.mock.calls.find((call) => {
         const arg = call[0] as { queryKey?: readonly unknown[] };
         return (
           arg.queryKey &&
-          JSON.stringify(arg.queryKey) === JSON.stringify(aflQueries.allGroupTipsKey())
+          JSON.stringify(arg.queryKey) === JSON.stringify(aflQueries.allGroupTipsKey(2026))
         );
       });
       expect(groupTipsInvalidation).toBeDefined();
@@ -142,7 +158,7 @@ describe("useTipMutation", () => {
     mockSubmitTip.mockRejectedValueOnce(new Error("Server error"));
 
     const originalTips: AflUserTip[] = [{ gameId: 100, tipTeamId: 1 }];
-    queryClient.setQueryData(aflQueries.getTips(GAME_IDS).queryKey, originalTips);
+    queryClient.setQueryData(aflQueries.getTips(2026, GAME_IDS).queryKey, originalTips);
 
     const { result } = renderHook(() => useTipMutation(), {
       wrapper: createWrapper(queryClient),
@@ -150,13 +166,17 @@ describe("useTipMutation", () => {
 
     await act(async () => {
       try {
-        await result.current.mutateAsync({ data: { gameId: 100, teamId: 2, margin: 15 } });
+        await result.current.mutateAsync({
+          data: { season: 2026, gameId: 100, teamId: 2, margin: 15 },
+        });
       } catch {
         // expected
       }
     });
 
-    const cached = queryClient.getQueryData<AflUserTip[]>(aflQueries.getTips(GAME_IDS).queryKey);
+    const cached = queryClient.getQueryData<AflUserTip[]>(
+      aflQueries.getTips(2026, GAME_IDS).queryKey,
+    );
     expect(cached).toEqual(originalTips);
     consoleErrorSpy.mockRestore();
   });

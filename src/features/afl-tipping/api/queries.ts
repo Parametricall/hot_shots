@@ -7,6 +7,10 @@ import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
 const getAflService = () => ServiceRegistry.getService("aflService");
 
+/**
+ * Every query below the Season has the Season in its key, under one prefix, so a whole Season can
+ * be invalidated. Only the teams and the list of Seasons sit outside it.
+ */
 export const aflQueries = {
   aflKey: () => ["afl"] as const,
   allTeamsKey: () => [...aflQueries.aflKey(), "teams"] as const,
@@ -17,84 +21,85 @@ export const aflQueries = {
       staleTime: Infinity, // Teams rarely change, so we can cache them indefinitely
     });
   },
-  allStandingsKey: () => [...aflQueries.aflKey(), "standings"] as const,
-  standings: () => {
+  seasonsKey: () => [...aflQueries.aflKey(), "seasons"] as const,
+  seasons: () => {
     return queryOptions({
-      queryKey: aflQueries.allStandingsKey(),
-      queryFn: getSquiggleService().getStandings,
+      queryKey: aflQueries.seasonsKey(),
+      queryFn: () => getSquiggleService().getSeasons(),
+      staleTime: CACHE_DURATIONS.GAMES,
+    });
+  },
+  seasonKey: (season: number) => [...aflQueries.aflKey(), "season", season] as const,
+  allStandingsKey: (season: number) => [...aflQueries.seasonKey(season), "standings"] as const,
+  standings: (season: number) => {
+    return queryOptions({
+      queryKey: aflQueries.allStandingsKey(season),
+      queryFn: () => getSquiggleService().getStandings(season),
       staleTime: CACHE_DURATIONS.STANDINGS,
     });
   },
-  allGamesKey: () => [...aflQueries.aflKey(), "games"] as const,
-  allGames: () => {
+  allGamesKey: (season: number) => [...aflQueries.seasonKey(season), "games"] as const,
+  allGames: (season: number) => {
     return queryOptions({
-      queryKey: aflQueries.allGamesKey(),
-      queryFn: () => getSquiggleService().getGames(),
+      queryKey: aflQueries.allGamesKey(season),
+      queryFn: () => getSquiggleService().getGames(season),
       staleTime: Infinity,
       // Scores change mid-round: bypass the Infinity staleTime when the app
       // regains focus so live results stay fresh
       refetchOnWindowFocus: "always",
     });
   },
-  games: (round?: number) => {
+  games: (season: number, round?: number) => {
     return queryOptions({
-      queryKey: [...aflQueries.allGamesKey(), { round }],
-      queryFn: () => getSquiggleService().getGames(round),
+      queryKey: [...aflQueries.allGamesKey(season), { round }],
+      queryFn: () => getSquiggleService().getGames(season, round),
       staleTime: CACHE_DURATIONS.GAMES,
     });
   },
-  allIncompleteGamesKey: () => [...aflQueries.allGamesKey(), "incompleteGames"] as const,
-  incompleteGames: () => {
+  allModelTipsKey: (season: number) => [...aflQueries.seasonKey(season), "modelTips"] as const,
+  modelTips: (season: number, round: number) => {
     return queryOptions({
-      queryKey: [...aflQueries.allIncompleteGamesKey()],
-      queryFn: getSquiggleService().getIncompleteGames,
-      staleTime: CACHE_DURATIONS.INCOMPLETE_GAMES,
-    });
-  },
-  allModelTipsKey: () => [...aflQueries.aflKey(), "modelTips"],
-  modelTips: (round: number) => {
-    return queryOptions({
-      queryKey: [...aflQueries.allModelTipsKey(), { round }],
-      queryFn: () => getSquiggleService().getModelTips(round),
+      queryKey: [...aflQueries.allModelTipsKey(season), { round }],
+      queryFn: () => getSquiggleService().getModelTips(season, round),
       staleTime: CACHE_DURATIONS.MODEL_TIPS,
     });
   },
-  allGetTipsKey: () => [...aflQueries.aflKey(), "getTips"] as const,
-  getTips: (gameIds: number[]) => {
+  allGetTipsKey: (season: number) => [...aflQueries.seasonKey(season), "getTips"] as const,
+  getTips: (season: number, gameIds: number[]) => {
     return queryOptions({
-      queryKey: [...aflQueries.allGetTipsKey(), { gameIds }],
-      queryFn: () => getAflService().getTips({ data: { gameIds } }),
+      queryKey: [...aflQueries.allGetTipsKey(season), { gameIds }],
+      queryFn: () => getAflService().getTips({ data: { season, gameIds } }),
       staleTime: CACHE_DURATIONS.USER_TIPS,
     });
   },
-  allGroupTipsKey: () => [...aflQueries.aflKey(), "groupTips"] as const,
-  groupTips: (round: number) => {
+  allGroupTipsKey: (season: number) => [...aflQueries.seasonKey(season), "groupTips"] as const,
+  groupTips: (season: number, round: number) => {
     return queryOptions({
-      queryKey: [...aflQueries.allGroupTipsKey(), { round }],
-      queryFn: () => getAflService().getGroupTips({ data: { round } }),
+      queryKey: [...aflQueries.allGroupTipsKey(season), { round }],
+      queryFn: () => getAflService().getGroupTips({ data: { season, round } }),
       staleTime: CACHE_DURATIONS.GROUP_TIPS,
     });
   },
-  allLeaderboardKey: () => [...aflQueries.aflKey(), "leaderboard"] as const,
-  leaderboard: () => {
+  allLeaderboardKey: (season: number) => [...aflQueries.seasonKey(season), "leaderboard"] as const,
+  leaderboard: (season: number) => {
     return queryOptions({
-      queryKey: aflQueries.allLeaderboardKey(),
-      queryFn: () => getAflService().getLeaderboard(),
+      queryKey: aflQueries.allLeaderboardKey(season),
+      queryFn: () => getAflService().getLeaderboard({ data: { season } }),
       staleTime: CACHE_DURATIONS.LEADERBOARD,
     });
   },
-  allPlayerStatsKey: () => [...aflQueries.aflKey(), "playerStats"] as const,
-  playerStats: () => {
+  allPlayerStatsKey: (season: number) => [...aflQueries.seasonKey(season), "playerStats"] as const,
+  playerStats: (season: number) => {
     return queryOptions({
-      queryKey: aflQueries.allPlayerStatsKey(),
-      queryFn: () => getAflService().getPlayerStats(),
+      queryKey: aflQueries.allPlayerStatsKey(season),
+      queryFn: () => getAflService().getPlayerStats({ data: { season } }),
       staleTime: CACHE_DURATIONS.LEADERBOARD,
     });
   },
-  gameStats: (gameId: number) => {
+  gameStats: (season: number, gameId: number) => {
     return queryOptions({
-      queryKey: [...aflQueries.aflKey(), "gameStats", { gameId }],
-      queryFn: () => getSquiggleService().getGames(),
+      queryKey: [...aflQueries.seasonKey(season), "gameStats", { gameId }],
+      queryFn: () => getSquiggleService().getGames(season),
       staleTime: Infinity,
       select: (allGames) => selectGameStats(allGames, gameId),
     });

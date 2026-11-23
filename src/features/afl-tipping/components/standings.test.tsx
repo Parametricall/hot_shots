@@ -9,6 +9,8 @@ import type { AflStanding, AflTeam } from "~/features/afl-tipping/types";
 const mockGetStandings = vi.fn().mockResolvedValue([]);
 const mockGetAllCurrentTeams = vi.fn().mockResolvedValue([]);
 
+vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
+
 vi.mock("~/app/service-registry", () => ({
   default: {
     getService: vi.fn().mockReturnValue({
@@ -62,7 +64,7 @@ describe("Standings", () => {
 
   it("shows skeleton when teams data is missing", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allStandingsKey(), [makeStanding()]);
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [makeStanding()]);
     renderWithClient(<Standings />, queryClient);
 
     const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
@@ -80,7 +82,7 @@ describe("Standings", () => {
 
   it("renders a row for each team with rank, name, W/L/D and Pts", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allStandingsKey(), [
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [
       makeStanding({ id: 1, rank: 1, wins: 7, losses: 3, draws: 0, points: 28 }),
     ]);
     queryClient.setQueryData(aflQueries.allTeamsKey(), [
@@ -97,7 +99,7 @@ describe("Standings", () => {
 
   it("does not render a row when the team is not found in the teams list", () => {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allStandingsKey(), [
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [
       makeStanding({ id: 99, name: "Unknown Team" }),
     ]);
     queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1 })]);
@@ -109,7 +111,7 @@ describe("Standings", () => {
   it("expands a row to show detailed stats when clicked", async () => {
     const user = userEvent.setup();
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allStandingsKey(), [
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [
       makeStanding({ id: 1, played: 10, percentage: 131.1, goalsFor: 120 }),
     ]);
     queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1 })]);
@@ -129,7 +131,7 @@ describe("Standings", () => {
   it("collapses an expanded row when clicked again", async () => {
     const user = userEvent.setup();
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(aflQueries.allStandingsKey(), [makeStanding({ id: 1 })]);
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [makeStanding({ id: 1 })]);
     queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1 })]);
     renderWithClient(<Standings />, queryClient);
 

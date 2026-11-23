@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCurrentUser } from "~/features/auth/use-current-user";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
+import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -9,6 +10,7 @@ import { Trophy, Medal, Award, AlertCircle } from "lucide-react";
 import { WoodenSpoon } from "~/components/wooden-spoon";
 import { cn } from "~/lib/utils";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
+import { rankEntries } from "~/features/afl-tipping/utils/afl-season";
 
 function getRankIcon(rank: number, lastRank?: number) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
@@ -102,6 +104,7 @@ export function LeaderboardSkeleton() {
 }
 
 export function Leaderboard() {
+  const season = useSeason();
   const {
     data: leaderboard,
     isLoading,
@@ -109,7 +112,7 @@ export function Leaderboard() {
     isFetching,
     refetch,
   } = useQuery({
-    ...aflQueries.leaderboard(),
+    ...aflQueries.leaderboard(season),
   });
   const user = useCurrentUser();
   if (isLoading || (!leaderboard && isFetching)) return <LeaderboardSkeleton />;
@@ -138,20 +141,7 @@ export function Leaderboard() {
     );
   }
 
-  const ranks: number[] = [];
-  for (let i = 0; i < leaderboard.length; i++) {
-    const current = leaderboard[i]!;
-    const previous = leaderboard[i - 1];
-    if (
-      previous &&
-      current.score === previous.score &&
-      current.totalMarginDiff === previous.totalMarginDiff
-    ) {
-      ranks.push(ranks[i - 1]!);
-    } else {
-      ranks.push(i + 1);
-    }
-  }
+  const ranks = rankEntries(leaderboard);
 
   return (
     <Card>
