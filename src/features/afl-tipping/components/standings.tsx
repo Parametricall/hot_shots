@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import type { AflStanding, AflTeam } from "~/features/afl-tipping/types";
+import { finalsSpots } from "~/features/afl-tipping/constants";
 
 function StandingsSkeletonRow() {
   return (
@@ -40,6 +41,9 @@ function StandingsSkeletonRow() {
       <TableCell className="text-center">
         <Skeleton className="h-4 w-8 mx-auto" />
       </TableCell>
+      <TableCell className="text-center">
+        <Skeleton className="h-4 w-8 mx-auto" />
+      </TableCell>
       <TableCell className="w-8">
         <Skeleton className="h-4 w-4" />
       </TableCell>
@@ -58,6 +62,11 @@ export function StandingsSkeleton() {
           <TableHead className="text-center">L</TableHead>
           <TableHead className="text-center">D</TableHead>
           <TableHead className="text-center">Pts</TableHead>
+          <TableHead className="text-center">
+            <abbr title="Percentage" className="no-underline">
+              %
+            </abbr>
+          </TableHead>
           <TableHead className="w-8" />
         </TableRow>
       </TableHeader>
@@ -123,36 +132,53 @@ export function Standings() {
 
   if (!standings || !teams) return null;
 
+  const spots = finalsSpots(season);
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-12">#</TableHead>
-          <TableHead>Team</TableHead>
-          <TableHead className="text-center">W</TableHead>
-          <TableHead className="text-center">L</TableHead>
-          <TableHead className="text-center">D</TableHead>
-          <TableHead className="text-center">Pts</TableHead>
-          <TableHead className="w-8" />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {standings.map((item) => {
-          const team = teams.find((t) => t.id === item.id);
-          if (!team) return null;
-          const isExpanded = expandedId === item.id;
-          return (
-            <StandingRow
-              key={item.id}
-              standing={item}
-              team={team}
-              isExpanded={isExpanded}
-              onToggle={() => setExpandedId(isExpanded ? null : item.id)}
-            />
-          );
-        })}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead>Team</TableHead>
+            <TableHead className="text-center">W</TableHead>
+            <TableHead className="text-center">L</TableHead>
+            <TableHead className="text-center">D</TableHead>
+            <TableHead className="text-center">Pts</TableHead>
+            <TableHead className="text-center">
+              <abbr title="Percentage" className="no-underline">
+                %
+              </abbr>
+            </TableHead>
+            <TableHead className="w-8" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {standings.map((item) => {
+            const team = teams.find((t) => t.id === item.id);
+            if (!team) return null;
+            const isExpanded = expandedId === item.id;
+            return (
+              <StandingRow
+                key={item.id}
+                standing={item}
+                team={team}
+                isExpanded={isExpanded}
+                isLastFinalsSpot={item.rank === spots}
+                onToggle={() => setExpandedId(isExpanded ? null : item.id)}
+              />
+            );
+          })}
+        </TableBody>
+      </Table>
+      <p className="mt-2 flex items-center gap-2 px-2 text-xs text-muted-foreground">
+        <span
+          aria-hidden
+          className="inline-block w-6 border-t-2 border-dashed border-foreground/50"
+        />
+        Finals cut-off: the top {spots} play finals
+      </p>
+    </>
   );
 }
 
@@ -160,27 +186,38 @@ function StandingRow({
   standing,
   team,
   isExpanded,
+  isLastFinalsSpot,
   onToggle,
 }: {
   standing: AflStanding;
   team: AflTeam;
   isExpanded: boolean;
+  /** The Ladder draws the finals cut-off line under this row. */
+  isLastFinalsSpot: boolean;
   onToggle: () => void;
 }) {
   return (
     <>
-      <TableRow className="cursor-pointer" onClick={onToggle}>
+      <TableRow
+        className={cn(
+          "cursor-pointer",
+          isLastFinalsSpot && "border-b-2 border-dashed border-b-foreground/50",
+        )}
+        onClick={onToggle}
+      >
         <TableCell>{standing.rank}</TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
             <img src={team.logo} alt={`${team.name} logo`} className="h-6 w-6" />
-            {team.name}
+            <span className="sm:hidden">{team.abbrev}</span>
+            <span className="hidden sm:inline">{team.name}</span>
           </div>
         </TableCell>
         <TableCell className="text-center">{standing.wins}</TableCell>
         <TableCell className="text-center">{standing.losses}</TableCell>
         <TableCell className="text-center">{standing.draws}</TableCell>
         <TableCell className="text-center font-medium">{standing.points}</TableCell>
+        <TableCell className="text-center tabular-nums">{standing.percentage.toFixed(1)}</TableCell>
         <TableCell>
           <ChevronDownIcon
             className={cn(
@@ -192,7 +229,7 @@ function StandingRow({
       </TableRow>
       {isExpanded && (
         <TableRow>
-          <TableCell colSpan={7} className="bg-muted/50 p-4">
+          <TableCell colSpan={8} className="bg-muted/50 p-4">
             <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-4">
               <Stat label="Played" value={standing.played} />
               <Stat label="Percentage" value={`${standing.percentage.toFixed(1)}%`} />

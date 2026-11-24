@@ -141,4 +141,47 @@ describe("Standings", () => {
     await user.click(screen.getByText("Richmond Tigers"));
     expect(screen.queryByText("Played")).not.toBeInTheDocument();
   });
+
+  it("shows the team's abbreviation for a phone beside its full name for wider screens", () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [makeStanding({ id: 1 })]);
+    queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1 })]);
+    renderWithClient(<Standings />, queryClient);
+
+    expect(screen.getByText("RICH")).toHaveClass("sm:hidden");
+    expect(screen.getByText("Richmond Tigers")).toHaveClass("hidden", "sm:inline");
+  });
+
+  it("has a percentage column", () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(aflQueries.allStandingsKey(2026), [
+      makeStanding({ id: 1, percentage: 131.14 }),
+    ]);
+    queryClient.setQueryData(aflQueries.allTeamsKey(), [makeTeam({ id: 1 })]);
+    renderWithClient(<Standings />, queryClient);
+
+    expect(screen.getByRole("columnheader", { name: "%" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "131.1" })).toBeInTheDocument();
+  });
+
+  it("draws the finals cut-off line under tenth place in 2026", () => {
+    const queryClient = createTestQueryClient();
+    const ids = Array.from({ length: 12 }, (_, i) => i + 1);
+    queryClient.setQueryData(
+      aflQueries.allStandingsKey(2026),
+      ids.map((id) => makeStanding({ id, rank: id })),
+    );
+    queryClient.setQueryData(
+      aflQueries.allTeamsKey(),
+      ids.map((id) => makeTeam({ id, name: `Team ${id}`, abbrev: `T${id}` })),
+    );
+    renderWithClient(<Standings />, queryClient);
+
+    const dashed = screen
+      .getAllByRole("row")
+      .filter((row) => row.className.includes("border-dashed"));
+    expect(dashed).toHaveLength(1);
+    expect(dashed[0]).toHaveTextContent("Team 10");
+    expect(screen.getByText(/the top 10 play finals/)).toBeInTheDocument();
+  });
 });
