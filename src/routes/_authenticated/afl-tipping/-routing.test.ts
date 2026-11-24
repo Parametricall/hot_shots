@@ -24,7 +24,7 @@ describe("AFL Tipping routes", () => {
     },
   );
 
-  it.each(["tips", "group-tips", "leaderboard", "standings", "stats"])(
+  it.each(["tips", "group-tips", "leaderboard", "standings", "stats", "how-tipping-works"])(
     "matches /afl-tipping/2026/%s to the Season's tab",
     (tab) => {
       const ids = matchedIds(`/afl-tipping/2026/${tab}`);

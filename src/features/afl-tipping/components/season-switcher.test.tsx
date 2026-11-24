@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vite-plus/test";
+﻿import { describe, it, expect, vi } from "vite-plus/test";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SeasonMoreMenu } from "./season-more-menu";
@@ -72,6 +72,25 @@ describe("SeasonSwitcher, under More", () => {
       expect(router.state.location.pathname).toBe("/afl-tipping/2027/leaderboard"),
     );
     expect(router.state.location.search).not.toHaveProperty("round");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+});
+
+describe("How tipping works, under More", () => {
+  it("links to the open Season's rules and closes the sheet", async () => {
+    mockSeason.value = 2026;
+    const user = userEvent.setup();
+    const { router } = await renderInSeasonRouter(
+      <SeasonMoreMenu season={mockSeason.value} activeTab="tips" variant="button" />,
+      { queryClient: clientWith(TWO), path: "/afl-tipping/2026/tips" },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "More" }));
+    const sheet = await screen.findByRole("dialog");
+    await user.click(within(sheet).getByRole("link", { name: "How tipping works" }));
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe("/afl-tipping/2026/how-tipping-works"),
+    );
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 });
