@@ -42,6 +42,15 @@ export const getSupabaseServerClient = createServerOnlyFn(async () => {
 });
 
 /**
+ * The session cookie's name. `@supabase/ssr`'s default, `sb-<first label of
+ * the Supabase host>-auth-token`, is `sb-127-auth-token` for every local
+ * Supabase, and cookies ignore the port, so another project on `localhost`
+ * would overwrite this one's session ("Invalid Refresh Token: Refresh Token
+ * Not Found").
+ */
+const AUTH_COOKIE_NAME = "sb-hot-shots-auth-token";
+
+/**
  * Supabase Auth for this request, with the session kept in cookies the server
  * sets. Call it once per request or server function: it reads the cookies when
  * called. Keep `@supabase/ssr`'s long default `maxAge`: Supabase Auth, not the
@@ -57,6 +66,7 @@ export const getSupabaseAuthClient = createServerOnlyFn(() => {
     throw new Error("SUPABASE_PUBLISHABLE_KEY is not set");
   }
   return createServerClient(supabaseUrl, publishableKey, {
+    cookieOptions: { name: AUTH_COOKIE_NAME },
     cookies: {
       getAll: () => Object.entries(getCookies()).map(([name, value]) => ({ name, value })),
       setAll: (cookies) => {
