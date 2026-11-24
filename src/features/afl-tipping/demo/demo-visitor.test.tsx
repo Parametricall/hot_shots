@@ -4,6 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { DEMO_VISITOR } from "./demo-visitor";
 
+// Each test re-imports `use-current-user` fresh, to read VITE_DEMO again. Loaded for real, its
+// server function drags in TanStack Start and Supabase, which took the first test past the 5s
+// timeout in a full, parallel run. The wrapper below seeds the query's data, so it never runs.
+vi.mock("~/features/auth/api/session", () => ({ getCurrentUser: vi.fn() }));
+
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.resetModules();
