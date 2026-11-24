@@ -24,7 +24,7 @@ describe("AFL Tipping routes", () => {
     },
   );
 
-  it.each(["tips", "group-tips", "standings", "stats"])(
+  it.each(["tips", "group-tips", "leaderboard", "standings", "stats"])(
     "matches /afl-tipping/2026/%s to the Season's tab",
     (tab) => {
       const ids = matchedIds(`/afl-tipping/2026/${tab}`);
@@ -41,5 +41,25 @@ describe("AFL Tipping routes", () => {
     const ids = matchedIds("/afl-tipping");
     expect(ids).toContain("/_authenticated/afl-tipping/");
     expect(ids).not.toContain("/_authenticated/afl-tipping/$season");
+  });
+});
+
+describe("the old Ladder tab", () => {
+  it("redirects to the AFL Ladder view of Stats, keeping the Round", async () => {
+    const { Route } = await import("./$season/standings");
+    const beforeLoad = Route.options.beforeLoad as (args: unknown) => void;
+    let thrown: unknown;
+    try {
+      beforeLoad({ params: { season: 2026 }, search: { round: 4 } });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toMatchObject({
+      options: {
+        to: "/afl-tipping/$season/stats",
+        params: { season: 2026 },
+        search: { round: 4, view: "ladder" },
+      },
+    });
   });
 });

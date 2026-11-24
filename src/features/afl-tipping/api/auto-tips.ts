@@ -8,7 +8,7 @@ export type AutoTip = { gameId: number; userId: string; tipTeamId: number };
  * before and haven't tipped, on the Home team (docs/adr/0001).
  *
  * Auto-tips are computed on read and never stored. Every reader that adds up
- * Tips (Leaderboard, stats, Player Tips, My Tips) goes through this function.
+ * Tips (Leaderboard, stats, the Round tab, My Tips) goes through this function.
  */
 export function findAutoTips(args: {
   games: AflGame.Type[];

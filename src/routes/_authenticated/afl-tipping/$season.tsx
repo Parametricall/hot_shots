@@ -1,20 +1,14 @@
-import { createFileRoute, Link, notFound, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, Outlet } from "@tanstack/react-router";
 import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
+import { useSeasonTab } from "~/features/afl-tipping/hooks/use-season-tab";
+import { SeasonBottomBar } from "~/features/afl-tipping/components/season-bottom-bar";
+import { SeasonMoreMenu } from "~/features/afl-tipping/components/season-more-menu";
+import { SEASON_SECTIONS } from "~/features/afl-tipping/components/season-tabs";
 import { PastSeasonBanner } from "~/features/afl-tipping/components/past-season-banner";
-import { SeasonSwitcher } from "~/features/afl-tipping/components/season-switcher";
-import type { SeasonTab } from "~/features/afl-tipping/components/season-tab-path";
-import { Trophy } from "lucide-react";
 import { useIsMobile } from "~/lib/use-is-mobile";
-
-const TABS = [
-  { id: "tips", label: "My Tips" },
-  { id: "group-tips", label: "Player Tips" },
-  { id: "standings", label: "Ladder" },
-  { id: "stats", label: "Stats" },
-] as const;
 
 const aflTippingSearchSchema = z.object({
   round: z.number().int().nonnegative().optional(),
@@ -36,49 +30,47 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/$season")({
   component: SeasonLayout,
 });
 
+/**
+ * A Season's four sections, over its pages: Tips, Round, Leaderboard and Stats. Phones get them as
+ * a bar fixed to the bottom of the screen; desktop as a row of tabs at the top. The Season summary
+ * has no section: the App opens on it between Seasons, and the Leaderboard covers it the rest of
+ * the time. After the sections comes ⋯ More, which holds the Season switcher: findable, but out of
+ * the way, since Tipsters rarely change Season. The page scrolls as a whole (no inner scroller), so a phone's browser bars
+ * can tuck away.
+ */
 function SeasonLayout() {
   const season = useSeason();
-  const { location } = useRouterState();
-  // /afl-tipping/<season>/<tab>
-  const activeTab = (location.pathname.split("/")[3] ?? "summary") as SeasonTab;
+  const activeTab = useSeasonTab();
   const isMobile = useIsMobile();
-
-  const tabsList = (
-    <div className="mb-2 flex shrink-0 items-center gap-2">
-      <TabsList className="min-w-0 flex-1 md:p-0.75 md:rounded-lg">
-        <TabsTrigger value="summary" asChild className="flex-none px-3">
-          <Link to="/afl-tipping/$season" params={{ season }} search={(prev) => prev}>
-            <Trophy aria-hidden />
-            <span className="sr-only">Season summary</span>
-          </Link>
-        </TabsTrigger>
-        {TABS.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} asChild>
-            <Link to={`/afl-tipping/$season/${tab.id}`} params={{ season }} search={(prev) => prev}>
-              {tab.label}
-            </Link>
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <SeasonSwitcher tab={activeTab} />
-    </div>
-  );
 
   if (isMobile) {
     return (
-      <Tabs value={activeTab} className="gap-0 flex-1 flex flex-col min-h-0">
-        {tabsList}
+      <>
         <PastSeasonBanner />
-        <div className="flex-1 flex flex-col min-h-0">
-          <Outlet />
-        </div>
-      </Tabs>
+        <Outlet />
+        <SeasonBottomBar season={season} activeTab={activeTab} />
+      </>
     );
   }
 
   return (
     <Tabs value={activeTab} className="gap-2">
-      {tabsList}
+      <div className="flex items-center gap-2">
+        <TabsList className="flex-1 shrink-0 md:p-0.75 md:rounded-lg">
+          {SEASON_SECTIONS.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id} asChild>
+              <Link
+                to={`/afl-tipping/$season/${tab.id}`}
+                params={{ season }}
+                search={(prev) => ({ round: prev.round })}
+              >
+                {tab.label}
+              </Link>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <SeasonMoreMenu season={season} activeTab={activeTab} variant="button" />
+      </div>
       <PastSeasonBanner />
       <div className="pt-2">
         <Outlet />

@@ -126,7 +126,7 @@ function PodiumCard({
   );
 }
 
-function WoodenSpoonCard({ entries }: { entries: AflLeaderboardEntry[] }) {
+export function WoodenSpoonCard({ entries }: { entries: AflLeaderboardEntry[] }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-4">
@@ -205,7 +205,7 @@ export function SeasonSummaryView({
 
       {status === "over" && (
         <Button asChild variant="outline">
-          <Link to="/afl-tipping/$season/stats" params={{ season }} search={{}}>
+          <Link to="/afl-tipping/$season/leaderboard" params={{ season }} search={{}}>
             Full Leaderboard
           </Link>
         </Button>

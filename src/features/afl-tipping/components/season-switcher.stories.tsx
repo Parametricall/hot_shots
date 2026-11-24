@@ -1,8 +1,8 @@
-import preview, { containerDecorator, withSeason } from "#.storybook/preview";
+﻿import preview, { containerDecorator, withSeason } from "#.storybook/preview";
 import type { Decorator } from "@storybook/react-vite";
 import { useQueryClient } from "@tanstack/react-query";
 import { PastSeasonBanner } from "~/features/afl-tipping/components/past-season-banner";
-import { SeasonSwitcher } from "~/features/afl-tipping/components/season-switcher";
+import { SeasonMoreMenu } from "~/features/afl-tipping/components/season-more-menu";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { Seasons } from "~/features/afl-tipping/utils/afl-season";
 
@@ -19,23 +19,24 @@ const TWO_SEASONS: Seasons = {
   current: { season: 2027, status: "in-progress", firstGameAt: 0 },
 };
 
+/** The Season switcher lives in the More sheet: open it to see the Seasons. */
 const meta = preview.meta({
-  component: SeasonSwitcher,
+  component: SeasonMoreMenu,
   parameters: { layout: "padded" },
 });
 
 export const OnTheCurrentSeason = meta.story({
-  args: { tab: "stats" },
-  decorators: [withSeason(2027), withSeasons(TWO_SEASONS), containerDecorator("flex justify-end")],
+  args: { season: 2027, activeTab: "leaderboard", variant: "button" },
+  decorators: [withSeason(2027), withSeasons(TWO_SEASONS), containerDecorator("max-w-md")],
 });
 
 export const OnAPastSeason = meta.story({
-  args: { tab: "stats" },
-  decorators: [withSeason(2026), withSeasons(TWO_SEASONS), containerDecorator("flex justify-end")],
+  args: { season: 2026, activeTab: "leaderboard", variant: "button" },
+  decorators: [withSeason(2026), withSeasons(TWO_SEASONS), containerDecorator("max-w-md")],
 });
 
-export const HiddenWithOneSeason = meta.story({
-  args: { tab: "stats" },
+export const WithOneSeason = meta.story({
+  args: { season: 2026, activeTab: "leaderboard", variant: "button" },
   decorators: [
     withSeason(2026),
     withSeasons({
@@ -46,13 +47,13 @@ export const HiddenWithOneSeason = meta.story({
 });
 
 export const BannerOnAPastSeason = meta.story({
-  args: { tab: "stats" },
+  args: { season: 2026, activeTab: "leaderboard", variant: "button" },
   render: () => <PastSeasonBanner />,
   decorators: [withSeason(2026), withSeasons(TWO_SEASONS), containerDecorator("max-w-md")],
 });
 
 export const BannerWhenCurrentSeasonIsOver = meta.story({
-  args: { tab: "stats" },
+  args: { season: 2025, activeTab: "leaderboard", variant: "button" },
   render: () => <PastSeasonBanner />,
   decorators: [
     withSeason(2025),

@@ -27,6 +27,7 @@ import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authe
 import { Route as AuthOauthProviderRouteImport } from './routes/auth/oauth.$provider'
 import { Route as AuthenticatedAflTippingSeasonIndexRouteImport } from './routes/_authenticated/afl-tipping/$season/index'
 import { Route as AuthenticatedAflTippingSeasonGroupTipsRouteImport } from './routes/_authenticated/afl-tipping/$season/group-tips'
+import { Route as AuthenticatedAflTippingSeasonLeaderboardRouteImport } from './routes/_authenticated/afl-tipping/$season/leaderboard'
 import { Route as AuthenticatedAflTippingSeasonStandingsRouteImport } from './routes/_authenticated/afl-tipping/$season/standings'
 import { Route as AuthenticatedAflTippingSeasonStatsRouteImport } from './routes/_authenticated/afl-tipping/$season/stats'
 import { Route as AuthenticatedAflTippingSeasonTipsRouteImport } from './routes/_authenticated/afl-tipping/$season/tips'
@@ -128,6 +129,12 @@ const AuthenticatedAflTippingSeasonGroupTipsRoute =
     path: '/group-tips',
     getParentRoute: () => AuthenticatedAflTippingSeasonRoute,
   } as any)
+const AuthenticatedAflTippingSeasonLeaderboardRoute =
+  AuthenticatedAflTippingSeasonLeaderboardRouteImport.update({
+    id: '/leaderboard',
+    path: '/leaderboard',
+    getParentRoute: () => AuthenticatedAflTippingSeasonRoute,
+  } as any)
 const AuthenticatedAflTippingSeasonStandingsRoute =
   AuthenticatedAflTippingSeasonStandingsRouteImport.update({
     id: '/standings',
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
   '/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
+  '/afl-tipping/$season/leaderboard': typeof AuthenticatedAflTippingSeasonLeaderboardRoute
   '/afl-tipping/$season/standings': typeof AuthenticatedAflTippingSeasonStandingsRoute
   '/afl-tipping/$season/stats': typeof AuthenticatedAflTippingSeasonStatsRoute
   '/afl-tipping/$season/tips': typeof AuthenticatedAflTippingSeasonTipsRoute
@@ -184,6 +192,7 @@ export interface FileRoutesByTo {
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/afl-tipping': typeof AuthenticatedAflTippingIndexRoute
   '/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
+  '/afl-tipping/$season/leaderboard': typeof AuthenticatedAflTippingSeasonLeaderboardRoute
   '/afl-tipping/$season/standings': typeof AuthenticatedAflTippingSeasonStandingsRoute
   '/afl-tipping/$season/stats': typeof AuthenticatedAflTippingSeasonStatsRoute
   '/afl-tipping/$season/tips': typeof AuthenticatedAflTippingSeasonTipsRoute
@@ -208,6 +217,7 @@ export interface FileRoutesById {
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/_authenticated/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
   '/_authenticated/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
+  '/_authenticated/afl-tipping/$season/leaderboard': typeof AuthenticatedAflTippingSeasonLeaderboardRoute
   '/_authenticated/afl-tipping/$season/standings': typeof AuthenticatedAflTippingSeasonStandingsRoute
   '/_authenticated/afl-tipping/$season/stats': typeof AuthenticatedAflTippingSeasonStatsRoute
   '/_authenticated/afl-tipping/$season/tips': typeof AuthenticatedAflTippingSeasonTipsRoute
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/auth/oauth/$provider'
     | '/afl-tipping/'
     | '/afl-tipping/$season/group-tips'
+    | '/afl-tipping/$season/leaderboard'
     | '/afl-tipping/$season/standings'
     | '/afl-tipping/$season/stats'
     | '/afl-tipping/$season/tips'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/auth/oauth/$provider'
     | '/afl-tipping'
     | '/afl-tipping/$season/group-tips'
+    | '/afl-tipping/$season/leaderboard'
     | '/afl-tipping/$season/standings'
     | '/afl-tipping/$season/stats'
     | '/afl-tipping/$season/tips'
@@ -275,6 +287,7 @@ export interface FileRouteTypes {
     | '/auth/oauth/$provider'
     | '/_authenticated/afl-tipping/'
     | '/_authenticated/afl-tipping/$season/group-tips'
+    | '/_authenticated/afl-tipping/$season/leaderboard'
     | '/_authenticated/afl-tipping/$season/standings'
     | '/_authenticated/afl-tipping/$season/stats'
     | '/_authenticated/afl-tipping/$season/tips'
@@ -421,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAflTippingSeasonGroupTipsRouteImport
       parentRoute: typeof AuthenticatedAflTippingSeasonRoute
     }
+    '/_authenticated/afl-tipping/$season/leaderboard': {
+      id: '/_authenticated/afl-tipping/$season/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/afl-tipping/$season/leaderboard'
+      preLoaderRoute: typeof AuthenticatedAflTippingSeasonLeaderboardRouteImport
+      parentRoute: typeof AuthenticatedAflTippingSeasonRoute
+    }
     '/_authenticated/afl-tipping/$season/standings': {
       id: '/_authenticated/afl-tipping/$season/standings'
       path: '/standings'
@@ -447,6 +467,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAflTippingSeasonRouteChildren {
   AuthenticatedAflTippingSeasonGroupTipsRoute: typeof AuthenticatedAflTippingSeasonGroupTipsRoute
+  AuthenticatedAflTippingSeasonLeaderboardRoute: typeof AuthenticatedAflTippingSeasonLeaderboardRoute
   AuthenticatedAflTippingSeasonStandingsRoute: typeof AuthenticatedAflTippingSeasonStandingsRoute
   AuthenticatedAflTippingSeasonStatsRoute: typeof AuthenticatedAflTippingSeasonStatsRoute
   AuthenticatedAflTippingSeasonTipsRoute: typeof AuthenticatedAflTippingSeasonTipsRoute
@@ -457,6 +478,8 @@ const AuthenticatedAflTippingSeasonRouteChildren: AuthenticatedAflTippingSeasonR
   {
     AuthenticatedAflTippingSeasonGroupTipsRoute:
       AuthenticatedAflTippingSeasonGroupTipsRoute,
+    AuthenticatedAflTippingSeasonLeaderboardRoute:
+      AuthenticatedAflTippingSeasonLeaderboardRoute,
     AuthenticatedAflTippingSeasonStandingsRoute:
       AuthenticatedAflTippingSeasonStandingsRoute,
     AuthenticatedAflTippingSeasonStatsRoute:

@@ -41,7 +41,7 @@ describe("SeasonSummaryView", () => {
       expect(screen.getByText("You finished 3rd of 5")).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Full Leaderboard" })).toHaveAttribute(
         "href",
-        "/afl-tipping/2026/stats",
+        "/afl-tipping/2026/leaderboard",
       );
       expect(screen.queryByRole("link", { name: /^Tip / })).not.toBeInTheDocument();
     });

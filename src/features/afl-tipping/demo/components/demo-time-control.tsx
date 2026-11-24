@@ -32,6 +32,7 @@ import { loadSnapshot } from "~/features/afl-tipping/demo/snapshot";
 import { useDemoClock } from "~/features/afl-tipping/demo/use-demo-clock";
 import { visitorStore } from "~/features/afl-tipping/demo/visitor-store";
 import { setDemoNow } from "~/lib/clock";
+import { cn } from "~/lib/utils";
 
 const GAME_TIME_FORMAT = new Intl.DateTimeFormat("en-AU", {
   weekday: "short",
@@ -45,6 +46,11 @@ const GAME_TIME_FORMAT = new Intl.DateTimeFormat("en-AU", {
 const MINUTE_MS = 60 * 1000;
 
 type DemoTimeControlProps = {
+  /**
+   * On a phone the AFL Tipping bottom tab bar is fixed to the bottom, so the control sits above
+   * it, at the `--bottom-bar-h` the frame publishes, instead of at the very bottom.
+   */
+  stackedAboveBottomBar?: boolean;
   /** Where the clock can stop. Omit it to build them from the snapshot. */
   positions?: DemoPosition[];
 };
@@ -54,7 +60,10 @@ type DemoTimeControlProps = {
  * Demo (docs/adr/0004). It moves the Demo clock Game by Game or Round by Round,
  * and every move tells every AFL query to refetch.
  */
-export function DemoTimeControl({ positions: givenPositions }: DemoTimeControlProps) {
+export function DemoTimeControl({
+  positions: givenPositions,
+  stackedAboveBottomBar = false,
+}: DemoTimeControlProps) {
   const queryClient = useQueryClient();
   const clock = useDemoClock();
   const { data: loadedPositions } = useQuery({
@@ -94,7 +103,12 @@ export function DemoTimeControl({ positions: givenPositions }: DemoTimeControlPr
   return (
     <div
       data-slot="demo-time-control"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+      className={cn(
+        "fixed inset-x-0 z-40 border-t bg-background/95 backdrop-blur-lg",
+        stackedAboveBottomBar
+          ? "bottom-(--bottom-bar-h)"
+          : "bottom-0 pb-[env(safe-area-inset-bottom)]",
+      )}
     >
       <div className="container mx-auto flex flex-col gap-1.5 px-2 py-2 md:flex-row md:items-center md:justify-between md:gap-4">
         <div className="min-w-0">

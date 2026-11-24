@@ -34,7 +34,7 @@ export async function renderInSeasonRouter(
   { path = "/afl-tipping/2026", queryClient = createTestQueryClient() } = {},
 ) {
   const rootRoute = createRootRoute({ component: () => ui });
-  const tabs = ["", "/tips", "/group-tips", "/standings", "/stats"].map((tab) =>
+  const tabs = ["", "/tips", "/group-tips", "/leaderboard", "/standings", "/stats"].map((tab) =>
     createRoute({
       getParentRoute: () => rootRoute,
       path: `/afl-tipping/$season${tab}`,

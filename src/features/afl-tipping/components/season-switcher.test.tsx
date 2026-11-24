@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SeasonSwitcher } from "./season-switcher";
+import { SeasonMoreMenu } from "./season-more-menu";
 import { PastSeasonBanner } from "./past-season-banner";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { createTestQueryClient, renderInSeasonRouter } from "~/test/render";
@@ -25,32 +25,54 @@ const TWO: Seasons = {
   current: { season: 2027, status: "in-progress", firstGameAt: 0 },
 };
 
-describe("SeasonSwitcher", () => {
-  it("is hidden while there is a single Season", async () => {
+describe("SeasonSwitcher, under More", () => {
+  it("shows the single Season, ticked, while there is only one", async () => {
     mockSeason.value = 2026;
+    const user = userEvent.setup();
     const queryClient = clientWith({
       seasons: [2026],
       current: { season: 2026, status: "in-progress", firstGameAt: 0 },
     });
-    await renderInSeasonRouter(<SeasonSwitcher tab="stats" />, { queryClient });
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    await renderInSeasonRouter(
+      <SeasonMoreMenu season={mockSeason.value} activeTab="leaderboard" variant="bar" />,
+      {
+        queryClient,
+      },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "More" }));
+    const sheet = await screen.findByRole("dialog");
+    const links = within(within(sheet).getByRole("region", { name: "Season" })).getAllByRole(
+      "link",
+    );
+    expect(links.map((link) => link.textContent)).toEqual(["2026Current"]);
+    expect(links[0]).toHaveAttribute("aria-current", "page");
   });
 
-  it("lists Seasons newest first, marks the current one and keeps the tab on a pick", async () => {
-    mockSeason.value = 2027;
+  it("lists Seasons newest first, marks the open and current ones, and keeps the tab on a pick", async () => {
+    mockSeason.value = 2026;
     const user = userEvent.setup();
-    const { router } = await renderInSeasonRouter(<SeasonSwitcher tab="stats" />, {
-      queryClient: clientWith(TWO),
-      path: "/afl-tipping/2027/stats?round=4",
-    });
+    const { router } = await renderInSeasonRouter(
+      <SeasonMoreMenu season={mockSeason.value} activeTab="leaderboard" variant="bar" />,
+      { queryClient: clientWith(TWO), path: "/afl-tipping/2026/leaderboard?round=4" },
+    );
 
-    await user.click(await screen.findByRole("button", { name: /Season, 2027/ }));
-    const items = await screen.findAllByRole("menuitem");
-    expect(items.map((item) => item.textContent)).toEqual(["2027Current", "2026"]);
+    await user.click(await screen.findByRole("button", { name: "More" }));
+    const sheet = await screen.findByRole("dialog");
+    expect(within(sheet).getByRole("heading", { name: "Season" })).toBeInTheDocument();
+    const links = within(within(sheet).getByRole("region", { name: "Season" })).getAllByRole(
+      "link",
+    );
+    expect(links.map((link) => link.textContent)).toEqual(["2027Current", "2026"]);
+    expect(links[1]).toHaveAttribute("aria-current", "page");
+    expect(links[0]).not.toHaveAttribute("aria-current");
 
-    await user.click(items[1]!);
-    await waitFor(() => expect(router.state.location.pathname).toBe("/afl-tipping/2026/stats"));
+    await user.click(links[0]!);
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe("/afl-tipping/2027/leaderboard"),
+    );
     expect(router.state.location.search).not.toHaveProperty("round");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 });
 

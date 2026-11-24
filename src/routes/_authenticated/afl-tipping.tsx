@@ -27,23 +27,24 @@ export const Route = createFileRoute("/_authenticated/afl-tipping")({
 });
 
 /**
- * The frame every AFL Tipping page sits in, and the Demo's Time control. The Season, its tabs and
- * its switcher live one level down, in `$season.tsx`.
+ * The frame every AFL Tipping page sits in, and the Demo's Time control. The Season and its
+ * sections (the bottom bar on a phone, tabs on desktop) live one level down, in `$season.tsx`.
  */
 function AflTippingLayout() {
   const isMobile = useIsMobile();
 
-  // The Time control is fixed to the bottom of the screen, so the page leaves room for it.
-  const frameClassName = DemoTimeControl ? "pb-28 md:pb-20" : undefined;
+  // The Time control is fixed to the bottom of the screen, so the page leaves room for it. On a
+  // phone it stacks above the bottom tab bar (the frame adds its height to the bar's).
+  const frameClassName = DemoTimeControl ? "md:pb-20" : undefined;
   const timeControl = DemoTimeControl && (
     <Suspense fallback={null}>
-      <DemoTimeControl />
+      <DemoTimeControl stackedAboveBottomBar={isMobile} />
     </Suspense>
   );
 
   if (isMobile) {
     return (
-      <MobileTippingFrame className={frameClassName}>
+      <MobileTippingFrame bottomExtra={DemoTimeControl ? "7rem" : undefined}>
         <Outlet />
         {timeControl}
       </MobileTippingFrame>

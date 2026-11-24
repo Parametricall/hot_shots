@@ -1,50 +1,71 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+import { Check } from "lucide-react";
+import { SheetClose } from "~/components/ui/sheet";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { seasonTabPath, type SeasonTab } from "~/features/afl-tipping/components/season-tab-path";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
+import { cn } from "~/lib/utils";
+
+type SeasonSwitcherProps = {
+  /** The tab open, which a pick stays on. */
+  tab: SeasonTab;
+};
 
 /**
- * Picks the Season to look at, newest first, on the tab already open (`round` is dropped: another
- * Season has other Rounds). Hidden until there is more than one Season to pick.
+ * The Seasons, newest first, as a list to pick from inside the More sheet: the one open is ticked
+ * and the Current Season is marked. A pick stays on the tab already open (`round` is dropped:
+ * another Season has other Rounds) and closes the sheet.
+ *
+ * It lives in the More sheet, not the header or the Leaderboard's title: a Tipster looking for
+ * "other stuff" opens More, and Tipsters rarely change Season, so it shouldn't spend room on every
+ * screen. From other tabs of a past Season, `PastSeasonBanner` is the way back to the Current
+ * Season.
  */
-export function SeasonSwitcher({ tab }: { tab: SeasonTab }) {
+export function SeasonSwitcher({ tab }: SeasonSwitcherProps) {
   const season = useSeason();
   const { data } = useQuery(aflQueries.seasons());
 
-  if (!data || data.seasons.length < 2) return null;
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" aria-label={`Season, ${season}. Change season`}>
-          {season}
-          <ChevronDown aria-hidden />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          {data.seasons.map((option) => (
-            <DropdownMenuItem key={option} asChild>
-              <Link to={seasonTabPath(tab)} params={{ season: option }} search={{}}>
-                {option}
-                {option === data.current.season && (
-                  <span className="ml-auto text-xs text-muted-foreground">Current</span>
-                )}
-              </Link>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <section aria-labelledby="season-switcher-heading">
+      <h3
+        id="season-switcher-heading"
+        className="px-4 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+      >
+        Season
+      </h3>
+      <ul>
+        {(data?.seasons ?? [season]).map((option) => {
+          const isOpen = option === season;
+          return (
+            <li key={option}>
+              <SheetClose asChild>
+                <Link
+                  to={seasonTabPath(tab)}
+                  params={{ season: option }}
+                  search={{}}
+                  aria-current={isOpen ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-12 items-center gap-3 px-4 text-base tabular-nums outline-none hover:bg-accent focus-visible:bg-accent",
+                    isOpen && "font-semibold",
+                  )}
+                >
+                  <Check
+                    className={cn("size-4 text-primary", !isOpen && "invisible")}
+                    aria-hidden
+                  />
+                  {option}
+                  {option === data?.current.season && (
+                    <span className="ml-auto text-xs font-normal text-muted-foreground">
+                      Current
+                    </span>
+                  )}
+                </Link>
+              </SheetClose>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
