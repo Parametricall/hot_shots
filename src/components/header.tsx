@@ -29,6 +29,12 @@ function getInitials(fullName: string | null | undefined): string {
     .toUpperCase();
 }
 
+/**
+ * The App's top bar: 48px tall, so a phone keeps its screen for the page. The logo takes a Tipster
+ * to the App's front door; "All apps" (the Hub) is in the avatar's menu, with Sign out, rather
+ * than in the bar. The Demo has no account to sign out of, but its menu still has "All apps".
+ * `pt-[env(safe-area-inset-top)]` keeps the bar clear of a notch under `viewport-fit=cover`.
+ */
 export function Header(props: ComponentProps<"header">) {
   const user = useCurrentUser();
   const queryClient = useQueryClient();
@@ -43,59 +49,56 @@ export function Header(props: ComponentProps<"header">) {
   };
   return (
     <header
-      className={cn("px-2 bg-background/80 backdrop-blur-lg border-b", className)}
+      className={cn(
+        "px-2 bg-background/80 backdrop-blur-lg border-b pt-[env(safe-area-inset-top)]",
+        className,
+      )}
       {...headerProps}
     >
       <div className="container mx-auto">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-12">
           <Link to="/afl-tipping" className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-              <img src={logo} alt="Logo" className="w-12 h-12 rounded-xl" />
+            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+              <img src={logo} alt="Logo" className="w-8 h-8 rounded-lg" />
             </div>
             <span className="hidden sm:block text-xl font-bold text-foreground">Hot Shots</span>
           </Link>
 
-          <span className="sm:block text-xl font-bold text-foreground">AFL Tipping</span>
+          <span className="text-lg font-bold text-foreground whitespace-nowrap">AFL Tipping</span>
 
           {/* User */}
           <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">All apps</span>
-            </Link>
             {user && (
               <>
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-xs text-muted-foreground">Signed in as</span>
                   <span className="text-sm font-medium text-foreground">{user.displayName}</span>
                 </div>
-                {/* The Demo has no account to sign out of. */}
-                {IS_DEMO ? (
-                  <Avatar size="lg" className="border-2 border-primary">
-                    <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
-                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="rounded-full outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                      aria-label={`Account menu for ${user.displayName}`}
-                    >
-                      <Avatar size="lg" className="border-2 border-primary">
-                        <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
-                        <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                      </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className="-mr-1 rounded-full p-1 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                    aria-label={`Account menu for ${user.displayName}`}
+                  >
+                    <Avatar className="size-9 border-2 border-primary">
+                      <AvatarImage src={user.imageUrl ?? undefined} alt={user.displayName} />
+                      <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/">
+                        <LayoutGrid aria-hidden />
+                        All apps
+                      </Link>
+                    </DropdownMenuItem>
+                    {/* The Demo has no account to sign out of. */}
+                    {!IS_DEMO && (
                       <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>

@@ -36,8 +36,8 @@ export const MenuOpen = meta.story({
     await userEvent.click(
       await canvas.findByRole("button", { name: /account menu for jane doe/i }),
     );
-    await expect(
-      await within(document.body).findByRole("menuitem", { name: "Sign out" }),
-    ).toBeVisible();
+    const body = within(document.body);
+    await expect(await body.findByRole("menuitem", { name: "All apps" })).toBeVisible();
+    await expect(await body.findByRole("menuitem", { name: "Sign out" })).toBeVisible();
   },
 });
