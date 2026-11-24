@@ -2,7 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createAflGame } from "~/features/afl-tipping/mocks/factories";
 import {
   formatCountdown,
-  formatLockout,
+  formatGameStart,
   roundDotStatus,
   roundStatus,
   roundStatusText,
@@ -83,22 +83,33 @@ describe("formatCountdown", () => {
   });
 });
 
-describe("formatLockout", () => {
-  it("writes the day and time in Melbourne", () => {
-    // 09:40 UTC on Thu 21 May 2026 is 7:40pm in Melbourne (UTC+10)
-    expect(formatLockout(Date.UTC(2026, 4, 21, 9, 40))).toBe("Thu 7:40pm");
+describe("formatGameStart", () => {
+  it("writes the day and time in the given time zone", () => {
+    // 09:40 UTC on Thu 21 May 2026 is 7:40pm in Melbourne (UTC+10), 5:40pm in Perth (UTC+8)
+    const at = Date.UTC(2026, 4, 21, 9, 40);
+    expect(formatGameStart(at, "Australia/Melbourne")).toBe("Thu 7:40pm");
+    expect(formatGameStart(at, "Australia/Perth")).toBe("Thu 5:40pm");
+  });
+
+  it("follows daylight saving: Melbourne is an hour ahead of Brisbane in March", () => {
+    // 08:30 UTC on Wed 17 Mar 2027
+    const at = Date.UTC(2027, 2, 17, 8, 30);
+    expect(formatGameStart(at, "Australia/Melbourne")).toBe("Wed 7:30pm");
+    expect(formatGameStart(at, "Australia/Brisbane")).toBe("Wed 6:30pm");
   });
 });
 
 describe("roundStatusText", () => {
-  it("counts down to the next Lockout", () => {
+  it("counts down to the next Game", () => {
     const status = roundStatus([game(1, 55), game(2, 80)], [tip(1)], NOW)!;
-    expect(roundStatusText(status, NOW)).toBe("1/2 tipped · Locks Fri 5:00pm (2d 7h)");
+    expect(roundStatusText(status, NOW, "Australia/Melbourne")).toBe(
+      "1/2 tipped · Next game Fri 5:00pm (2d 7h)",
+    );
   });
 
-  it("says when the Round is locked or complete", () => {
+  it("says when the Round is in progress or complete", () => {
     const locked = roundStatus([game(1, -2)], [tip(1)], NOW)!;
-    expect(roundStatusText(locked, NOW)).toBe("1/1 tipped · Round locked");
+    expect(roundStatusText(locked, NOW)).toBe("1/1 tipped · Round in progress");
     const complete = roundStatus([game(1, -2, { complete: 100 })], [tip(1)], NOW)!;
     expect(roundStatusText(complete, NOW)).toBe("1/1 tipped · Round complete");
   });

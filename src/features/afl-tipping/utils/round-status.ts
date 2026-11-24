@@ -70,25 +70,30 @@ export function formatCountdown(ms: number): string {
   return "<1m";
 }
 
-const LOCKOUT_FORMAT = new Intl.DateTimeFormat("en-AU", {
-  weekday: "short",
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-  timeZone: "Australia/Melbourne",
-});
-
-/** A Lockout in Melbourne time, as the AFL announces it: "Thu 7:40pm". */
-export function formatLockout(at: number): string {
-  const parts = Object.fromEntries(LOCKOUT_FORMAT.formatToParts(at).map((p) => [p.type, p.value]));
+/**
+ * A Game's start as day and time: "Thu 7:40pm". In the viewer's time zone unless `timeZone` says
+ * otherwise, so it matches the time on the Game cards.
+ */
+export function formatGameStart(at: number, timeZone?: string): string {
+  const format = new Intl.DateTimeFormat("en-AU", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone,
+  });
+  const parts = Object.fromEntries(format.formatToParts(at).map((p) => [p.type, p.value]));
   return `${parts.weekday} ${parts.hour}:${parts.minute}${String(parts.dayPeriod).toLowerCase()}`;
 }
 
-/** The status line's words: "6/9 tipped · Locks Thu 7:40pm (2d 3h)". */
-export function roundStatusText(status: RoundStatus, at: number): string {
+/**
+ * The status line's words: "6/9 tipped · Next game Thu 7:40pm (2d 3h)". It doesn't mention
+ * Lockout: each Game locks as it starts, and "Locks …" read as if the whole Round did.
+ */
+export function roundStatusText(status: RoundStatus, at: number, timeZone?: string): string {
   const progress = `${status.tipped}/${status.total} tipped`;
   if (status.phase === "complete") return `${progress} · Round complete`;
   if (status.phase === "locked" || status.nextLockoutAt === null)
-    return `${progress} · Round locked`;
-  return `${progress} · Locks ${formatLockout(status.nextLockoutAt)} (${formatCountdown(status.nextLockoutAt - at)})`;
+    return `${progress} · Round in progress`;
+  return `${progress} · Next game ${formatGameStart(status.nextLockoutAt, timeZone)} (${formatCountdown(status.nextLockoutAt - at)})`;
 }

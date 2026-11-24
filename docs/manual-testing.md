@@ -200,8 +200,8 @@ iPhone SE or 12), then once on a real phone, and again at 1280px for desktop.
 - [ ] A phone shows a sideways-scrolling strip of Round chips (Opening, R1..., Finals in orange),
       with the selected Round centred, also after a reload on a late Round
 - [ ] Each chip has a dot: green all tipped, amber a Game still open is untipped, grey locked or done
-- [ ] Under the strip: "6/9 tipped · Locks Thu 7:40pm (2d 3h)", then "Round locked" and "Round
-      complete" as the Demo clock moves; the time is Melbourne time
+- [ ] Under the strip: "6/9 tipped · Next game Thu 7:40pm (2d 3h)", then "Round in progress" and
+      "Round complete" as the Demo clock moves; the time matches the first Game card's time
 - [ ] The strip and status line stay put under the header while the Games scroll; the date
       headings stick just below them
 - [ ] Stats, Tipsters, By Round uses the same `?round=` as the tipping pages

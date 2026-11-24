@@ -39,16 +39,16 @@ const game = (id: number, startsInHours: number, overrides = {}) => {
 };
 
 describe("RoundStatusLine", () => {
-  it("counts the tipped Games and counts down to the next Lockout", () => {
+  it("counts the tipped Games and counts down to the next Game", () => {
     renderLine([game(1, 50), game(2, 80)], [{ gameId: 1 }]);
     expect(
-      screen.getByText(/^1\/2 tipped · Locks \w{3} \d{1,2}:\d{2}[ap]m \(2d \d+h\)$/),
+      screen.getByText(/^1\/2 tipped · Next game \w{3} \d{1,2}:\d{2}[ap]m \(2d \d+h\)$/),
     ).toBeInTheDocument();
   });
 
-  it("says the Round is locked once every Game has started", () => {
+  it("says the Round is in progress once every Game has started", () => {
     renderLine([game(1, -3), game(2, -1)], [{ gameId: 1 }]);
-    expect(screen.getByText("1/2 tipped · Round locked")).toBeInTheDocument();
+    expect(screen.getByText("1/2 tipped · Round in progress")).toBeInTheDocument();
   });
 
   it("says the Round is complete once every Game is", () => {

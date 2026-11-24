@@ -15,8 +15,8 @@ type RoundStatusLineProps = {
 
 /**
  * One slim line under the Round chips: how many of the Round's Games the Tipster has tipped and
- * the countdown to the next Lockout ("6/9 tipped · Locks Thu 7:40pm (2d 3h)"), or "Round locked"
- * / "Round complete". The Underdog quota chip sits on the end of it.
+ * the countdown to the next Game ("6/9 tipped · Next game Thu 7:40pm (2d 3h)"), or "Round in
+ * progress" / "Round complete". The Underdog quota chip sits on the end of it.
  */
 export function RoundStatusLine({ showUnderdogs = false }: RoundStatusLineProps) {
   const season = useSeason();
