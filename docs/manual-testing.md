@@ -202,6 +202,8 @@ iPhone SE or 12), then once on a real phone, and again at 1280px for desktop.
 - [ ] Each chip has a dot: green all tipped, amber a Game still open is untipped, grey locked or done
 - [ ] Under the strip: "6/9 tipped · Next game Thu 7:40pm (2d 3h)", then "Round in progress" and
       "Round complete" as the Demo clock moves; the time matches the first Game card's time
+- [ ] Set the computer's time zone to Perth and reload: the Game card times, day headings and the
+      status line all move to Perth time, with no hydration warning in the console; set it back
 - [ ] The strip and status line stay put under the header while the Games scroll; the date
       headings stick just below them
 - [ ] Stats, Tipsters, By Round uses the same `?round=` as the tipping pages
