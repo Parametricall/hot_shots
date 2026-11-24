@@ -199,9 +199,14 @@ Run `npm run format` before committing if you've created new files.
 - Use shadcn/ui components from `src/components/ui/` — add new ones with `npx shadcn@latest add <component>`
 - Use the `cn()` helper from `~/lib/utils` for conditional classes
 
-## Commit messages
+## Commits
 
-Scope first, no type:
+Commit as you go, without waiting to be asked: one small, logical commit per change (a util with
+its tests, a component with its stories and tests, a route, a doc), made as soon as its checks
+pass. A task that touches several things ends as several commits, each of which builds on its own.
+Commit on a branch, never `main`; pushing still waits for the user.
+
+Messages put the scope first, with no type:
 
 ```text
 afl-tipping: lock tips at the first bounce, not the round start
