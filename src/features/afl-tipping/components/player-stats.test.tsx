@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vite-plus/test";
+import { useState } from "react";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { PlayerStats } from "./player-stats";
 import { createTestQueryClient, renderWithClient } from "~/test/render";
@@ -56,27 +57,33 @@ function makeEntries(): AflPlayerStatsEntry[] {
   ];
 }
 
+/** Holds the Round the way the Stats page does, in the URL. */
+function StatefulPlayerStats({ initialRound }: { initialRound?: number }) {
+  const [round, setRound] = useState(initialRound);
+  return <PlayerStats round={round} onRoundChange={setRound} />;
+}
+
 function renderWithStats(entries: AflPlayerStatsEntry[]) {
   const queryClient = createTestQueryClient();
   queryClient.setQueryData(aflQueries.allPlayerStatsKey(2026), entries);
   queryClient.setQueryData(aflQueries.allGamesKey(2026), []);
-  renderWithClient(<PlayerStats />, queryClient);
+  renderWithClient(<StatefulPlayerStats />, queryClient);
   return queryClient;
 }
 
 describe("PlayerStats", () => {
   it("shows loading skeleton when there is no cached data", () => {
-    renderWithClient(<PlayerStats />);
-    expect(screen.getByText("Player Stats")).toBeInTheDocument();
+    renderWithClient(<StatefulPlayerStats />);
+    expect(screen.getByText("Tipster Stats")).toBeInTheDocument();
     const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("shows error state when the query fails", async () => {
     mockGetPlayerStats.mockRejectedValueOnce(new Error("Network error"));
-    renderWithClient(<PlayerStats />);
+    renderWithClient(<StatefulPlayerStats />);
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load player stats/)).toBeInTheDocument();
+      expect(screen.getByText(/Failed to load Tipster stats/)).toBeInTheDocument();
     });
   });
 

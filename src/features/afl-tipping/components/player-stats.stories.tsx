@@ -4,6 +4,7 @@ import {
   createAflPlayerRoundStats,
   createAflPlayerStatsEntry,
 } from "~/features/afl-tipping/mocks/factories";
+import { useState } from "react";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 
 const PLAYER_STATS = [
@@ -87,8 +88,16 @@ const playerStatsService = (data: ReturnType<typeof createAflPlayerStatsEntry>[]
   },
 });
 
+/** Holds the Round the way the Stats page does, in the URL. */
+function StatefulPlayerStats() {
+  const [round, setRound] = useState<number | undefined>();
+  return <PlayerStats round={round} onRoundChange={setRound} />;
+}
+
 const meta = preview.meta({
   component: PlayerStats,
+  args: { onRoundChange: () => {} },
+  render: () => <StatefulPlayerStats />,
   parameters: {
     layout: "centered",
     services: playerStatsService(PLAYER_STATS),
@@ -104,7 +113,7 @@ export const Default = meta.story({
     await waitFor(() => {
       expect(canvas.getByText("Alice Johnson")).toBeInTheDocument();
     });
-    expect(canvas.getByText("Player Stats")).toBeInTheDocument();
+    expect(canvas.getByText("Tipster Stats")).toBeInTheDocument();
     // Defaults to the last round
     expect(canvas.getByText("Round 3")).toBeInTheDocument();
     // Current user gets the You badge
@@ -222,7 +231,7 @@ export const Error = meta.story({
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText(/Failed to load player stats/)).toBeInTheDocument();
+      expect(canvas.getByText(/Failed to load Tipster stats/)).toBeInTheDocument();
     });
     expect(canvas.getByRole("button", { name: /try again/i })).toBeInTheDocument();
   },

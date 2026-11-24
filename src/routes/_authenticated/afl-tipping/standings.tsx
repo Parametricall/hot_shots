@@ -10,9 +10,9 @@ export const Route = createFileRoute("/_authenticated/afl-tipping/standings")({
   beforeLoad: async ({ context: { queryClient }, search }) => {
     const { current } = await queryClient.ensureQueryData(aflQueries.seasons());
     throw redirect({
-      to: "/afl-tipping/$season/standings",
+      to: "/afl-tipping/$season/stats",
       params: { season: current.season },
-      search: { round: search.round },
+      search: { round: search.round, view: "ladder" },
       replace: true,
     });
   },

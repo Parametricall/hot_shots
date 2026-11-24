@@ -6,6 +6,7 @@ import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { SegmentedControl } from "~/features/afl-tipping/components/segmented-control";
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
@@ -23,6 +24,11 @@ import { GameRules } from "~/features/afl-tipping/api/game-rules";
 import type { AflPlayerRoundStats, AflPlayerStatsEntry } from "~/features/afl-tipping/types";
 
 type StatsView = "round" | "season";
+
+const VIEW_OPTIONS = [
+  { value: "round", label: "By Round" },
+  { value: "season", label: "Season" },
+] as const satisfies readonly { value: StatsView; label: string }[];
 
 function StatBlock({ value, label }: { value: React.ReactNode; label: string }) {
   return (
@@ -207,7 +213,7 @@ export function PlayerStatsSkeleton() {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
           <BarChart3 className="h-5 w-5" />
-          Player Stats
+          Tipster Stats
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -219,7 +225,14 @@ export function PlayerStatsSkeleton() {
   );
 }
 
-export function PlayerStats() {
+type PlayerStatsProps = {
+  /** The Round to show in "By Round", from the page's `?round=`; the active Round when absent. */
+  round?: number;
+  onRoundChange: (round: number) => void;
+};
+
+/** Tipster Stats: each Tipster's Round or Season figures, in Leaderboard order. */
+export function PlayerStats({ round, onRoundChange }: PlayerStatsProps) {
   const season = useSeason();
   const { data: stats, isLoading, isError, refetch } = useQuery(aflQueries.playerStats(season));
   const user = useCurrentUser();
@@ -229,7 +242,6 @@ export function PlayerStats() {
 
   const availableRounds = useMemo(() => stats?.[0]?.rounds ?? [], [stats]);
   const [view, setView] = useState<StatsView>("round");
-  const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   // Default to the current active round, falling back to the last available round
@@ -238,7 +250,9 @@ export function PlayerStats() {
     return idx !== -1 ? idx : Math.max(0, availableRounds.length - 1);
   }, [availableRounds, activeRound]);
 
-  const roundIndex = selectedRoundIndex ?? defaultRoundIndex;
+  const selectedRoundIndex =
+    round === undefined ? -1 : availableRounds.findIndex((r) => r.round === round);
+  const roundIndex = selectedRoundIndex !== -1 ? selectedRoundIndex : defaultRoundIndex;
 
   if (isLoading) return <PlayerStatsSkeleton />;
 
@@ -247,7 +261,7 @@ export function PlayerStats() {
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
-          <p>Failed to load player stats. Please try again later.</p>
+          <p>Failed to load Tipster stats. Please try again later.</p>
           <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
             Try again
           </Button>
@@ -274,26 +288,14 @@ export function PlayerStats() {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Player Stats
+            Tipster Stats
           </CardTitle>
-          <div className="flex items-center gap-1 rounded-lg border p-0.5">
-            <Button
-              variant={view === "round" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-3 text-xs"
-              onClick={() => setView("round")}
-            >
-              By Round
-            </Button>
-            <Button
-              variant={view === "season" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-3 text-xs"
-              onClick={() => setView("season")}
-            >
-              Season
-            </Button>
-          </div>
+          <SegmentedControl
+            label="Stats by"
+            value={view}
+            onChange={setView}
+            options={VIEW_OPTIONS}
+          />
         </div>
 
         {view === "round" ? (
@@ -306,22 +308,26 @@ export function PlayerStats() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 aria-label="Previous round"
-                onClick={() => setSelectedRoundIndex(Math.max(0, roundIndex - 1))}
+                className="size-10"
+                onClick={() => onRoundChange(availableRounds[Math.max(0, roundIndex - 1)]!.round)}
                 disabled={roundIndex === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[70px] text-center">
+              <span className="text-sm font-medium min-w-17.5 text-center">
                 Round {currentRoundData?.round}
               </span>
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 aria-label="Next round"
+                className="size-10"
                 onClick={() =>
-                  setSelectedRoundIndex(Math.min(availableRounds.length - 1, roundIndex + 1))
+                  onRoundChange(
+                    availableRounds[Math.min(availableRounds.length - 1, roundIndex + 1)]!.round,
+                  )
                 }
                 disabled={roundIndex === availableRounds.length - 1}
               >
