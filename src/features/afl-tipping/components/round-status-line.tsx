@@ -7,6 +7,7 @@ import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-
 import { UnderdogWarning } from "~/features/afl-tipping/components/underdog-warning";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { roundStatus, roundStatusText } from "~/features/afl-tipping/utils/round-status";
+import { useTimeZone } from "~/lib/use-time-zone";
 
 type RoundStatusLineProps = {
   /** Show the Underdog quota chip: only on My Tips, where the Tipster can act on it. */
@@ -22,6 +23,7 @@ export function RoundStatusLine({ showUnderdogs = false }: RoundStatusLineProps)
   const season = useSeason();
   const round = useCurrentRound();
   const at = useNow();
+  const timeZone = useTimeZone();
 
   const { data: games } = useQuery({
     ...aflQueries.allGames(season),
@@ -42,7 +44,7 @@ export function RoundStatusLine({ showUnderdogs = false }: RoundStatusLineProps)
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-sm text-muted-foreground">
-      <p className="tabular-nums">{roundStatusText(status, at)}</p>
+      <p className="tabular-nums">{roundStatusText(status, at, timeZone)}</p>
       {showUnderdogs && <UnderdogWarning />}
     </div>
   );

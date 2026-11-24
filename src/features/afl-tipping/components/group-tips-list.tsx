@@ -16,6 +16,7 @@ import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { useTimeZone } from "~/lib/use-time-zone";
 import { useCallback, useEffect, useRef } from "react";
 import { useCurrentUser } from "~/features/auth/use-current-user";
 import { TipSplitBar } from "~/features/afl-tipping/components/tip-split-bar";
@@ -253,6 +254,7 @@ function GameGroupTipCard({
   const prevHasStarted = useRef(hasStarted);
   const user = useCurrentUser();
   const currentUserId = user?.id;
+  const timeZone = useTimeZone();
 
   useEffect(() => {
     if (hasStarted && !prevHasStarted.current) {
@@ -271,7 +273,7 @@ function GameGroupTipCard({
           <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>{formatTime(game.date)}</span>
+              <span>{formatTime(game.date, timeZone)}</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
@@ -323,6 +325,7 @@ function GameGroupTipCard({
 export function GroupTipsList() {
   const season = useSeason();
   const currentRound = useCurrentRound();
+  const timeZone = useTimeZone();
 
   const selectCurrentRoundGames = useCallback(
     (games: AflGame.Type[]) => games.filter((g) => g.round === currentRound),
@@ -351,7 +354,7 @@ export function GroupTipsList() {
     );
   }
 
-  const gamesByDate = groupGamesByDate(games);
+  const gamesByDate = groupGamesByDate(games, timeZone);
   const firstGameId = AflGame.getFirstGameOfRound(games)?.id;
 
   return (

@@ -70,11 +70,8 @@ export function formatCountdown(ms: number): string {
   return "<1m";
 }
 
-/**
- * A Game's start as day and time: "Thu 7:40pm". In the viewer's time zone unless `timeZone` says
- * otherwise, so it matches the time on the Game cards.
- */
-export function formatGameStart(at: number, timeZone?: string): string {
+/** A Game's start as day and time in `timeZone`: "Thu 7:40pm". */
+export function formatGameStart(at: number, timeZone: string): string {
   const format = new Intl.DateTimeFormat("en-AU", {
     weekday: "short",
     hour: "numeric",
@@ -90,7 +87,7 @@ export function formatGameStart(at: number, timeZone?: string): string {
  * The status line's words: "6/9 tipped · Next game Thu 7:40pm (2d 3h)". It doesn't mention
  * Lockout: each Game locks as it starts, and "Locks …" read as if the whole Round did.
  */
-export function roundStatusText(status: RoundStatus, at: number, timeZone?: string): string {
+export function roundStatusText(status: RoundStatus, at: number, timeZone: string): string {
   const progress = `${status.tipped}/${status.total} tipped`;
   if (status.phase === "complete") return `${progress} · Round complete`;
   if (status.phase === "locked" || status.nextLockoutAt === null)

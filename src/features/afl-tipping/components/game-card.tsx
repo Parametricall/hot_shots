@@ -15,6 +15,7 @@ import { AlertTriangle, Check, Clock, Lock, MapPin, Minus, Plus, X } from "lucid
 import type { AflModelTip, AflTeam, AflUserTip } from "~/features/afl-tipping/types";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 import { cn } from "~/lib/utils";
+import { useTimeZone } from "~/lib/use-time-zone";
 import { GameRules } from "~/features/afl-tipping/api/game-rules";
 import { formatTime, getTipSnapshotMismatch } from "~/features/afl-tipping/utils/afl-tipping";
 import { useGameStartTimer } from "~/features/afl-tipping/hooks/use-game-start-timer";
@@ -116,13 +117,14 @@ function GameCardRoot({
 // Header component with game metadata
 function GameCardHeader({ className }: { className?: string }) {
   const { game } = useGameCard();
+  const timeZone = useTimeZone();
 
   return (
     <div className={cn("px-2 py-2 bg-gray-100", className)}>
       <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          <span>{formatTime(game.date)}</span>
+          <span>{formatTime(game.date, timeZone)}</span>
         </div>
         <div className="flex items-center gap-1">
           <MapPin className="h-3 w-3" />
@@ -695,6 +697,8 @@ export function GameCardSimple({
 
 // Placeholder for games where teams haven't been allocated yet (e.g. finals)
 export function GameCardTBD({ game }: { game: AflGame.Type }) {
+  const timeZone = useTimeZone();
+
   return (
     <Card className="p-0 overflow-hidden rounded-lg opacity-60">
       <CardContent className="p-0">
@@ -702,7 +706,7 @@ export function GameCardTBD({ game }: { game: AflGame.Type }) {
           <div className="flex items-center justify-between text-xs text-gray-600 gap-5">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>{formatTime(game.date)}</span>
+              <span>{formatTime(game.date, timeZone)}</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />

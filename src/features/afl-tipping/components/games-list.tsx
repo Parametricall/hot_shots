@@ -12,10 +12,12 @@ import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { useCurrentRound } from "~/features/afl-tipping/providers/current-round-provider";
+import { useTimeZone } from "~/lib/use-time-zone";
 
 export function GamesList() {
   const season = useSeason();
   const currentRound = useCurrentRound();
+  const timeZone = useTimeZone();
 
   const selectCurrentRoundGames = useCallback(
     (games: AflGame.Type[]) => games.filter(AflGame.byRound(currentRound)),
@@ -56,7 +58,7 @@ export function GamesList() {
     );
   }
 
-  const gamesByDate = groupGamesByDate(games);
+  const gamesByDate = groupGamesByDate(games, timeZone);
 
   return (
     <div className="space-y-4 sm:space-y-6">

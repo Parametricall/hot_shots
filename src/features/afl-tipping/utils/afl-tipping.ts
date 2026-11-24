@@ -15,20 +15,27 @@ export function createUnknownAflTeam(id: AflTeam["id"]): AflTeam {
   };
 }
 
-export function formatDateHeader(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-AU", {
+/**
+ * A `groupGamesByDate` key ("2025-04-05") as a heading: "Saturday 5 April 2025". The key is
+ * already a day in the viewer's zone, so it is formatted as is, in UTC, where it parses.
+ */
+export function formatDateHeader(dateKey: string): string {
+  return new Date(dateKey).toLocaleDateString("en-AU", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 
-export function groupGamesByDate(games: AflGame[]): Record<string, AflGame[]> {
+/** Games by the day they start on in `timeZone`, keyed "2025-04-05". */
+export function groupGamesByDate(games: AflGame[], timeZone: string): Record<string, AflGame[]> {
+  // en-CA writes dates as YYYY-MM-DD.
+  const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone });
   return games.reduce(
     (acc, item) => {
-      const key = item.date.toISOString().split("T")[0]!;
+      const key = dayFormat.format(item.date);
       const bucket = acc[key] ?? [];
       bucket.push(item);
       acc[key] = bucket;
@@ -38,10 +45,12 @@ export function groupGamesByDate(games: AflGame[]): Record<string, AflGame[]> {
   );
 }
 
-export function formatTime(date: Date): string {
+/** A Game's start time in `timeZone`: "7:30 pm". */
+export function formatTime(date: Date, timeZone: string): string {
   return date.toLocaleTimeString("en-AU", {
     hour: "numeric",
     minute: "numeric",
+    timeZone,
   });
 }
 

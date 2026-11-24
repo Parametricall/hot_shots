@@ -109,8 +109,12 @@ describe("roundStatusText", () => {
 
   it("says when the Round is in progress or complete", () => {
     const locked = roundStatus([game(1, -2)], [tip(1)], NOW)!;
-    expect(roundStatusText(locked, NOW)).toBe("1/1 tipped · Round in progress");
+    expect(roundStatusText(locked, NOW, "Australia/Melbourne")).toBe(
+      "1/1 tipped · Round in progress",
+    );
     const complete = roundStatus([game(1, -2, { complete: 100 })], [tip(1)], NOW)!;
-    expect(roundStatusText(complete, NOW)).toBe("1/1 tipped · Round complete");
+    expect(roundStatusText(complete, NOW, "Australia/Melbourne")).toBe(
+      "1/1 tipped · Round complete",
+    );
   });
 });

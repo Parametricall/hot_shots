@@ -33,43 +33,48 @@ describe("createUnknownAflTeam", () => {
 });
 
 describe("formatDateHeader", () => {
-  it("formats an ISO date string into a readable date", () => {
-    const result = formatDateHeader("2025-04-05");
-    expect(result).toContain("2025");
-    expect(result).toContain("April");
+  it("formats a date key into a readable date", () => {
+    expect(formatDateHeader("2025-04-05")).toBe("Saturday 5 April 2025");
   });
 });
 
 describe("formatTime", () => {
-  it("formats a date into a time string", () => {
-    const date = new Date(2025, 3, 5, 19, 30);
-    const result = formatTime(date);
-    // Should contain 7:30 in some form (locale-dependent)
-    expect(result).toMatch(/7:30/);
+  it("formats a time in the given zone", () => {
+    // 08:30 UTC on 17 Mar 2027: 7:30pm in Melbourne (daylight saving), 6:30pm in Brisbane
+    const date = new Date(Date.UTC(2027, 2, 17, 8, 30));
+    expect(formatTime(date, "Australia/Melbourne")).toMatch(/^7:30\spm$/);
+    expect(formatTime(date, "Australia/Brisbane")).toMatch(/^6:30\spm$/);
   });
 });
 
 describe("groupGamesByDate", () => {
-  it("groups games by their date (ignoring time)", () => {
-    const day1 = new Date(2025, 3, 5, 14, 0);
-    const day1Later = new Date(2025, 3, 5, 19, 30);
-    const day2 = new Date(2025, 3, 6, 13, 0);
+  const at = (iso: string) => {
+    const date = new Date(iso);
+    return { date, unixTime: date.getTime() };
+  };
 
+  it("groups games by the day they start on in the zone", () => {
     const games = [
-      createAflGame({ id: 1, date: day1, unixTime: day1.getTime() }),
-      createAflGame({ id: 2, date: day1Later, unixTime: day1Later.getTime() }),
-      createAflGame({ id: 3, date: day2, unixTime: day2.getTime() }),
+      createAflGame({ id: 1, ...at("2025-04-05T04:00:00Z") }), // Sat 2pm Brisbane
+      createAflGame({ id: 2, ...at("2025-04-05T09:30:00Z") }), // Sat 7:30pm Brisbane
+      createAflGame({ id: 3, ...at("2025-04-06T03:00:00Z") }), // Sun 1pm Brisbane
     ];
 
-    const grouped = groupGamesByDate(games);
-    const keys = Object.keys(grouped);
-    expect(keys).toHaveLength(2);
-    expect(grouped[keys[0]!]).toHaveLength(2);
-    expect(grouped[keys[1]!]).toHaveLength(1);
+    const grouped = groupGamesByDate(games, "Australia/Brisbane");
+    expect(Object.keys(grouped)).toEqual(["2025-04-05", "2025-04-06"]);
+    expect(grouped["2025-04-05"]).toHaveLength(2);
+    expect(grouped["2025-04-06"]).toHaveLength(1);
+  });
+
+  it("uses the zone's day, not UTC's", () => {
+    // 22:00 UTC on Fri 4 Apr is 8am on Sat 5 Apr in Brisbane
+    const games = [createAflGame({ id: 1, ...at("2025-04-04T22:00:00Z") })];
+    expect(Object.keys(groupGamesByDate(games, "Australia/Brisbane"))).toEqual(["2025-04-05"]);
+    expect(Object.keys(groupGamesByDate(games, "UTC"))).toEqual(["2025-04-04"]);
   });
 
   it("returns an empty object for empty input", () => {
-    expect(groupGamesByDate([])).toEqual({});
+    expect(groupGamesByDate([], "Australia/Brisbane")).toEqual({});
   });
 });
 
