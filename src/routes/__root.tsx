@@ -8,6 +8,8 @@ import { AppLoadingScreen } from "~/components/AppLoadingScreen";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "~/components/ui/sonner";
+import { getRequestTimeZone } from "~/lib/request-time-zone";
+import { TimeZoneProvider } from "~/lib/use-time-zone";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -69,6 +71,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
   }),
+  loader: () => ({ timeZone: getRequestTimeZone() }),
   pendingComponent: () => <AppLoadingScreen />,
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,
@@ -77,13 +80,19 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const { timeZone } = Route.useLoaderData();
+
   React.useEffect(function onMount() {
     if ("serviceWorker" in navigator && import.meta.env.PROD) {
       navigator.serviceWorker.register("/sw.js");
     }
   }, []);
 
-  return <Outlet />;
+  return (
+    <TimeZoneProvider serverTimeZone={timeZone}>
+      <Outlet />
+    </TimeZoneProvider>
+  );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
