@@ -483,7 +483,7 @@ function GameCardMarginInput() {
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 rounded-r-none border-r-0"
+          className="h-9 w-9 rounded-r-none border-r-0"
           onClick={() => handleStep(-1)}
           disabled={atMin}
         >
@@ -496,13 +496,13 @@ function GameCardMarginInput() {
           value={margin ?? ""}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="0"
-          className="w-14 h-7 text-center text-sm font-semibold border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-14 h-9 text-center text-sm font-semibold border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <Button
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 rounded-l-none border-l-0"
+          className="h-9 w-9 rounded-l-none border-l-0"
           onClick={() => handleStep(1)}
           disabled={atMax}
         >
