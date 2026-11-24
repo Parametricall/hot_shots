@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RoundNavigation } from "./round-navigation";
 import type { AflRound } from "~/features/afl-tipping/types";
@@ -12,17 +12,80 @@ function makeRounds(count: number): AflRound[] {
   }));
 }
 
+/** The phone's strip of chips. */
+const chip = (round: string) =>
+  screen.getAllByRole("button", { name: new RegExp(`^${round}(,|$)`) })[0]!;
+
 describe("RoundNavigation", () => {
-  it("displays the current round name", () => {
-    const rounds = makeRounds(5);
-    render(<RoundNavigation rounds={rounds} currentRound={2} onRoundChange={vi.fn()} />);
-    expect(screen.getAllByText("Round 2").length).toBeGreaterThan(0);
+  it("displays the current round name on desktop", () => {
+    render(<RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Round 2" })).toBeInTheDocument();
   });
 
-  it("displays round count as 'X of Y'", () => {
-    const rounds = makeRounds(10);
-    render(<RoundNavigation rounds={rounds} currentRound={3} onRoundChange={vi.fn()} />);
-    expect(screen.getByText(/4 of 10/)).toBeInTheDocument();
+  it("shows a chip for every round, named short", () => {
+    const rounds = makeRounds(27);
+    rounds[25] = { id: 25, name: "Qualifying Final", games: [] };
+    rounds[26] = { id: 26, name: "Grand Final", games: [] };
+    render(<RoundNavigation rounds={rounds} currentRound={2} onRoundChange={vi.fn()} />);
+
+    const strip = screen.getAllByText("Opening")[0]!.closest("div")!;
+    const labels = within(strip)
+      .getAllByRole("button")
+      .map((button) => button.querySelector("[aria-hidden]")?.textContent);
+    expect(labels.slice(0, 3)).toEqual(["Opening", "R1", "R2"]);
+    expect(labels.slice(-2)).toEqual(["Qualifying", "Grand"]);
+  });
+
+  it("marks the selected chip and the current Round for assistive tech", () => {
+    render(
+      <RoundNavigation
+        rounds={makeRounds(5)}
+        currentRound={2}
+        activeRound={3}
+        onRoundChange={vi.fn()}
+      />,
+    );
+    expect(chip("Round 2")).toHaveAttribute("aria-current", "true");
+    expect(chip("Round 1")).not.toHaveAttribute("aria-current");
+    expect(chip("Round 3")).toHaveAccessibleName(/Round 3, current/);
+  });
+
+  it("calls onRoundChange with the round of the chip tapped", async () => {
+    const onRoundChange = vi.fn();
+    render(
+      <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
+    );
+
+    await userEvent.setup().click(chip("Round 4"));
+    expect(onRoundChange).toHaveBeenCalledWith(4);
+  });
+
+  it("gives each chip a dot for its tipping status", () => {
+    render(
+      <RoundNavigation
+        rounds={makeRounds(4)}
+        currentRound={1}
+        onRoundChange={vi.fn()}
+        statuses={["closed", "tipped", "untipped", undefined]}
+      />,
+    );
+    expect(chip("Opening Round")).toHaveAccessibleName(/locked/);
+    expect(chip("Round 1")).toHaveAccessibleName(/all tipped/);
+    expect(chip("Round 2")).toHaveAccessibleName(/some games untipped/);
+    expect(chip("Round 3").querySelector("[data-status]")).toBeNull();
+    expect(chip("Round 1").querySelector("[data-status]")).toHaveAttribute("data-status", "tipped");
+  });
+
+  it("scrolls the selected chip to the middle of the strip", () => {
+    const scrollTo = vi.fn();
+    const original = HTMLElement.prototype.scrollTo;
+    HTMLElement.prototype.scrollTo = scrollTo;
+    try {
+      render(<RoundNavigation rounds={makeRounds(25)} currentRound={10} onRoundChange={vi.fn()} />);
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "instant" }));
+    } finally {
+      HTMLElement.prototype.scrollTo = original;
+    }
   });
 
   it("calls onRoundChange with previous round when Prev is clicked", async () => {
@@ -32,9 +95,7 @@ describe("RoundNavigation", () => {
       <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
     );
 
-    // Mobile and desktop each render a Prev button; either click should trigger the handler.
-    const [prevButton] = screen.getAllByRole("button", { name: /prev/i });
-    await user.click(prevButton!);
+    await user.click(screen.getByRole("button", { name: "Prev" }));
     expect(onRoundChange).toHaveBeenCalledWith(1);
   });
 
@@ -45,26 +106,22 @@ describe("RoundNavigation", () => {
       <RoundNavigation rounds={makeRounds(5)} currentRound={2} onRoundChange={onRoundChange} />,
     );
 
-    const [nextButton] = screen.getAllByRole("button", { name: /next/i });
-    await user.click(nextButton!);
+    await user.click(screen.getByRole("button", { name: "Next" }));
     expect(onRoundChange).toHaveBeenCalledWith(3);
   });
 
-  it("disables Prev button on the first round", () => {
-    render(<RoundNavigation rounds={makeRounds(5)} currentRound={0} onRoundChange={vi.fn()} />);
-    const prevButtons = screen.getAllByRole("button", { name: /prev/i });
-    prevButtons.forEach((btn) => expect(btn).toBeDisabled());
-  });
+  it("disables Prev on the first round and Next on the last", () => {
+    const { rerender } = render(
+      <RoundNavigation rounds={makeRounds(5)} currentRound={0} onRoundChange={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
 
-  it("disables Next button on the last round", () => {
-    render(<RoundNavigation rounds={makeRounds(5)} currentRound={4} onRoundChange={vi.fn()} />);
-    const nextButtons = screen.getAllByRole("button", { name: /next/i });
-    nextButtons.forEach((btn) => expect(btn).toBeDisabled());
+    rerender(<RoundNavigation rounds={makeRounds(5)} currentRound={4} onRoundChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   });
 
   it("shows 'no round' when the current round index has no matching round", () => {
-    const rounds = makeRounds(2);
-    render(<RoundNavigation rounds={rounds} currentRound={99} onRoundChange={vi.fn()} />);
-    expect(screen.getAllByText("no round").length).toBeGreaterThan(0);
+    render(<RoundNavigation rounds={makeRounds(2)} currentRound={99} onRoundChange={vi.fn()} />);
+    expect(screen.getByText("no round")).toBeInTheDocument();
   });
 });
