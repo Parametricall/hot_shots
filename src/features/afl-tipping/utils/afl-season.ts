@@ -54,7 +54,9 @@ export function landingFor(
 }
 
 /** Each entry's rank in a Leaderboard already in order. Tipsters level on both measures share one. */
-export function rankEntries(entries: AflLeaderboardEntry[]): number[] {
+export function rankEntries(
+  entries: Pick<AflLeaderboardEntry, "score" | "totalMarginDiff">[],
+): number[] {
   const ranks: number[] = [];
   entries.forEach((current, i) => {
     const previous = entries[i - 1];
