@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
+import { afterEach } from "vite-plus/test";
 import { Leaderboard } from "./leaderboard";
 import { createTestQueryClient, renderWithClient } from "~/test/render";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import type { AflLeaderboardEntry } from "~/features/afl-tipping/types";
+import {
+  createAflPlayerRoundStats,
+  createAflPlayerStatsEntry,
+} from "~/features/afl-tipping/mocks/factories";
 
 vi.mock("~/features/afl-tipping/hooks/use-season", () => ({ useSeason: () => 2026 }));
 
@@ -36,7 +41,7 @@ function makeEntry(overrides: Partial<AflLeaderboardEntry> = {}): AflLeaderboard
 describe("Leaderboard", () => {
   it("shows loading skeleton when there is no cached data", () => {
     renderWithClient(<Leaderboard />);
-    expect(screen.getByText("Tipping Leaderboard")).toBeInTheDocument();
+    expect(screen.getByText("Leaderboard")).toBeInTheDocument();
     expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
     const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -136,5 +141,89 @@ describe("Leaderboard", () => {
     renderWithClient(<Leaderboard />, queryClient);
 
     expect(screen.queryByText("You")).not.toBeInTheDocument();
+  });
+
+  it("labels the columns Rnd, Score and Margin diff", () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [makeEntry()]);
+    renderWithClient(<Leaderboard />, queryClient);
+
+    expect(screen.getByText("Rnd")).toBeInTheDocument();
+    expect(screen.getByText("Score")).toBeInTheDocument();
+    expect(screen.getByText("Margin diff")).toBeInTheDocument();
+    expect(screen.queryByText("Margin")).not.toBeInTheDocument();
+  });
+
+  it("shows this Round's Correct tips and the places gained or lost since the Round before", () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
+      makeEntry({ userId: "b", displayName: "Bea", score: 13, totalMarginDiff: 20 }),
+      makeEntry({ userId: "a", displayName: "Abe", score: 9, totalMarginDiff: 20 }),
+    ]);
+    // Round 1: Abe 7, Bea 5. Round 2: Abe 2, Bea 8. Bea overtakes Abe.
+    const stats = (userId: string, r1: number, r2: number) =>
+      createAflPlayerStatsEntry({
+        userId,
+        rounds: [
+          createAflPlayerRoundStats({ round: 1, correctTips: r1, marginDiff: 10 }),
+          createAflPlayerRoundStats({ round: 2, correctTips: r2, marginDiff: 10 }),
+        ],
+      });
+    queryClient.setQueryData(aflQueries.allPlayerStatsKey(2026), [
+      stats("a", 7, 2),
+      stats("b", 5, 8),
+    ]);
+    renderWithClient(<Leaderboard />, queryClient);
+
+    const rows = screen.getAllByText(/^(Abe|Bea)$/).map((el) => el.closest("div.p-3")!);
+    expect(within(rows[0] as HTMLElement).getByText("Up 1 place")).toBeInTheDocument();
+    expect(within(rows[0] as HTMLElement).getByText("8")).toBeInTheDocument();
+    expect(within(rows[1] as HTMLElement).getByText("Down 1 place")).toBeInTheDocument();
+    expect(screen.getByText(/Correct tips in Round 2/)).toBeInTheDocument();
+  });
+
+  describe("own row pinned to the bottom", () => {
+    let callback: IntersectionObserverCallback | undefined;
+    class FakeObserver {
+      constructor(cb: IntersectionObserverCallback) {
+        callback = cb;
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      callback = undefined;
+    });
+
+    function renderBoard() {
+      vi.stubGlobal("IntersectionObserver", FakeObserver);
+      const queryClient = createTestQueryClient();
+      queryClient.setQueryData(aflQueries.allLeaderboardKey(2026), [
+        makeEntry({ userId: "other", displayName: "Other", score: 9 }),
+        makeEntry({ userId: "user-1", displayName: "Me", score: 5 }),
+      ]);
+      renderWithClient(<Leaderboard />, queryClient);
+    }
+
+    it("shows a copy of the viewer's row once it scrolls out of view", async () => {
+      renderBoard();
+      expect(screen.queryByTestId("own-row-pinned")).not.toBeInTheDocument();
+
+      act(() => callback?.([{ isIntersecting: false } as IntersectionObserverEntry], {} as never));
+      const pinned = await screen.findByTestId("own-row-pinned");
+      expect(within(pinned).getByText("Me")).toBeInTheDocument();
+    });
+
+    it("hides the copy while the viewer's own row is on screen", async () => {
+      renderBoard();
+      act(() => callback?.([{ isIntersecting: false } as IntersectionObserverEntry], {} as never));
+      await screen.findByTestId("own-row-pinned");
+
+      act(() => callback?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as never));
+      await waitFor(() => expect(screen.queryByTestId("own-row-pinned")).not.toBeInTheDocument());
+    });
   });
 });

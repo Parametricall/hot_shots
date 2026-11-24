@@ -1,6 +1,10 @@
 import preview, { withMockUser, withSeason } from "#.storybook/preview";
 import { Leaderboard } from "~/features/afl-tipping/components/leaderboard";
-import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
+import {
+  createAflLeaderboardEntry,
+  createAflPlayerRoundStats,
+  createAflPlayerStatsEntry,
+} from "~/features/afl-tipping/mocks/factories";
 import { expect, within, waitFor } from "storybook/test";
 
 const LEADERBOARD = [
@@ -42,9 +46,27 @@ const LEADERBOARD = [
   }),
 ];
 
+/** Round 1 then Round 2: "You" went from 2nd to 3rd, Ryan from 3rd to 2nd. */
+const PLAYER_STATS = [
+  ["user-1", 9, 9],
+  ["user-storybook", 9, 5],
+  ["user-2", 5, 10],
+  ["user-4", 5, 7],
+  ["user-5", 4, 6],
+].map(([userId, round1, round2]) =>
+  createAflPlayerStatsEntry({
+    userId: userId as string,
+    rounds: [
+      createAflPlayerRoundStats({ round: 1, correctTips: round1 as number, marginDiff: 10 }),
+      createAflPlayerRoundStats({ round: 2, correctTips: round2 as number, marginDiff: 10 }),
+    ],
+  }),
+);
+
 const leaderboardService = (data: ReturnType<typeof createAflLeaderboardEntry>[]) => ({
   aflService: {
     getLeaderboard: async () => data,
+    getPlayerStats: async () => PLAYER_STATS,
   },
 });
 
@@ -68,7 +90,7 @@ export const Default = meta.story({
     await waitFor(() => {
       expect(canvas.getByText("Alice Johnson")).toBeInTheDocument();
     });
-    expect(canvas.getByText("Tipping Leaderboard")).toBeInTheDocument();
+    expect(canvas.getByText("Leaderboard")).toBeInTheDocument();
     expect(canvas.getByText("Diana Prince")).toBeInTheDocument();
 
     // Current user should have "You" badge
