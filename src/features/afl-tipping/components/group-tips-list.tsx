@@ -18,6 +18,7 @@ import { Clock, MapPin } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useCallback, useEffect, useRef } from "react";
 import { useCurrentUser } from "~/features/auth/use-current-user";
+import { TipSplitBar } from "~/features/afl-tipping/components/tip-split-bar";
 
 function UserBadge({
   tip,
@@ -119,13 +120,14 @@ function PreGameTips({
         </div>
       )}
       {tipped.length === 0 && notTipped.length === 0 && (
-        <div className="text-sm text-muted-foreground text-center py-1">No players</div>
+        <div className="text-sm text-muted-foreground text-center py-1">No Tipsters</div>
       )}
     </div>
   );
 }
 
 function PostGameTips({
+  modelTipTeamId,
   tips,
   homeTeam,
   awayTeam,
@@ -133,6 +135,7 @@ function PostGameTips({
   currentUserId,
   isMarginGame,
 }: {
+  modelTipTeamId?: number | null;
   tips: AflGroupTipEntry[];
   homeTeam: AflTeam;
   awayTeam: AflTeam;
@@ -149,6 +152,13 @@ function PostGameTips({
 
   return (
     <div className="px-3 py-2 border-t space-y-2">
+      <TipSplitBar
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
+        homeCount={homeTips.length}
+        awayCount={awayTips.length}
+        modelTipTeamId={modelTipTeamId}
+      />
       <TeamTipGroup
         team={homeTeam}
         tips={homeTips}
@@ -226,6 +236,7 @@ function GameGroupTipCard({
   homeTeam,
   awayTeam,
   tips,
+  modelTipTeamId,
   isLoading,
   isMarginGame,
 }: {
@@ -233,6 +244,7 @@ function GameGroupTipCard({
   homeTeam: AflTeam;
   awayTeam: AflTeam;
   tips: AflGroupTipEntry[];
+  modelTipTeamId?: number | null;
   isLoading: boolean;
   isMarginGame?: boolean;
 }) {
@@ -292,6 +304,7 @@ function GameGroupTipCard({
           <TipsSkeleton />
         ) : hasStarted ? (
           <PostGameTips
+            modelTipTeamId={modelTipTeamId}
             tips={tipped}
             homeTeam={homeTeam}
             awayTeam={awayTeam}
@@ -324,6 +337,7 @@ export function GroupTipsList() {
   const { data: groupTips, isPending: isGroupTipsPending } = useQuery({
     ...aflQueries.groupTips(season, currentRound),
   });
+  const { data: modelTips } = useQuery(aflQueries.modelTips(season, currentRound));
 
   if (games.length === 0) {
     return (
@@ -346,7 +360,7 @@ export function GroupTipsList() {
         .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
         .map(([date, dateGames]) => (
           <div key={date} className="space-y-2 sm:space-y-3">
-            <h3 className="text-base sm:text-lg font-semibold text-muted-foreground border-b pb-1 sm:pb-2 sticky top-0 md:top-16 bg-background z-10 pt-2">
+            <h3 className="text-base sm:text-lg font-semibold text-muted-foreground border-b pb-1 sm:pb-2 sticky top-[var(--sticky-top,0px)] bg-background z-10 pt-2">
               {formatDateHeader(date)}
             </h3>
             <div className="space-y-2 sm:space-y-3">
@@ -376,6 +390,7 @@ export function GroupTipsList() {
                         createUnknownAflTeam(game.awayTeamId)
                       }
                       tips={gameTips}
+                      modelTipTeamId={modelTips?.find((t) => t.gameId === game.id)?.tipTeamId}
                       isLoading={isGroupTipsPending}
                       isMarginGame={game.id === firstGameId}
                     />

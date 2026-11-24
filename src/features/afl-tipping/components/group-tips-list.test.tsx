@@ -27,6 +27,7 @@ vi.mock("~/app/service-registry", () => ({
       getGames: vi.fn().mockResolvedValue([]),
       getAllCurrentTeams: vi.fn().mockResolvedValue([]),
       getGroupTips: vi.fn().mockResolvedValue([]),
+      getModelTips: vi.fn().mockResolvedValue([]),
     }),
   },
 }));
@@ -54,8 +55,26 @@ function populateData(
   opts: {
     games?: typeof games;
     groupTips?: ReturnType<typeof createAflGroupTipEntry>[];
+    modelTipTeamId?: number;
   } = {},
 ) {
+  queryClient.setQueryData(
+    aflQueries.modelTips(2026, 1).queryKey,
+    opts.modelTipTeamId === undefined
+      ? []
+      : [
+          {
+            gameId: 100,
+            round: 1,
+            homeTeamId: 1,
+            awayTeamId: 2,
+            tipTeamId: opts.modelTipTeamId,
+            confidence: 60,
+            homeConfidence: 60,
+            awayConfidence: 40,
+          },
+        ],
+  );
   queryClient.setQueryData(aflQueries.allGames(2026).queryKey, opts.games ?? games);
   queryClient.setQueryData(aflQueries.teams().queryKey, teams);
   queryClient.setQueryData(aflQueries.groupTips(2026, 1).queryKey, opts.groupTips ?? []);
@@ -153,5 +172,62 @@ describe("GroupTipsList", () => {
     expect(screen.getAllByText("auto")).toHaveLength(1);
     expect(screen.getByText("Alice").closest("[data-slot=badge]")).toHaveTextContent("auto");
     expect(screen.getByText("Bob").closest("[data-slot=badge]")).not.toHaveTextContent("auto");
+  });
+
+  describe("split bar", () => {
+    const pastTime = Date.now() - 1000 * 60 * 60;
+    const startedGames = [
+      createAflGame({
+        id: 100,
+        round: 1,
+        homeTeamId: 1,
+        awayTeamId: 2,
+        unixTime: pastTime,
+        date: new Date(pastTime),
+      }),
+    ];
+    const tipsFor = (...teamIds: number[]) =>
+      teamIds.map((tipTeamId, i) =>
+        createAflGroupTipEntry({
+          userId: `user-${i}`,
+          displayName: `Tipster ${i}`,
+          gameId: 100,
+          tipTeamId,
+        }),
+      );
+
+    it("shows how the Tipsters split, and the Model tip, once the game has started", () => {
+      const queryClient = createTestQueryClient();
+      populateData(queryClient, {
+        games: startedGames,
+        groupTips: tipsFor(1, 1, 1, 2),
+        modelTipTeamId: 2,
+      });
+      renderGroupTips(queryClient);
+
+      expect(
+        screen.getByRole("img", { name: "LIO 75%, SUN 25%. Model tip: SUN" }),
+      ).toBeInTheDocument();
+    });
+
+    it("leaves the Model tip off when the Model has not tipped the game", () => {
+      const queryClient = createTestQueryClient();
+      populateData(queryClient, { games: startedGames, groupTips: tipsFor(1, 2) });
+      renderGroupTips(queryClient);
+
+      expect(screen.getByRole("img", { name: "LIO 50%, SUN 50%" })).toBeInTheDocument();
+    });
+
+    it("hides who tipped what, split included, until Lockout", () => {
+      const queryClient = createTestQueryClient();
+      populateData(queryClient, {
+        groupTips: [
+          createAflGroupTipEntry({ userId: "user-1", displayName: "Alice", gameId: 100 }),
+        ],
+      });
+      renderGroupTips(queryClient);
+
+      expect(screen.queryByRole("img", { name: /%/ })).not.toBeInTheDocument();
+    });
   });
 });
