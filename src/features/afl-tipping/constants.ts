@@ -3,6 +3,15 @@ import { Venue } from "~/features/afl-tipping/types";
 // Season structure
 export const REGULAR_SEASON_ROUNDS = 25;
 
+/**
+ * How many teams play Finals. The AFL added a wildcard round in 2026, so the top 10 qualify from
+ * then (the top 8 before). The Ladder draws its cut-off line from this: keep the rule here, not in
+ * the component, so the next change to the format is one edit.
+ */
+export function finalsSpots(season: number): number {
+  return season >= 2026 ? 10 : 8;
+}
+
 // The first Season with Tips. Squiggle has older ones, but nobody tipped them.
 export const FIRST_SEASON = 2026;
 
