@@ -28,7 +28,7 @@ Status: deployed. The real-device checks below are still to do. See
 
 ### Sign-in redirect-back
 
-- [ ] Signed out, open `/afl-tipping/standings`, sign in, land back on standings
+- [ ] Signed out, open `/afl-tipping/standings`, sign in, land back on Stats, AFL Ladder view
 - [ ] `redirect_url` that doesn't start with `/` is ignored (open-redirect guard)
 - [ ] Dev login buttons honour `redirect_url`, default `/afl-tipping`
 
@@ -63,13 +63,15 @@ Status: not deployed. See `docs/adr/0007-tipsters-enter-each-season.md` and plan
 
 ### Season summary, switcher and banner
 
-- [ ] The trophy tab shows the Season summary; five tabs still fit at 360px
+- [ ] The four sections and ⋯ More fill the bottom bar at 360px; on the Season summary none is
+      selected
+- [ ] The Season switcher is in the ⋯ More sheet
 - [ ] In progress: a "Tip Round N" button, the top three so far, your own rank, no Wooden spoon
 - [ ] Over: "<season> Season, final", the podium, the Wooden spoon, your finish, "Full Leaderboard"
 - [ ] Tied Tipsters on a podium rank are all shown with "=2nd" style ranks; Tipsters level on last
       place share the Wooden spoon; three or fewer Tipsters means no Wooden spoon
-- [ ] The Season switcher is hidden with one Season. With two it lists them newest first, marks
-      the Current Season, keeps the open tab and drops `?round`
+- [ ] With one Season, More lists just that Season, ticked. With two it lists them newest first,
+      ticks the one open, marks the Current Season, keeps the open tab and drops `?round`
 - [ ] On a past Season a banner reads "You're viewing <season>. Back to <current>", linking to the
       Current Season's My Tips, or its summary when that is over
 - [ ] A past Season's My Tips is read-only: every Game is locked
@@ -88,7 +90,7 @@ Status: not deployed. See `docs/adr/0007-tipsters-enter-each-season.md` and plan
 - [ ] `/afl-tipping` opens on My Tips at the start position
 - [ ] Time control to "Season over", then `/afl-tipping` lands on the 2026 summary with a podium
       and a Wooden spoon
-- [ ] No Season switcher shows
+- [ ] ⋯ More lists only 2026
 
 ### Installed PWA
 
@@ -119,7 +121,7 @@ Tipsters if you haven't. See `docs/adr/0001-missed-tips-become-home-team-auto-ti
 - [ ] Leave My Tips open across a Game's start: the strip appears without a refresh
 - [ ] The Auto-tip is on the Home team, and the Home team button shows as selected
 
-### Player Tips
+### Round tab (was Player Tips)
 
 - [ ] After Lockout, a Tipster who missed the Game appears under the Home team with a muted `auto`
       marker (hover title: "Didn't tip: auto-tipped the home team")
@@ -158,3 +160,79 @@ Status: deployed and migration applied 2026-10-15. See `docs/adr/0002-supabase-i
 - [ ] SQL Editor: `select policyname from pg_policies where tablename = 'afl_tipping'` returns no
       rows. A policy made in the dashboard would still let signed-in Tipsters reach the table
       from the browser with their Clerk token
+
+## Mobile navigation overhaul
+
+Status: not deployed. Run in `npm run dev:demo` with the browser at 375px wide (device toolbar,
+iPhone SE or 12), then once on a real phone, and again at 1280px for desktop.
+
+### Bottom bar and sections
+
+- [ ] A bar is fixed to the bottom with Tips, Round, Leaderboard, Stats and ⋯ More, each at least
+      44px tall; the one you're on is highlighted (and read out as "current page")
+- [ ] Switching section keeps `?round=` in the URL; the Season summary highlights none
+- [ ] On desktop the same four labels are a row of tabs at the top, with a "More" button at its
+      end, and no bottom bar
+- [ ] `/afl-tipping/<season>/standings` lands on Stats with the AFL Ladder segment selected
+- [ ] Stats has a "Tipsters | AFL Ladder" control; the choice survives a reload (`?view=ladder`)
+- [ ] The Leaderboard is no longer on the Stats page; "Full Leaderboard" on the Season summary
+      opens the Leaderboard tab
+
+### Season switcher
+
+- [ ] The header and the Leaderboard title ("2026 Leaderboard") have no Season switcher
+- [ ] ⋯ More opens a sheet from the bottom (a panel from the right on desktop) headed "AFL
+      Tipping", with a "Season" list; picking a Season closes it and stays on the open tab
+- [ ] The More item stays highlighted while its sheet is open; Escape or tapping outside closes it
+- [ ] Under the Seasons, "How tipping works" opens the rules page and closes the sheet; the bottom
+      bar stays, with no section highlighted. Picking a Season from More there stays on the rules
+- [ ] The rules read well at 360px: six headed sections, and the Underdog quota says 2
+- [ ] On another tab of a past Season the "You're viewing" banner still links back
+
+### Header
+
+- [ ] The header is 48px with a small logo and "AFL Tipping"; no "All apps" link in it
+- [ ] The avatar menu has "All apps" (to the Hub) and, outside the Demo, "Sign out"
+- [ ] In the Demo the avatar opens a menu with "All apps" only
+
+### Round chips and status line
+
+- [ ] A phone shows a sideways-scrolling strip of Round chips (Opening, R1..., Finals in orange),
+      with the selected Round centred, also after a reload on a late Round
+- [ ] Each chip has a dot: green all tipped, amber a Game still open is untipped, grey locked or done
+- [ ] Under the strip: "6/9 tipped · Locks Thu 7:40pm (2d 3h)", then "Round locked" and "Round
+      complete" as the Demo clock moves; the time is Melbourne time
+- [ ] The strip and status line stay put under the header while the Games scroll; the date
+      headings stick just below them
+- [ ] Stats, Tipsters, By Round uses the same `?round=` as the tipping pages
+
+### Underdog quota chip
+
+- [ ] My Tips shows "Underdogs 0/2" (amber) once the Model has tipped, "2/2" (green) when met
+- [ ] Tapping it explains the rule, including "Don't be a shit bloke."
+- [ ] It doesn't show in Finals, or before the Model has tipped the Round
+
+### Leaderboard
+
+- [ ] Rank movement (up green, down red, a dash for none) shows after the first Round is complete
+- [ ] "Rnd" is each Tipster's Correct tips in the latest Round; the column is "Margin diff"
+- [ ] Scroll your own row off screen: a copy is pinned above the bottom bar (and above the Demo
+      Time control); it disappears when your row is back in view
+- [ ] Once the Season is over the Wooden spoon card shows under the list
+
+### Round tab
+
+- [ ] After Lockout each Game shows a home/away split bar with percentages and the Model tip
+- [ ] Before Lockout there is no split bar and no one's pick is shown
+
+### AFL Ladder
+
+- [ ] On a phone teams show as abbreviations; wider screens show full names
+- [ ] A % column; a dashed line under 10th place (8th for Seasons before 2026)
+
+### Scrolling, safe areas, tap targets
+
+- [ ] The whole page scrolls (the browser bars can tuck away); nothing hides behind the bottom bar
+- [ ] On an iPhone with a notch/home indicator the header and bar clear them
+- [ ] Demo: the Time control sits above the bottom bar and the last Game can scroll clear of both
+- [ ] Margin -/+ buttons and the Stats round arrows and "By Round | Season" toggle are easy to hit
