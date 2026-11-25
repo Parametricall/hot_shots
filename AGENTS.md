@@ -67,7 +67,8 @@ pinned (with `vitest`) via `overrides` in `package.json`; bump them together wit
 - `src/app/` - App bootstrap & configuration (router, start, service registry)
 - `src/routes/` - TanStack Router file-based routes (auto-generates `routeTree.gen.ts`)
 - `src/features/afl-tipping/` - Main feature module with components, API, pages, providers
-- `src/features/afl-tipping/api/squiggle/` - Squiggle API integration with Zod schemas
+- `src/features/afl-tipping/api/squiggle/` - Squiggle API client and Zod schemas, used only by `sync/`
+- `src/features/afl-tipping/sync/` - The Squiggle sync and live ingest: the only code that calls Squiggle
 - `src/features/afl-tipping/pages/` - Page components for afl-tipping routes
 - `src/features/auth/` - Auth feature (sign-in page)
 - `src/components/ui/` - shadcn/ui components
@@ -82,6 +83,10 @@ All third-party API calls must go through `src/app/service-registry.ts`. This ce
 - Easy mocking for tests
 
 **Important:** When creating or updating any third-party API integration, always use the service registry pattern. Never import and call third-party fetch functions directly — wrap them in a service and access them via `serviceRegistry.getService()`. This ensures all external calls can be easily mocked in tests.
+
+Squiggle is the exception that proves the rule (`docs/adr/0009`): only `src/features/afl-tipping/sync/`
+calls it (plus `scripts/` for the Demo snapshot). Every other read comes from our `afl_*` tables,
+through `squiggleDataRepository` or `squiggleService`. Never add a visitor-triggered Squiggle call.
 
 ### Server Functions
 
