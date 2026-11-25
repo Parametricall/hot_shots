@@ -365,7 +365,9 @@ Game for months).
 `src/features/afl-tipping/sync/`:
 
 - `squiggle-sync.repository.ts`: upserts for each table and reads
-  `state` for the plan. It goes through `getSupabaseServerClient()`.
+  `state` for the plan. It takes a Supabase client as a parameter (the endpoint
+  passes the server client in; `getSupabaseServerClient` is server-only and
+  can't run from the script).
 - `run-squiggle-sync.ts`: loads the state, plans, runs each request through
   the budgeted client, upserts what succeeds, and records one
   `squiggle_sync_runs` row per job. A failed request writes nothing for
@@ -462,15 +464,16 @@ Undo that change before committing.
   (realtime.topic() = 'afl:live-games')`. No `insert` policy, so nobody can
   send.
 - `create extension if not exists pg_cron` and `pg_net`.
-- Two `cron.schedule` jobs, every minute. Each reads the app URL and
+- Two `cron.schedule` jobs: `squiggle-live` every minute, `squiggle-sync` every 10. Each reads the app URL and
   `SQUIGGLE_SYNC_SECRET` from Supabase Vault
   (`vault.decrypted_secrets`, names `app_url` and `squiggle_sync_secret`).
   Each does nothing if either secret is missing, so local and fresh
   databases are safe.
-  - `squiggle-sync`: `net.http_post` to `/api/sync/squiggle` if the last
-    `squiggle_sync_runs` row is more than 55 minutes old, or a Game
-    completed since the last `ladder` run. The planner decides the rest.
-    This is what keeps the off-Season to a handful of calls a day.
+  - `squiggle-sync`: `net.http_post` to `/api/sync/squiggle` every 10
+    minutes, with no condition. The planner decides the cadence and records
+    no `squiggle_sync_runs` row for a job with nothing planned, so most
+    ticks send no request to Squiggle. That keeps the off-Season to a
+    handful of calls a day.
   - `squiggle-live`: `net.http_post` to `/api/sync/live-scores` if a Game
     has `complete < 100` and starts between 6 hours ago and 30 minutes from
     now (`LIVE_POST_START_WINDOW_MS`, `LIVE_PRE_GAME_WINDOW_MS`), and the
@@ -828,3 +831,40 @@ unchanged.
 - An unknown team asks for Teams at once, but at most hourly
   (`TEAMS_UNKNOWN_TEAM_MIN_INTERVAL_MS`), so a team Squiggle never lists can't ask every minute.
 - Besides the per-run cap of 10, the plan is cut to what is left of the day's 300.
+
+### Step 6 executor notes (2026-11-25)
+
+- `createSquiggleSyncRepository(supabase)` returns `loadState(now)`, `upsertTeams`, `upsertGames`,
+  `upsertModelTips(season, tips, now)`, `upsertLadder(season, ladder, now)`,
+  `upsertFixtureCheck(season, hadGames, now)` and `insertRun(run)`. `runSquiggleSync({ supabase,
+  now, client? })` returns `{ ok: true; requests; jobs }` or `{ ok: false; reason }`.
+- **Operator decision, replaces the Step 5 deviation's "in the run's `detail`"**: the empty-Fixture
+  check has its own table, `squiggle_fixture_checks (season, checked_at, had_games)`
+  (`20261125100000_squiggle_fixture_checks.sql`). A full Fixture fetch of a year upserts a row; the
+  state reads `emptyFixtureChecks` from rows with `had_games = false`. Step 10's `squiggle-sync`
+  cron runs every 10 minutes with no condition, because the planner records no run for a job with
+  nothing planned.
+- **Live-data rule**: `upsertGames` first asks which of the batch's Games have
+  `live_updated_at >= now - 10 minutes` (`LIVE_DATA_PROTECTION_MS`). Those are upserted in a
+  second call, with `home_score`, `away_score`, `time_str`, `complete` and `winner_team_id` left
+  out of the rows and `defaultToNull: false`, so the stored values stay. `live_updated_at` is never
+  written by the sync. Pinned in both the repository and the runner tests.
+- **Deviation, `AflGame.updatedAt?`**: the domain type didn't carry Squiggle's `updated`, so the
+  repository had nothing for `squiggle_updated`. Added the optional field, parsed as local time in
+  the Game's own `tz` offset (the fixture's `updated` 18:05 follows its 15:20 start). The format is
+  **unverified** against a live response; `lastGameCompletion` is capped at `now`, so a wrong
+  reading costs a Ladder fetch at the wrong moment, not a wait of hours.
+- **`requestsToday`** sums `requests` of the four planned jobs, leaving out `live` runs (those
+  count Event API connections, not Standard API requests).
+- A job's requests all run even if one fails; the successful ones are stored, and the job is
+  recorded as failed with the first failure's reason, so the planner backs the whole job off. A
+  request that sent nothing (`budget`) records no row. `no-contact-email` stops the run with
+  `{ ok: false }` and records nothing, so a missing variable doesn't back every job off.
+- `npm run sync:squiggle` is `tsx --env-file=.env scripts/sync-squiggle.ts`. It refuses a Supabase
+  URL that isn't local unless given `--remote` (Step 13's backfill).
+- **Local run pending the operator**: `SQUIGGLE_CONTACT_EMAIL` is not in `.env`, so nothing was
+  sent to Squiggle. `npx supabase db reset` applied both migrations, and `npm run sync:squiggle`
+  reached the local database, planned the first-load requests and stopped with `no-contact-email`
+  (no run row, no data). To finish Step 6's verify: add the variable to `.env`, run
+  `npm run sync:squiggle` twice, and check `squiggle_sync_runs` (first run: a handful of requests;
+  second: none or very few).
