@@ -43,10 +43,10 @@ export const aflQueries = {
     return queryOptions({
       queryKey: aflQueries.allGamesKey(season),
       queryFn: () => getSquiggleService().getGames(season),
+      // Scores change mid-round, but live updates push them into this cache (and a reconnect
+      // resyncs it), so refocusing the tab needn't refetch the whole Season. It reads our own
+      // database now, not Squiggle, but there's still no reason to ask for the same thing again.
       staleTime: Infinity,
-      // Scores change mid-round: bypass the Infinity staleTime when the app
-      // regains focus so live results stay fresh
-      refetchOnWindowFocus: "always",
     });
   },
   games: (season: number, round?: number) => {
