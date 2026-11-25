@@ -8,7 +8,8 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import serviceRegistry from "~/app/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
-import { service as liveScoresService } from "~/features/afl-tipping/api/live-scores.service";
+import { service as relayLiveScoresService } from "~/features/afl-tipping/api/live-scores.service";
+import { service as realtimeLiveScoresService } from "~/features/afl-tipping/api/live-scores.realtime";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
 import { squiggleDataRepository } from "~/features/afl-tipping/api/squiggle-data.repository";
 import { competitionEntriesRepository } from "~/features/afl-tipping/api/competition-entries.repository";
@@ -21,7 +22,13 @@ import { tipstersRepository } from "~/features/afl-tipping/api/tipsters.reposito
 if (import.meta.env.VITE_DEMO !== "true") {
   serviceRegistry.registerService("squiggleService", squiggleService);
   serviceRegistry.registerService("aflService", aflService);
-  serviceRegistry.registerService("liveScoresService", liveScoresService);
+  // Live scores arrive over Supabase Realtime (plan 015). `VITE_LIVE_SCORES=relay` brings back the
+  // per-tab `/api/live-scores` proxy, as a fallback until the relay is removed.
+  if (import.meta.env.VITE_LIVE_SCORES !== "relay") {
+    serviceRegistry.registerService("liveScoresService", realtimeLiveScoresService);
+  } else {
+    serviceRegistry.registerService("liveScoresService", relayLiveScoresService);
+  }
   serviceRegistry.registerService("squiggleDataRepository", squiggleDataRepository);
   serviceRegistry.registerService("tipsRepository", tipsRepository);
   serviceRegistry.registerService("tipstersRepository", tipstersRepository);
