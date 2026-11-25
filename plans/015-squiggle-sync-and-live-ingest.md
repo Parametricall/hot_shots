@@ -946,3 +946,26 @@ unchanged.
   (`home_score`, `away_score`, `time_str`, `complete`, `live_updated_at`); stopped at the deadline
   with one run row (`requests: 1`). No database was touched, so nothing needs undoing.
 - `fake-supabase.ts` gained `update` and `rpc` (recorded as a call on the function's name).
+
+### Step 11 executor notes (2026-11-25)
+
+- **No `VITE_` publishable key exists** (the plan assumed one): the app's key is the server-only
+  `SUPABASE_PUBLISHABLE_KEY`. Rather than add a new browser variable to Vercel, `getRealtimeToken`
+  returns `{ ok: true, accessToken, expiresAt (ms), publishableKey } | { ok: false, reason:
+  "unauthenticated" | "not-configured" }`, and the service builds its `RealtimeClient` from that
+  (URL from `VITE_SUPABASE_URL`). It is a result, not a thrown 401, per the repo's convention.
+  `readRealtimeToken()` is the testable body, in `features/auth/api/realtime-token.ts`
+  (`getClaims()` verifies and refreshes the session, then `getSession()` reads the access token).
+- `createRealtimeLiveScoresService({ url, createClient, getToken })`; timers are the global ones
+  (tests use fake timers). `@supabase/realtime-js` is `^2.119.2`, the version supabase-js pins.
+- A broadcast's nullable scores and winner pass through as `null` (the broadcast is the Game's whole
+  live state); a null `timeStr` or `complete` is left out, since `AflGame` has no null for them.
+- **Local `.env.local` points `VITE_SUPABASE_URL` at the hosted project** (Vercel CLI pulled it) and
+  overrides `.env`. `npm run dev` would therefore make the browser join hosted Realtime. Not run.
+- Manual check was Node-level, not through the UI (no local users, and the dev server would use the
+  hosted URL): a temporary vitest file drove the real service and real `RealtimeClient` against local
+  Realtime with a temporary password user. Two signed-in subscribers each got one parsed update when
+  Game 40308's `time_str` and `home_score` were patched; a service with no token got nothing. The
+  Game was restored and the user deleted; the file was not committed.
+- Bundle: the built client assets contain realtime-js (`phx_join`, `realtime/v1`) and no auth-js
+  (`GoTrueClient`, `AuthSessionMissingError`) or postgrest.
