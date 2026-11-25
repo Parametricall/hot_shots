@@ -220,15 +220,16 @@ push. The operator does.
 ### Step 1: OPERATOR — decisions and secrets
 
 1. ~~Confirm D1–D7.~~ Done 2026-11-25: all confirmed as written.
-2. Pick the contact email for the User-Agent (D6). Squiggle must be able to
-   reach it.
+2. ~~Pick the contact email for the User-Agent (D6).~~ Done 2026-11-25: the
+   operator's personal Gmail with a `+squiggle` tag. It lives only in
+   `SQUIGGLE_CONTACT_EMAIL` (Vercel and local `.env`). Never write it into
+   the repo, a test or a log line.
 3. ~~Confirm the production URL the scheduler should call.~~ Done
    2026-11-25: `https://www.hot-shots.dev`. The bare `hot-shots.dev` answers
    with a 307 to it, so the Vault secret `app_url` must be the `www` form,
    with no trailing slash.
 
-Step 2 can start now. Items 2 and 3 are needed by Step 4 (the User-Agent)
-and Step 13 (the Vault secrets).
+Step 1 is done.
 
 ### Step 2: Spikes (throwaway code, findings go in "Notes")
 
