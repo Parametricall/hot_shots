@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vite-plus/test";
-import { SQUIGGLE_SSE_HOST, SQUIGGLE_USER_AGENT } from "./squiggle/constants";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vite-plus/test";
+import { SQUIGGLE_SSE_HOST } from "./squiggle/constants";
 import { SSE_HEARTBEAT_MS, proxyLiveScores, relayWithHeartbeat } from "./sse-proxy";
 
 const encoder = new TextEncoder();
@@ -29,9 +29,14 @@ async function readText(reader: ReadableStreamDefaultReader<Uint8Array>) {
   return done ? null : decoder.decode(value);
 }
 
+beforeEach(() => {
+  vi.stubEnv("SQUIGGLE_CONTACT_EMAIL", "test@example.com");
+});
+
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("relayWithHeartbeat", () => {
@@ -116,7 +121,10 @@ describe("proxyLiveScores", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${SQUIGGLE_SSE_HOST}/events`,
       expect.objectContaining({
-        headers: { "User-Agent": SQUIGGLE_USER_AGENT, Accept: "text/event-stream" },
+        headers: {
+          "User-Agent": "Hot Shots Tipping (hot-shots.dev) - test@example.com",
+          Accept: "text/event-stream",
+        },
       }),
     );
     expect(response.status).toBe(200);
@@ -128,6 +136,16 @@ describe("proxyLiveScores", () => {
     const reader = response.body!.getReader();
     expect(await readText(reader)).toBe("data:hello\n\n");
     await reader.cancel();
+  });
+
+  it("refuses, without calling Squiggle, when there is no contact email", async () => {
+    vi.stubEnv("SQUIGGLE_CONTACT_EMAIL", "");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { fetchImpl, fetchMock } = okFetch();
+    const response = await proxyLiveScores(request(), fetchImpl);
+
+    expect(response.status).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("relays the test channel when asked", async () => {

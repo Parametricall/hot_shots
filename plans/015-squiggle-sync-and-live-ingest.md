@@ -790,3 +790,16 @@ unchanged.
 - D4: supported by the local test. The polling fallback isn't needed.
 - D5: supported. Signed-out browsers can't receive, and nobody can send. Add the expiry handling
   above to Step 11.
+
+### Step 4 executor notes (2026-11-25)
+
+- The client is `createSquiggleClient({ budget })` in `squiggle/api.ts`: `fetchGames({ year, round?,
+  complete? })`, `fetchGame(id)`, `fetchModelTips({ year, round })`, `fetchLadder(year)`,
+  `fetchTeams()` and `requestCount()`. The User-Agent comes from `buildSquiggleUserAgent` in
+  `squiggle/user-agent.ts`, read from `process.env.SQUIGGLE_CONTACT_EMAIL` on every request.
+- `SQUIGGLE_USER_AGENT` is gone. Two other users needed the same email: `sse-proxy.ts` now answers
+  503 without it (the relay goes in Step 13), and `scripts/snapshot-demo-season.ts` throws.
+- `squiggle.serverfns.ts` keeps working through `unwrapSquiggle`, which throws at the server-function
+  boundary. Step 8 deletes that code.
+- Not done, as asked: `AflStanding` and `getStandings` still say "standings" while GLOSSARY.md says
+  Ladder. Worth a separate rename after this plan.

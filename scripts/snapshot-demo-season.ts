@@ -19,10 +19,8 @@ import {
   squiggleStandingsDtoToDomain,
   squiggleTeamsDtoToDomain,
 } from "~/features/afl-tipping/api/squiggle/schemas";
-import {
-  SQUIGGLE_API_HOST,
-  SQUIGGLE_USER_AGENT,
-} from "~/features/afl-tipping/api/squiggle/constants";
+import { SQUIGGLE_API_HOST } from "~/features/afl-tipping/api/squiggle/constants";
+import { buildSquiggleUserAgent } from "~/features/afl-tipping/api/squiggle/user-agent";
 import { PERSONAS, seedTips } from "~/features/afl-tipping/demo/seed-tips";
 import type { DemoSnapshot } from "~/features/afl-tipping/demo/snapshot";
 
@@ -41,7 +39,9 @@ function readSeason(): number {
 
 async function squiggle(query: string): Promise<unknown> {
   const url = `${SQUIGGLE_API_HOST}/?${query}`;
-  const res = await fetch(url, { headers: { "User-Agent": SQUIGGLE_USER_AGENT } });
+  const userAgent = buildSquiggleUserAgent(process.env.SQUIGGLE_CONTACT_EMAIL);
+  if (!userAgent) throw new Error("Set SQUIGGLE_CONTACT_EMAIL before calling Squiggle");
+  const res = await fetch(url, { headers: { "User-Agent": userAgent } });
   if (!res.ok) throw new Error(`Squiggle ${res.status} for ${url}`);
   return res.json();
 }

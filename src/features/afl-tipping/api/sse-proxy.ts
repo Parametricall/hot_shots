@@ -1,7 +1,5 @@
-import {
-  SQUIGGLE_SSE_HOST,
-  SQUIGGLE_USER_AGENT,
-} from "~/features/afl-tipping/api/squiggle/constants";
+import { SQUIGGLE_SSE_HOST } from "~/features/afl-tipping/api/squiggle/constants";
+import { buildSquiggleUserAgent } from "~/features/afl-tipping/api/squiggle/user-agent";
 
 /**
  * Squiggle's Event API (SSE) through our own server. Squiggle only allows a
@@ -88,10 +86,16 @@ export async function proxyLiveScores(
     return new Response("Unknown channel", { status: 400 });
   }
 
+  const userAgent = buildSquiggleUserAgent(process.env.SQUIGGLE_CONTACT_EMAIL);
+  if (userAgent === undefined) {
+    console.error("[live-scores] SQUIGGLE_CONTACT_EMAIL is not set");
+    return new Response("Squiggle is not configured", { status: 503 });
+  }
+
   let upstream: Response;
   try {
     upstream = await fetchImpl(`${SQUIGGLE_SSE_HOST}/${channel}`, {
-      headers: { "User-Agent": SQUIGGLE_USER_AGENT, Accept: "text/event-stream" },
+      headers: { "User-Agent": userAgent, Accept: "text/event-stream" },
       signal: request.signal,
     });
   } catch (err) {
