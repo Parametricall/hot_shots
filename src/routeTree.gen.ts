@@ -24,6 +24,8 @@ import { Route as AuthenticatedAflTippingGroupTipsRouteImport } from './routes/_
 import { Route as AuthenticatedAflTippingStandingsRouteImport } from './routes/_authenticated/afl-tipping/standings'
 import { Route as AuthenticatedAflTippingStatsRouteImport } from './routes/_authenticated/afl-tipping/stats'
 import { Route as AuthenticatedAflTippingTipsRouteImport } from './routes/_authenticated/afl-tipping/tips'
+import { Route as ApiSyncLiveScoresRouteImport } from './routes/api/sync/live-scores'
+import { Route as ApiSyncSquiggleRouteImport } from './routes/api/sync/squiggle'
 import { Route as AuthOauthProviderRouteImport } from './routes/auth/oauth.$provider'
 import { Route as AuthenticatedAflTippingSeasonIndexRouteImport } from './routes/_authenticated/afl-tipping/$season/index'
 import { Route as AuthenticatedAflTippingSeasonGroupTipsRouteImport } from './routes/_authenticated/afl-tipping/$season/group-tips'
@@ -113,6 +115,16 @@ const AuthenticatedAflTippingTipsRoute =
     path: '/tips',
     getParentRoute: () => AuthenticatedAflTippingRoute,
   } as any)
+const ApiSyncLiveScoresRoute = ApiSyncLiveScoresRouteImport.update({
+  id: '/api/sync/live-scores',
+  path: '/api/sync/live-scores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSyncSquiggleRoute = ApiSyncSquiggleRouteImport.update({
+  id: '/api/sync/squiggle',
+  path: '/api/sync/squiggle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthOauthProviderRoute = AuthOauthProviderRouteImport.update({
   id: '/auth/oauth/$provider',
   path: '/auth/oauth/$provider',
@@ -175,6 +187,8 @@ export interface FileRoutesByFullPath {
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
+  '/api/sync/live-scores': typeof ApiSyncLiveScoresRoute
+  '/api/sync/squiggle': typeof ApiSyncSquiggleRoute
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
   '/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
@@ -197,6 +211,8 @@ export interface FileRoutesByTo {
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
+  '/api/sync/live-scores': typeof ApiSyncLiveScoresRoute
+  '/api/sync/squiggle': typeof ApiSyncSquiggleRoute
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/afl-tipping': typeof AuthenticatedAflTippingIndexRoute
   '/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
@@ -223,6 +239,8 @@ export interface FileRoutesById {
   '/_authenticated/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
   '/_authenticated/afl-tipping/stats': typeof AuthenticatedAflTippingStatsRoute
   '/_authenticated/afl-tipping/tips': typeof AuthenticatedAflTippingTipsRoute
+  '/api/sync/live-scores': typeof ApiSyncLiveScoresRoute
+  '/api/sync/squiggle': typeof ApiSyncSquiggleRoute
   '/auth/oauth/$provider': typeof AuthOauthProviderRoute
   '/_authenticated/afl-tipping/': typeof AuthenticatedAflTippingIndexRoute
   '/_authenticated/afl-tipping/$season/group-tips': typeof AuthenticatedAflTippingSeasonGroupTipsRoute
@@ -249,6 +267,8 @@ export interface FileRouteTypes {
     | '/afl-tipping/standings'
     | '/afl-tipping/stats'
     | '/afl-tipping/tips'
+    | '/api/sync/live-scores'
+    | '/api/sync/squiggle'
     | '/auth/oauth/$provider'
     | '/afl-tipping/'
     | '/afl-tipping/$season/group-tips'
@@ -271,6 +291,8 @@ export interface FileRouteTypes {
     | '/afl-tipping/standings'
     | '/afl-tipping/stats'
     | '/afl-tipping/tips'
+    | '/api/sync/live-scores'
+    | '/api/sync/squiggle'
     | '/auth/oauth/$provider'
     | '/afl-tipping'
     | '/afl-tipping/$season/group-tips'
@@ -296,6 +318,8 @@ export interface FileRouteTypes {
     | '/_authenticated/afl-tipping/standings'
     | '/_authenticated/afl-tipping/stats'
     | '/_authenticated/afl-tipping/tips'
+    | '/api/sync/live-scores'
+    | '/api/sync/squiggle'
     | '/auth/oauth/$provider'
     | '/_authenticated/afl-tipping/'
     | '/_authenticated/afl-tipping/$season/group-tips'
@@ -316,6 +340,8 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   ApiLiveScoresRoute: typeof ApiLiveScoresRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  ApiSyncLiveScoresRoute: typeof ApiSyncLiveScoresRoute
+  ApiSyncSquiggleRoute: typeof ApiSyncSquiggleRoute
   AuthOauthProviderRoute: typeof AuthOauthProviderRoute
 }
 
@@ -425,6 +451,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/afl-tipping/tips'
       preLoaderRoute: typeof AuthenticatedAflTippingTipsRouteImport
       parentRoute: typeof AuthenticatedAflTippingRoute
+    }
+    '/api/sync/live-scores': {
+      id: '/api/sync/live-scores'
+      path: '/api/sync/live-scores'
+      fullPath: '/api/sync/live-scores'
+      preLoaderRoute: typeof ApiSyncLiveScoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync/squiggle': {
+      id: '/api/sync/squiggle'
+      path: '/api/sync/squiggle'
+      fullPath: '/api/sync/squiggle'
+      preLoaderRoute: typeof ApiSyncSquiggleRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/oauth/$provider': {
       id: '/auth/oauth/$provider'
@@ -566,6 +606,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   ApiLiveScoresRoute: ApiLiveScoresRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  ApiSyncLiveScoresRoute: ApiSyncLiveScoresRoute,
+  ApiSyncSquiggleRoute: ApiSyncSquiggleRoute,
   AuthOauthProviderRoute: AuthOauthProviderRoute,
 }
 export const routeTree = rootRouteImport
