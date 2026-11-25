@@ -7,6 +7,8 @@ import * as AflGame from "~/features/afl-tipping/utils/afl-game";
 const getSquiggleService = () => ServiceRegistry.getService("squiggleService");
 const getAflService = () => ServiceRegistry.getService("aflService");
 
+const GAMES_STALE_TIME_MS = 60 * 1000;
+
 /**
  * Every query below the Season has the Season in its key, under one prefix, so a whole Season can
  * be invalidated. Only the teams and the list of Seasons sit outside it.
@@ -43,10 +45,10 @@ export const aflQueries = {
     return queryOptions({
       queryKey: aflQueries.allGamesKey(season),
       queryFn: () => getSquiggleService().getGames(season),
-      // Scores change mid-round, but live updates push them into this cache (and a reconnect
-      // resyncs it), so refocusing the tab needn't refetch the whole Season. It reads our own
-      // database now, not Squiggle, but there's still no reason to ask for the same thing again.
-      staleTime: Infinity,
+      // Live updates push scores into this cache while the app is open, but not while it's
+      // closed, and the cache is persisted for a day. So it goes stale after a minute: reopening
+      // or refocusing the app refetches. That reads our own database (plan 015), not Squiggle.
+      staleTime: GAMES_STALE_TIME_MS,
     });
   },
   games: (season: number, round?: number) => {

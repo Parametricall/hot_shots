@@ -915,3 +915,8 @@ unchanged.
   (Games, Teams, Ladder, Model tips read; current Season 2027 upcoming). `npm run dev` served `/`
   and `/sign-in`, and the log held no `squiggle.com.au`; the signed-in pages weren't opened because
   the Chrome tab never finished loading the sign-in page. `npm run dev:demo` starts and serves `/`.
+- Reviewer note (2026-11-25, after Step 8): dropping `refetchOnWindowFocus: "always"` left the
+  Games query at `staleTime: Infinity`, so it never refetched, and the query cache is persisted
+  for 24 hours. An installed app reopened the day after a Game would have shown it unfinished.
+  The Games query now goes stale after a minute, so reopening or refocusing refetches from our
+  database. Live updates still keep it current while the app is open.
