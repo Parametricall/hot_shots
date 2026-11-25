@@ -1,5 +1,6 @@
 import type { LiveGameUpdate } from "~/features/afl-tipping/api/squiggle/sse-schemas";
 import type { competitionEntriesRepository } from "~/features/afl-tipping/api/competition-entries.repository";
+import type { squiggleDataRepository } from "~/features/afl-tipping/api/squiggle-data.repository";
 import type { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import type { tipstersRepository } from "~/features/afl-tipping/api/tipsters.repository";
 import type {
@@ -21,6 +22,12 @@ import type { Seasons } from "~/features/afl-tipping/utils/afl-season";
  * (docs/adr/0004) registers its own services in the same slots, and
  * `satisfies` checks them against these. Registering the real services in
  * `router.tsx` checks them against the same types.
+ */
+/**
+ * Squiggle's data (Teams, Games, Model tips, the Ladder), served from our own copy of it. The
+ * Squiggle sync (plan 015) fills that copy on a schedule; no visitor action reaches Squiggle. Until
+ * the sync has run the lists are empty, and the real service never falls back to Squiggle. The
+ * Demo registers its own, over its snapshot.
  */
 export type SquiggleService = {
   /** Teams have no Season: Squiggle lists the current 18. */
@@ -56,6 +63,8 @@ export type ServiceTypes = {
   squiggleService: SquiggleService;
   aflService: AflService;
   liveScoresService: LiveScoresService;
+  /** Server-side only: the Demo has no database, and its `aflService` doesn't read it. */
+  squiggleDataRepository: typeof squiggleDataRepository;
   tipsRepository: typeof tipsRepository;
   tipstersRepository: typeof tipstersRepository;
   competitionEntriesRepository: typeof competitionEntriesRepository;

@@ -10,6 +10,7 @@ import serviceRegistry from "~/app/service-registry";
 import { service as squiggleService } from "~/features/afl-tipping/api/squiggle.service";
 import { service as liveScoresService } from "~/features/afl-tipping/api/live-scores.service";
 import { service as aflService } from "~/features/afl-tipping/api/tips";
+import { squiggleDataRepository } from "~/features/afl-tipping/api/squiggle-data.repository";
 import { competitionEntriesRepository } from "~/features/afl-tipping/api/competition-entries.repository";
 import { tipsRepository } from "~/features/afl-tipping/api/tips.repository";
 import { tipstersRepository } from "~/features/afl-tipping/api/tipsters.repository";
@@ -21,6 +22,7 @@ if (import.meta.env.VITE_DEMO !== "true") {
   serviceRegistry.registerService("squiggleService", squiggleService);
   serviceRegistry.registerService("aflService", aflService);
   serviceRegistry.registerService("liveScoresService", liveScoresService);
+  serviceRegistry.registerService("squiggleDataRepository", squiggleDataRepository);
   serviceRegistry.registerService("tipsRepository", tipsRepository);
   serviceRegistry.registerService("tipstersRepository", tipstersRepository);
   serviceRegistry.registerService("competitionEntriesRepository", competitionEntriesRepository);

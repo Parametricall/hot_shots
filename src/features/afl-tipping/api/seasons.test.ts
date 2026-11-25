@@ -72,7 +72,7 @@ describe("loadSeasons", () => {
     });
   });
 
-  it("throws when Squiggle has no Games for this or last Season", async () => {
-    await expect(loadSeasons({ ...fixture({}), now: DEC_2026 })).rejects.toThrow();
+  it("throws, saying the sync hasn't filled afl_games, when there are no Games for this or last Season", async () => {
+    await expect(loadSeasons({ ...fixture({}), now: DEC_2026 })).rejects.toThrow(/afl_games.*sync/);
   });
 });

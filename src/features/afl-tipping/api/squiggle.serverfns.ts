@@ -1,54 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
-import { createSquiggleClient, unwrapSquiggle } from "~/features/afl-tipping/api/squiggle/api";
 import { loadSeasons } from "~/features/afl-tipping/api/seasons";
+import {
+  squiggleDataRepository,
+  unwrapData,
+} from "~/features/afl-tipping/api/squiggle-data.repository";
 import { FIRST_SEASON } from "~/features/afl-tipping/constants";
-import type { Seasons } from "~/features/afl-tipping/utils/afl-season";
 
 const SeasonSchema = z.number().int().min(FIRST_SEASON);
 
-// These still read Squiggle directly; Step 8 of plan 015 moves them to our own tables. Each call
-// gets its own client, so its budget is per call, and a failure throws at this boundary.
-const REQUEST_BUDGET = 10;
-
-async function fetchGames(season: number, round?: number) {
-  const client = createSquiggleClient({ budget: REQUEST_BUDGET });
-  return unwrapSquiggle(await client.fetchGames({ year: season, round })).games;
-}
-
-/** A Season's Games that aren't complete, soonest first. Squiggle needs the year for this. */
-async function fetchIncompleteGames(season: number) {
-  const client = createSquiggleClient({ budget: REQUEST_BUDGET });
-  const { games } = unwrapSquiggle(await client.fetchGames({ year: season, complete: "!100" }));
-  return games.toSorted((a, b) => a.unixTime - b.unixTime);
-}
+// Every function here reads our own copy of Squiggle's data (plan 015), which the Squiggle sync
+// keeps filled. None of them calls Squiggle, so a visitor can't cause a request to it. A failed
+// read throws at this boundary.
 
 export const getTeamsServerFn = createServerFn({ method: "GET" }).handler(async () => {
-  const client = createSquiggleClient({ budget: REQUEST_BUDGET });
-  return unwrapSquiggle(await client.fetchTeams()).teams;
+  return unwrapData(await squiggleDataRepository.getTeams()).teams;
 });
 
-// Every server function asks which Season is current (to decide whether to enter the Tipster in
-// it), and working that out takes several Squiggle calls. Share one answer between them for a
-// minute per server instance.
-const SEASONS_TTL_MS = 60 * 1000;
-let cachedSeasons: { at: number; seasons: Promise<Seasons> } | undefined;
-
+// A database read is cheap, so working out the Current Season on every call needs no cache: it is
+// one small query per candidate year.
 export const getSeasonsServerFn = createServerFn({ method: "GET" }).handler(async () => {
-  const now = Date.now();
-  if (!cachedSeasons || now - cachedSeasons.at > SEASONS_TTL_MS) {
-    const seasons = loadSeasons({
-      fetchIncompleteGames,
-      fetchGames: (season) => fetchGames(season),
-      now,
-    });
-    cachedSeasons = { at: now, seasons };
-    // A failure isn't worth keeping for a minute.
-    seasons.catch(() => {
-      if (cachedSeasons?.seasons === seasons) cachedSeasons = undefined;
-    });
-  }
-  return cachedSeasons.seasons;
+  return loadSeasons({
+    fetchIncompleteGames: async (season) =>
+      unwrapData(await squiggleDataRepository.getIncompleteGames(season)).games,
+    fetchGames: async (season) => unwrapData(await squiggleDataRepository.getGames(season)).games,
+    now: Date.now(),
+  });
 });
 
 const GetStandingsSchema = z.object({
@@ -58,8 +35,7 @@ const GetStandingsSchema = z.object({
 export const getStandingsServerFn = createServerFn({ method: "GET" })
   .validator(GetStandingsSchema)
   .handler(async ({ data }) => {
-    const client = createSquiggleClient({ budget: REQUEST_BUDGET });
-    return unwrapSquiggle(await client.fetchLadder(data.season)).ladder;
+    return unwrapData(await squiggleDataRepository.getLadder(data.season)).ladder;
   });
 
 const GetGamesSchema = z.object({
@@ -70,7 +46,7 @@ const GetGamesSchema = z.object({
 export const getGamesServerFn = createServerFn({ method: "GET" })
   .validator(GetGamesSchema)
   .handler(async ({ data }) => {
-    return fetchGames(data.season, data.round);
+    return unwrapData(await squiggleDataRepository.getGames(data.season, data.round)).games;
   });
 
 const GetModelTipsSchema = z.object({
@@ -81,7 +57,5 @@ const GetModelTipsSchema = z.object({
 export const getModelTipsServerFn = createServerFn({ method: "GET" })
   .validator(GetModelTipsSchema)
   .handler(async ({ data }) => {
-    const client = createSquiggleClient({ budget: REQUEST_BUDGET });
-    return unwrapSquiggle(await client.fetchModelTips({ year: data.season, round: data.round }))
-      .tips;
+    return unwrapData(await squiggleDataRepository.getModelTips(data.season, data.round)).tips;
   });

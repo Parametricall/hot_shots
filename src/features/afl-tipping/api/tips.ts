@@ -95,12 +95,28 @@ export const submitTip = createServerFn({ method: "POST" })
     try {
       const { userId } = await ensureTipster(season);
 
-      const { getGames, getModelTips } = serviceRegistry.getService("squiggleService");
-      const games: AflGame.Type[] = await getGames(season);
-
-      const game = games.find((g) => g.id === gameId);
-      const modelTips = game ? await getModelTips(season, game.round) : [];
-      const modelTip = modelTips.find((t) => t.gameId === gameId);
+      // Only the one Game and its Model tip, not the whole Season (plan 015).
+      const squiggleData = serviceRegistry.getService("squiggleDataRepository");
+      const [gameResult, modelTipResult] = await Promise.all([
+        squiggleData.getGame(gameId),
+        squiggleData.getModelTip(gameId),
+      ]);
+      if (!gameResult.ok) {
+        throw new Error(`Failed to load Game ${gameId}: ${gameResult.reason}`, {
+          cause: gameResult.detail,
+        });
+      }
+      if (!modelTipResult.ok) {
+        throw new Error(
+          `Failed to load the Model tip for Game ${gameId}: ${modelTipResult.reason}`,
+          {
+            cause: modelTipResult.detail,
+          },
+        );
+      }
+      // A Game from another Season is as unknown as no Game: the tip names the Season it's for.
+      const game = gameResult.game?.season === season ? gameResult.game : undefined;
+      const modelTip = game ? (modelTipResult.tip ?? undefined) : undefined;
 
       const verdict = judgeTip({ game, teamId, modelTip, now: Date.now() });
       if (!verdict.ok) {

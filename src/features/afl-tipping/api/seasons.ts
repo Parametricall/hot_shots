@@ -23,10 +23,10 @@ type Deps = {
 };
 
 /**
- * Which Season is current, from Squiggle. Squiggle won't list incomplete Games without a year, so
- * this asks about last year (finals can run into the new year's planning), this year and next year
- * (the Fixture comes out in the off-season). With no Game left to finish anywhere, the Current
- * Season is the newest one Squiggle has Games for, so the app shows last Season's summary until the
+ * Which Season is current, from our copy of Squiggle's Games (plan 015). Incomplete Games are asked
+ * for per year, so this asks about last year (finals can run into the new year's planning), this
+ * year and next year (the Fixture comes out in the off-season). With no Game left to finish
+ * anywhere, the Current Season is the newest one we have Games for, so the app shows last Season's summary until the
  * next Fixture is out (D2 of plan 014).
  */
 export async function loadSeasons(deps: Deps): Promise<Seasons> {
@@ -52,7 +52,11 @@ export async function loadSeasons(deps: Deps): Promise<Seasons> {
         break;
       }
     }
-    if (latest === undefined) throw new Error("Squiggle has no Games for this or last Season");
+    if (latest === undefined) {
+      throw new Error(
+        "afl_games has no Games for this or last Season: the Squiggle sync hasn't filled it yet",
+      );
+    }
     current = resolveCurrentSeason({ incompleteGames, latestSeasonWithGames: latest });
   }
 
