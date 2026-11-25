@@ -603,3 +603,190 @@ this plan. When Step 13.6 is done, mark 004 DONE as superseded by 015.
 - Supabase's free plan pauses a project after a week with no activity
   (ADR 0006). The hourly sync writes to the database. Don't assume that
   counts as activity: check before relying on it.
+
+### Step 2 findings (2026-11-25)
+
+Each finding is marked **verified** (run here), **docs** (read from primary docs or source) or
+**unverified** (needs the operator or Opening Round). No STOP condition is hit. 2b still needs
+the operator's preview test before Step 7 relies on it.
+
+#### 2a. Squiggle Event API
+
+`SQUIGGLE_CONTACT_EMAIL` is not in the repo's `.env`, `.env.local` or `.env.example`, so the
+spike could not use the real User-Agent. It used
+`Hot Shots Tipping (hot-shots.dev) - https://www.hot-shots.dev` (a URL, no email). Squiggle
+answered 200 to it. The operator must add the variable to `.env` before Step 4 (Step 1.2 says it
+should be there). Two connections only: `/test` and `/events`, 60 s each, side by side.
+
+- **Verified**: both channels answer 200 with `content-type: text/event-stream` and
+  `cache-control: no-cache`, behind Cloudflare.
+- **Verified**: the first bytes on both are `retry:2000`, then an `event:message` event with an
+  `id:` line and a JSON string as data ("Hello and welcome to the event channel for ALL
+  events."). So Squiggle asks clients to reconnect after 2 s.
+- **Verified**: `id:` lines are on every event. They are random UUIDs, not a sequence. So there
+  is nothing to resume from with `Last-Event-ID`, and the plan's reliance on the connect-time
+  snapshot is right.
+- **Verified**: Squiggle sends its own heartbeat, a `:` comment line every 10 s.
+- **Verified, `/test`**: only `message` and `score` events, one `score` about every 10 s. A
+  `score` carries `gameid`, `type` (`goal` or `behind`), `side`, `team`, `complete`, `timestr`
+  and `score` (`hgoals`, `hbehinds`, `hscore`, `agoals`, `abehinds`, `ascore`). Example:
+  `{"gameid":199407,"type":"goal","side":"ateam","team":3,"complete":33,"timestr":"Q4 23:42","score":{"hgoals":0,"hbehinds":5,"hscore":5,"agoals":15,"abehinds":17,"ascore":107}}`
+- **Verified, `/events`, off-Season**: nothing but the welcome `message` and heartbeats. No
+  `game` snapshot on connect when no Game is live. Whether a `game` event arrives per live Game
+  on connect is **unverified**, and so are the shapes of `game`, `timestr`, `complete` and
+  `winner`. Opening Round is the first chance (the `TODO(sse-pin)` stays).
+- **Reasoned from the code**: `parseSseEvent` handles `score` (the only Game event seen): it
+  reads `hscore` and `ascore` from the nested `score` object, and `complete` and `timestr` from
+  the top level. It returns `null` for `message`, so the welcome is ignored. Nothing seen is
+  unhandled. The ingest's SSE parser must also skip `:` comment lines and `retry:`.
+- **Supports D3**: a server-to-server connection with no Origin header was accepted, and
+  Squiggle itself asks for 2 s reconnects.
+
+#### 2b. Vercel `waitUntil` and `pg_net`
+
+Nothing was deployed. Installed: `nitro@3.0.260903-beta`. `@vercel/functions` is **not**
+installed.
+
+- **Docs**: `waitUntil(promise)` from `@vercel/functions` "extends the lifetime of the request
+  handler for the lifetime of the given Promise". "Promises passed to `waitUntil()` will have
+  the same timeout as the function itself. If the function times out, the promises will be
+  cancelled." It works on Node. `getDeadline()` returns the time Vercel will kill the
+  invocation, `waitUntil` work included. It suits `runLiveIngest({ deadline })`.
+- **Source** (`nitro/dist/presets/vercel/runtime/vercel.web.mjs`): Nitro sets
+  `req.waitUntil = context.waitUntil`. Whether the `request` a TanStack Start server route gets
+  is that same object is **unverified**. `import { waitUntil } from "@vercel/functions"` doesn't
+  depend on it. Use that.
+- **Source** (`_presets.mjs`, `generateFunctionFiles`): each `vercel.functionRules` key becomes
+  its own function directory, with the rule merged over the base config, and a build route
+  sending that path to it. So `maxDuration: 300` applies to the route by path. Nitro's docs show
+  only `maxDuration` examples and say nothing on `waitUntil`. That a `waitUntil` task is held to
+  that function's `maxDuration` is **unverified**: the preview test checks it.
+- **Docs**: a TanStack Start server route is
+  `createFileRoute(path)({ server: { handlers: { POST: async ({ request }) => Response } } })`,
+  as `src/routes/api/live-scores.ts` already does. Its docs don't mention `waitUntil`.
+- **Unverified, the point of the spike**: that the function runs on after `pg_net` stops waiting
+  at 5 s. The 202 goes out at once and `waitUntil` keeps the function alive, so it should. The
+  test below proves it.
+
+**Operator procedure (throwaway branch, never merge it)**
+
+1. `git switch -c spike/wait-until main`, then `npm i @vercel/functions`.
+2. Add `src/routes/api/spike-wait.ts`:
+
+   ```ts
+   import { createFileRoute } from "@tanstack/react-router";
+   import { waitUntil } from "@vercel/functions";
+
+   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+   export const Route = createFileRoute("/api/spike-wait")({
+     server: {
+       handlers: {
+         POST: async ({ request }) => {
+           if (request.headers.get("authorization") !== "Bearer spike") {
+             return new Response("no", { status: 401 });
+           }
+           const id = crypto.randomUUID().slice(0, 8);
+           waitUntil(
+             (async () => {
+               const t0 = Date.now();
+               for (let i = 0; i < 9; i++) {
+                 console.log(`[spike ${id}] alive at ${Math.round((Date.now() - t0) / 1000)}s`);
+                 await sleep(30_000);
+               }
+               console.log(`[spike ${id}] finished at ${Math.round((Date.now() - t0) / 1000)}s`);
+             })(),
+           );
+           console.log(`[spike ${id}] returning 202`);
+           return new Response(null, { status: 202 });
+         },
+       },
+     },
+   });
+   ```
+
+3. In `vite.config.ts`, add `"/api/spike-wait": { maxDuration: 300 }` to `functionRules`.
+4. Push the branch. Vercel builds a preview. If Deployment Protection is on, create a
+   Protection Bypass for Automation secret in the project settings and send it as the header
+   `x-vercel-protection-bypass`.
+5. In the Supabase SQL editor:
+
+   ```sql
+   select net.http_post(
+     url := 'https://<preview-host>/api/spike-wait',
+     headers := jsonb_build_object(
+       'Authorization', 'Bearer spike',
+       'x-vercel-protection-bypass', '<bypass secret, if protection is on>'
+     ),
+     body := '{}'::jsonb,
+     timeout_milliseconds := 5000
+   );
+   ```
+
+   Then run
+   `select status_code, timed_out, error_msg, created from net._http_response order by created desc limit 3;`.
+   Expect `status_code = 202` and `timed_out = false`. A `timed_out = true` means the route
+   took over 5 s to answer: fix that first.
+
+6. In the Vercel project's Logs, filter on `spike`. **Pass**: `returning 202`, then
+   `alive at 0s`, `30s` … `240s`, then `finished at 270s`, with no timeout line. **Fail**: the
+   lines stop soon after `returning 202`, or a timeout appears. Then try once more without
+   step 3, to see the base limit.
+7. Delete the branch and the preview.
+
+If it fails, the 2b STOP condition holds: D3 needs the always-on worker or Vercel Pro.
+
+#### 2c. Realtime from a signed-in client
+
+This project's local Supabase (`supabase_*_hot_shots`, ports 553xx) was already running. Another
+project's (`clover-studio`, ports 543xx) runs beside it and was not touched. The spike made a
+throwaway table, trigger, policy and test user in the local database, ran a Node script on
+`@supabase/realtime-js` 2.119.2 (`RealtimeClient`), then dropped them all. The repo is
+unchanged.
+
+- **Verified**: a trigger calling `realtime.send(payload, 'live-game', 'afl:live-games', true)`
+  and a `select` policy `to authenticated using (realtime.topic() = 'afl:live-games')` deliver
+  each row update to a client that did `setAuth(<user access token>)` and joined
+  `channel('afl:live-games', { config: { private: true } })`. The payload arrived intact
+  (`gameId`, `homeScore`, `awayScore`, `timeStr`, `complete`, `winnerTeamId`) with an extra `id`.
+- **Verified**: signed-out clients are refused. With only the anon key, or only the publishable
+  key, the channel goes to `CHANNEL_ERROR` ("Unauthorized: You do not have permissions to read
+  from this Channel topic") and receives nothing. realtime-js keeps retrying the join every few
+  seconds, so the service should `removeChannel` on `CHANNEL_ERROR` when it has no valid token.
+  The 2c STOP condition (signed-out browsers kept out) is not hit.
+- **Verified**: a signed-in client can't send. `channel.send(...)` on the topic returns `"ok"`
+  (an ack, not a delivery), but a second signed-in listener got nothing. With no `insert` policy
+  the message is dropped without an error. Don't treat `"ok"` as proof of anything.
+- **Verified, token expiry**, with a JWT that expires in 8 to 12 s, minted with the local JWT
+  secret:
+  - At expiry the server closes the channel: status `CLOSED`, and updates stop. The socket stays
+    open.
+  - `setAuth(newToken)` **after** that does not bring the channel back. It stays closed.
+  - `setAuth(newToken)` **before** expiry keeps the same channel `joined`, and updates keep
+    arriving past the old expiry.
+  - After expiry, `removeChannel(channel)` and a fresh `channel(...)` join works once the new
+    token is set.
+  - So Step 11: call `getRealtimeToken` again about 5 minutes before `expiresAt`, and `setAuth`
+    the new token. On `CLOSED` or `CHANNEL_ERROR`, fetch a token, `setAuth`, remove the channel,
+    join a new one and call `onResync`. A tab that slept through expiry takes the second path.
+- **Docs, free plan Realtime quotas** (`supabase.com/docs/guides/realtime/limits`, read today):
+  200 concurrent connections, 100 messages per second, 100 channel joins per second, 100
+  channels per connection, broadcast payload 256 KB. Pro: 500 connections, 500 messages per
+  second. The page lists no monthly message cap. Each open tab is one connection, so 200 tabs
+  at once is the ceiling. A few messages a second at most, each under 1 KB, is far under the
+  rate limit.
+- **Docs**: `realtime.send(..., private)` defaults to `true`, and a private database broadcast
+  reaches only private channels, so the client must set `config.private: true`. Supabase's own
+  example policy is `for select to authenticated using (true)`; ours is stricter.
+- **Unverified**: the browser build of realtime-js (the spike ran in Node); that the access
+  token `getClaims()` leaves in the session works the same as the password-grant token used here
+  (both are ordinary Supabase JWTs); hosted Supabase's Realtime version, which may differ from
+  local. On the hosted project, check that "Allow public access" is off in the Realtime
+  settings, so only private channels exist.
+
+#### Verdict on the design
+
+- D3: 2a supports it. 2b is the open one: the operator runs the preview test before Step 7.
+- D4: supported by the local test. The polling fallback isn't needed.
+- D5: supported. Signed-out browsers can't receive, and nobody can send. Add the expiry handling
+  above to Step 11.
