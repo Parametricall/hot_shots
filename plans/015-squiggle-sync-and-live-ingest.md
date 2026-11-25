@@ -64,7 +64,7 @@ After this plan, **no visitor action causes a Squiggle request.** Two
 server-side jobs read Squiggle, and everything else reads our database:
 
 ```
-                       pg_cron (Supabase), every minute
+                       pg_cron (Supabase): sync every 10 min, live every min
                            │ only if work is due
                            ▼
   Squiggle Standard API ◄── /api/sync/squiggle ──► afl_games, afl_model_tips,
