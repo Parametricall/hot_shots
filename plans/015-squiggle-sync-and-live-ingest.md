@@ -868,3 +868,25 @@ unchanged.
   (no run row, no data). To finish Step 6's verify: add the variable to `.env`, run
   `npm run sync:squiggle` twice, and check `squiggle_sync_runs` (first run: a handful of requests;
   second: none or very few).
+
+### Step 7 executor notes (2026-11-25)
+
+- `waitUntil` and `getDeadline` come from `@vercel/functions` (added as a dependency), as Step 2b
+  recommended. Nitro's `req.waitUntil` was not used: that a TanStack Start route's `request` is that
+  object is unverified. Whether a `waitUntil` task is held to the route's `maxDuration` is still the
+  operator's preview test from 2b.
+- The handler logic is `handleSyncRequest(request, { secret, waitUntil, job })` in
+  `sync/handle-sync-request.ts`, with `squiggleSyncJob` and `liveIngestJob` building the jobs, so the
+  routes are thin and the logic is tested (the repo has no server-route tests). The bearer check is
+  `sync/authorize-sync-request.ts`. Missing secret: 503 and a `console.error`.
+- **Deviation, 405**: a route with only a `POST` handler lets a `GET` fall through to the page router
+  and answer 200. Each route therefore registers `GET`, `PUT`, `PATCH` and `DELETE` too, all going
+  through `handleSyncRequest`, which answers 405 to everything but `POST`.
+- `sync/live-ingest.ts` is a stub returning `{ ok: false, reason: "not-implemented" }` until Step 9.
+  The route passes `deadline = (getDeadline() ?? now + 300 s) - 10 s`.
+- `functionRules` now has both `/api/sync/live-scores` and `/api/live-scores` at 300 s.
+  `NITRO_PRESET=vercel vp build` emits `.vercel/output/functions/api/sync/live-scores.func` with
+  `maxDuration: 300` (and `api/live-scores.func`); the plain local build is the node-server preset.
+- **Local run did send requests**: `SQUIGGLE_CONTACT_EMAIL` is now in the operator's `.env`, so the
+  202 on `/api/sync/squiggle` ran a real sync (3 requests: fixture and teams; a second POST made 2:
+  ladder and model tips), not `no-contact-email`. All within the run budget; the log shows counts only.
