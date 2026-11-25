@@ -7,6 +7,12 @@ import type {
   SquiggleSyncSeason,
   SquiggleSyncState,
 } from "~/features/afl-tipping/sync/plan-squiggle-sync";
+import {
+  toGameRow,
+  toLadderRow,
+  toModelTipRow,
+  toTeamRow,
+} from "~/features/afl-tipping/sync/squiggle-rows";
 import type { AflGame, AflModelTip, AflStanding, AflTeam } from "~/features/afl-tipping/types";
 
 /**
@@ -144,32 +150,8 @@ export function melbourneMidnight(at: number): number {
   return localMidnight - melbourneOffsetMs(localMidnight - offset);
 }
 
-function gameRow(game: AflGame, now: number) {
-  return {
-    id: game.id,
-    season: game.season,
-    round: game.round,
-    round_name: game.roundName,
-    venue_name: game.venue.name,
-    venue_city: game.venue.city ?? null,
-    venue_state: game.venue.state ?? null,
-    start_time: toIso(game.unixTime),
-    home_team_id: game.homeTeamId,
-    away_team_id: game.awayTeamId,
-    home_score: game.homeScore,
-    away_score: game.awayScore,
-    winner_team_id: game.winnerTeamId,
-    complete: game.complete,
-    time_str: game.timeStr,
-    is_finals: game.isFinals,
-    is_grand_final: game.isGrandFinal,
-    squiggle_updated: game.updatedAt === undefined ? null : toIso(game.updatedAt),
-    synced_at: toIso(now),
-  };
-}
-
 /** The Game row without the fields the live ingest owns while a Game is live. */
-function withoutLiveFields(row: ReturnType<typeof gameRow>) {
+function withoutLiveFields(row: ReturnType<typeof toGameRow>) {
   const {
     home_score: _homeScore,
     away_score: _awayScore,
@@ -332,14 +314,7 @@ export function createSquiggleSyncRepository(supabase: SupabaseClient): Squiggle
     upsertTeams(teams, now) {
       return write(
         "afl_teams",
-        teams.map((team) => ({
-          id: team.id,
-          name: team.name,
-          abbrev: team.abbrev,
-          logo: team.logo,
-          debut: team.debut,
-          synced_at: toIso(now),
-        })),
+        teams.map((team) => toTeamRow(team, now)),
         { onConflict: "id" },
       );
     },
@@ -360,7 +335,7 @@ export function createSquiggleSyncRepository(supabase: SupabaseClient): Squiggle
       if (!liveRows.ok) return liveRows;
       const liveIds = new Set(liveRows.rows.map((row) => row.id));
 
-      const rows = games.map((game) => ({ game, row: gameRow(game, now) }));
+      const rows = games.map((game) => ({ game, row: toGameRow(game, now) }));
       const idle = rows.filter(({ game }) => !liveIds.has(game.id)).map(({ row }) => row);
       const live = rows.filter(({ game }) => liveIds.has(game.id)).map(({ row }) => row);
 
@@ -393,16 +368,7 @@ export function createSquiggleSyncRepository(supabase: SupabaseClient): Squiggle
         "afl_model_tips",
         [...byGame]
           .filter(([gameId]) => knownIds.has(gameId))
-          .map(([gameId, tip]) => ({
-            game_id: gameId,
-            season,
-            round: tip.round,
-            tip_team_id: tip.tipTeamId,
-            confidence: tip.confidence,
-            home_confidence: tip.homeConfidence,
-            away_confidence: tip.awayConfidence,
-            synced_at: toIso(now),
-          })),
+          .map(([gameId, tip]) => toModelTipRow(season, gameId, tip, now)),
         { onConflict: "game_id" },
       );
     },
@@ -410,25 +376,7 @@ export function createSquiggleSyncRepository(supabase: SupabaseClient): Squiggle
     upsertLadder(season, ladder, now) {
       return write(
         "afl_ladder",
-        ladder.map((standing) => ({
-          season,
-          team_id: standing.id,
-          name: standing.name,
-          rank: standing.rank,
-          played: standing.played,
-          wins: standing.wins,
-          losses: standing.losses,
-          draws: standing.draws,
-          points: standing.points,
-          goals_for: standing.goalsFor,
-          goals_against: standing.goalsAgainst,
-          behinds_for: standing.behindsFor,
-          behinds_against: standing.behindsAgainst,
-          points_for: standing.pointsFor,
-          points_against: standing.pointsAgainst,
-          percentage: standing.percentage,
-          synced_at: toIso(now),
-        })),
+        ladder.map((standing) => toLadderRow(season, standing, now)),
         { onConflict: "season,team_id" },
       );
     },
