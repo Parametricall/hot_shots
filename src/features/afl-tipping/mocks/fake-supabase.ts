@@ -3,10 +3,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 /** One query the code under test sent, as the fake saw it. */
 export type FakeCall = {
   table: string;
-  op: "select" | "upsert" | "insert";
+  op: "select" | "upsert" | "insert" | "update" | "rpc";
   /** The columns of a `select`. */
   columns?: string;
-  /** The rows of an `upsert` or `insert`. */
+  /** The rows of an `upsert` or `insert`, the patch of an `update`, or the arguments of an `rpc`. */
   rows?: unknown;
   options?: Record<string, unknown>;
   /** Every filter and modifier chained on, in order: `eq`, `in`, `gte`, `order`, `range` … */
@@ -34,6 +34,7 @@ type FakeQuery = PromiseLike<{ data: unknown; error: { message: string } | null 
   select: (columns?: string) => FakeQuery;
   upsert: (rows: unknown, options?: Record<string, unknown>) => FakeQuery;
   insert: (rows: unknown) => FakeQuery;
+  update: (patch: unknown) => FakeQuery;
 } & Record<(typeof FILTER_METHODS)[number], (...args: unknown[]) => FakeQuery>;
 
 /** The arguments of the first filter called `method`, or undefined if the query didn't use it. */
@@ -50,8 +51,8 @@ export function filterArgs(call: FakeCall, method: string): unknown[] | undefine
 export function createFakeSupabase(respond: (call: FakeCall) => FakeReply | undefined) {
   const calls: FakeCall[] = [];
 
-  function query(table: string): FakeQuery {
-    const call: FakeCall = { table, op: "select", filters: [] };
+  function query(table: string, op: FakeCall["op"] = "select", rows?: unknown): FakeQuery {
+    const call: FakeCall = { table, op, filters: [], ...(rows === undefined ? {} : { rows }) };
     const self = {
       select: (columns?: string) => {
         // `.upsert(…).select()` asks for the written rows back: it stays an upsert.
@@ -67,6 +68,11 @@ export function createFakeSupabase(respond: (call: FakeCall) => FakeReply | unde
       insert: (rows: unknown) => {
         call.op = "insert";
         call.rows = rows;
+        return self;
+      },
+      update: (patch: unknown) => {
+        call.op = "update";
+        call.rows = patch;
         return self;
       },
       then: (
@@ -90,5 +96,10 @@ export function createFakeSupabase(respond: (call: FakeCall) => FakeReply | unde
     return self;
   }
 
-  return { supabase: { from: query } as unknown as SupabaseClient, calls };
+  /** `rpc(name, args)` is recorded as a call on table `name`, with the arguments as `rows`. */
+  function rpc(name: string, args: unknown): FakeQuery {
+    return query(name, "rpc", args);
+  }
+
+  return { supabase: { from: query, rpc } as unknown as SupabaseClient, calls };
 }
