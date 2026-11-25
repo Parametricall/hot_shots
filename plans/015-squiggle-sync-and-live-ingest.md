@@ -803,3 +803,28 @@ unchanged.
   boundary. Step 8 deletes that code.
 - Not done, as asked: `AflStanding` and `getStandings` still say "standings" while GLOSSARY.md says
   Ladder. Worth a separate rename after this plan.
+
+### Step 5 executor notes (2026-11-25)
+
+- `planSquiggleSync(state, now)` and its state types live in `sync/plan-squiggle-sync.ts`. A job's
+  state is `{ lastRunAt, lastOkAt, consecutiveFailures }`: cadences read `lastOkAt`, backoff reads
+  `lastRunAt`. A job with nothing planned should record no run (Step 6).
+- **In-Season** (`isInSeason`): some Game isn't complete, and some Game has started or starts
+  within 7 days. Off-Season otherwise.
+- **Closed Season**: every Game complete and the Season fetched in full at least 4 hours after its
+  last Game started. An over Season not yet fetched since gets one full fetch, then is closed.
+- Step 6 must derive per Season `lastSyncedAt` (newest Game `synced_at`) and `fullySyncedAt`
+  (oldest Game `synced_at`; only a full fetch moves it), `lastGameCompletion` (the latest completion
+  time and its Season; the tables hold no completion column, so use `live_updated_at` or
+  `squiggle_updated` of the newest complete Game) and `requestsToday` (sum of `requests` since
+  Melbourne midnight).
+- **Deviation, needs Step 6**: the state has `emptyFixtureChecks` (year to last check time). A year
+  with no Games has no row to read, and the fixture job's one `lastOkAt` can't gate "daily for next
+  year" while the same job runs hourly in-Season. Step 6 has to persist it, for example in the
+  fixture run's `detail`.
+- The daily next-year check covers this year and next year, so in January it still looks for a
+  missing current Season. In November 2026, 2027 is next year and already has Games, so the one
+  daily 2027 fetch is the whole Fixture work; nothing asks for 2028 until Melbourne's New Year.
+- An unknown team asks for Teams at once, but at most hourly
+  (`TEAMS_UNKNOWN_TEAM_MIN_INTERVAL_MS`), so a team Squiggle never lists can't ask every minute.
+- Besides the per-run cap of 10, the plan is cut to what is left of the day's 300.
