@@ -1,5 +1,7 @@
 # Live scores reach the browser through our own `/api/live-scores` route
 
+> Superseded by [0010](0010-live-scores-come-from-one-ingest-through-realtime.md).
+
 Game cards show live scores, the game clock and completion from Squiggle's Event API (SSE,
 `sse.squiggle.com.au/events`). The browser opens one `EventSource` on `/api/live-scores`, a server
 route that checks the session and relays Squiggle's stream. Only the `events` and `test`

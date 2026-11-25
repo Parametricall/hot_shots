@@ -24,3 +24,10 @@ Supabase REST API, skipping every check in the server functions.
   policies for exactly that table and operation, not move the secret key to the client.
 - The Clerk third-party auth block in `supabase/config.toml` is unused for now; per-user policies
   would revive it.
+- `realtime.messages` has one policy, a `select` for `authenticated` on the topic
+  `afl:live-games`, so signed-in browsers can receive live scores and nothing else
+  (`docs/adr/0010`). There is no insert policy, so no browser can send.
+- The lease and cron functions (`acquire_squiggle_live_lease`, `release_squiggle_live_lease`,
+  `squiggle_post`, `squiggle_sync_tick`, `squiggle_live_tick`, and the broadcast trigger's function)
+  are revoked from `anon` and `authenticated`. Postgres lets `PUBLIC` execute new functions and
+  PostgREST exposes the schema, so a new function needs its own `revoke`.
