@@ -890,3 +890,28 @@ unchanged.
 - **Local run did send requests**: `SQUIGGLE_CONTACT_EMAIL` is now in the operator's `.env`, so the
   202 on `/api/sync/squiggle` ran a real sync (3 requests: fixture and teams; a second POST made 2:
   ladder and model tips), not `no-contact-email`. All within the run budget; the log shows counts only.
+
+### Step 8 executor notes (2026-11-25)
+
+- `api/squiggle-data.repository.ts`: `createSquiggleDataRepository(getClient)` and the registered
+  `squiggleDataRepository` (registry slot `squiggleDataRepository`, server-side only; the Demo
+  doesn't register it). Reads `getGames(season, round?)`, `getIncompleteGames(season)`,
+  `getGame(id)`, `getModelTips(season, round)`, `getModelTip(gameId)`, `getLadder(season)` and
+  `getTeams()`, each returning `{ ok: true; <games|game|tips|tip|ladder|teams> } | { ok: false;
+  reason; detail? }`. `getGame` and `getModelTip` return `null` for none. `unwrapData` throws at the
+  server-function boundary. Lists that come back empty log one `console.warn`
+  (`getIncompleteGames` doesn't: an empty answer is normal).
+- Row mapping lives in `sync/squiggle-rows.ts`, shared with the sync repository (which now writes
+  through `toGameRow`, `toTeamRow`, `toModelTipRow`, `toLadderRow`). A Model tip's home and away
+  team ids aren't stored on `afl_model_tips`, so the read embeds them from `afl_games`.
+- One query per read, no paging: a Season is about 218 Games, under PostgREST's 1000-row cap.
+- **Deviation, `SquiggleService` unchanged**: `submitTip` uses the registry's
+  `squiggleDataRepository` for `getGame`/`getModelTip`, because `SquiggleService`'s type (and the
+  Demo) has no single-Game methods. It also treats a Game from another Season as not found.
+- `refetchOnWindowFocus: "always"` is gone; the Games query keeps `staleTime: Infinity`, so a
+  refocus no longer refetches it. Live updates must keep that cache fresh (Step 11).
+- `git grep -n "squiggle/api" -- src scripts` matches only `squiggle/api.test.ts` and `sync/`.
+- **Verification limits**: a script ran the repository and `loadSeasons` against the local copy
+  (Games, Teams, Ladder, Model tips read; current Season 2027 upcoming). `npm run dev` served `/`
+  and `/sign-in`, and the log held no `squiggle.com.au`; the signed-in pages weren't opened because
+  the Chrome tab never finished loading the sign-in page. `npm run dev:demo` starts and serves `/`.
