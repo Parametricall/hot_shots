@@ -123,7 +123,8 @@ number of Tipsters.
 
 ## Decisions
 
-All are recommendations. The operator confirms or changes them in Step 1.
+The operator confirmed D1–D7 on 2026-11-25. Raise one with the operator only if a spike
+(Step 2) proves it wrong.
 
 - **D1. Visitors never cause a Squiggle request.** Only the Squiggle sync
   and the live ingest call Squiggle. Every read, server-side or browser,
@@ -218,14 +219,14 @@ push. The operator does.
 
 ### Step 1: OPERATOR — decisions and secrets
 
-1. Confirm D1–D7, or say which to change.
+1. ~~Confirm D1–D7.~~ Done 2026-11-25: all confirmed as written.
 2. Pick the contact email for the User-Agent (D6). Squiggle must be able to
    reach it.
 3. Confirm the production URL the scheduler should call (Vercel's
    production domain, not a preview).
 
-Don't start Step 3 until D2, D3 and D4 are confirmed. Each one changes the
-steps that follow.
+Step 2 can start now. Items 2 and 3 are needed by Step 4 (the User-Agent)
+and Step 13 (the Vault secrets).
 
 ### Step 2: Spikes (throwaway code, findings go in "Notes")
 
