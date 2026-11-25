@@ -78,9 +78,11 @@ export function squiggleSyncJob({
  * `LIVE_INGEST_DEADLINE_MARGIN_MS` before it.
  */
 export function liveIngestJob({
+  supabase,
   now,
   platformDeadline,
 }: {
+  supabase: () => Promise<SupabaseClient>;
   now: () => number;
   platformDeadline: () => number | undefined;
 }): () => Promise<void> {
@@ -88,13 +90,19 @@ export function liveIngestJob({
     const killAt = platformDeadline() ?? now() + LIVE_INGEST_MAX_DURATION_MS;
     const deadline = killAt - LIVE_INGEST_DEADLINE_MARGIN_MS;
     const controller = new AbortController();
-    const result = await runLiveIngest({ signal: controller.signal, deadline });
+    const result = await runLiveIngest({
+      signal: controller.signal,
+      deadline,
+      supabase: await supabase(),
+    });
     if (!result.ok) {
       console.error(
         `[live-ingest] did not run: ${result.reason}${result.detail ? ` (${result.detail})` : ""}`,
       );
       return;
     }
-    console.log(`[live-ingest] ok: ${result.connections} connection(s)`);
+    console.log(
+      `[live-ingest] ok: ${result.connections} connection(s), stopped: ${result.stopped}`,
+    );
   };
 }

@@ -128,23 +128,26 @@ describe("squiggleSyncJob", () => {
 });
 
 describe("liveIngestJob", () => {
+  const supabase = async () => ({}) as SupabaseClient;
+
   it("stops a margin before the platform's deadline", async () => {
-    vi.mocked(runLiveIngest).mockResolvedValue({ ok: true, connections: 1 });
+    vi.mocked(runLiveIngest).mockResolvedValue({ ok: true, connections: 1, stopped: "deadline" });
     vi.spyOn(console, "log").mockImplementation(() => {});
 
-    await liveIngestJob({ now: () => 0, platformDeadline: () => 300_000 })();
+    await liveIngestJob({ supabase, now: () => 0, platformDeadline: () => 300_000 })();
 
     expect(runLiveIngest).toHaveBeenCalledWith({
       signal: expect.any(AbortSignal),
       deadline: 290_000,
+      supabase: {},
     });
   });
 
   it("falls back to maxDuration from now when the platform gives no deadline", async () => {
-    vi.mocked(runLiveIngest).mockResolvedValue({ ok: false, reason: "not-implemented" });
+    vi.mocked(runLiveIngest).mockResolvedValue({ ok: false, reason: "no-contact-email" });
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await liveIngestJob({ now: () => 1_000, platformDeadline: () => undefined })();
+    await liveIngestJob({ supabase, now: () => 1_000, platformDeadline: () => undefined })();
 
     expect(runLiveIngest).toHaveBeenCalledWith(
       expect.objectContaining({ deadline: 1_000 + 300_000 - 10_000 }),

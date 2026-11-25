@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getDeadline, waitUntil } from "@vercel/functions";
+import { getSupabaseServerClient } from "~/lib/supabase";
 import { handleSyncRequest, liveIngestJob } from "~/features/afl-tipping/sync/handle-sync-request";
 
 // Every method goes through the handler, which answers 405 to all but POST: a route with only POST
@@ -9,6 +10,7 @@ const handle = (request: Request) =>
     secret: process.env.SQUIGGLE_SYNC_SECRET,
     waitUntil,
     job: liveIngestJob({
+      supabase: getSupabaseServerClient,
       now: Date.now,
       platformDeadline: () => getDeadline()?.getTime(),
     }),
