@@ -920,3 +920,29 @@ unchanged.
   for 24 hours. An installed app reopened the day after a Game would have shown it unfinished.
   The Games query now goes stale after a minute, so reopening or refocusing refetches from our
   database. Live updates still keep it current while the app is open.
+
+### Step 9 executor notes (2026-11-25)
+
+- `runLiveIngest({ signal, deadline, supabase?, deps? })`. **Signature deviation**: it takes the
+  Supabase client (or `deps.store`), so `liveIngestJob` now takes `supabase` like `squiggleSyncJob`
+  and the route passes `getSupabaseServerClient`. Result is `{ ok: true; connections; stopped:
+  "deadline" | "aborted" | "idle" | "lease-held" } | { ok: false; reason; detail? }`.
+- `deps` (`LiveIngestDeps`): `store`, `connect(url, headers, signal)`, `now`, `sleep(ms, signal)`,
+  `holder`, `url` (default `…/events`), `contactEmail`. The database side is `LiveIngestStore` in
+  `sync/live-ingest.store.ts` (lease rpc, window query, `getGame`, `updateGame`, `insertRun`).
+  The SSE parser is new, `sync/parse-sse-stream.ts` (no existing server-side one).
+- No contact email returns `no-contact-email` before the lease, so nothing is taken or recorded.
+  A held lease records no run. An idle start (no live Game) does record a `live` run with 0
+  requests. A 4xx other than 429 stops the run (no retry), recorded as failed (`http-403`).
+- A live write is one `getGame` read plus one `update` per event (the read gives the Game's team
+  ids and scores for the winner rule, and tells an unknown Game, which is a no-op). A Draw writes
+  `winner_team_id: null`, like `applyLiveGameUpdate`. An event with no live field writes nothing.
+- The window is re-checked every 60 s by a watcher beside the open connection, which also ends
+  it at the deadline. A failed re-check is ignored; a failed check before connecting fails the run.
+- Backoff resets to 2 s only after a connection that delivered data, so failing connects go
+  2, 4, 8, 16, 30, 30 s.
+- Manual `/test` run (60 s, 1 connection, writes replaced by a log, window and lease stubbed):
+  4 `score` events for 4 random game ids, the welcome `message` ignored, each logged as a patch
+  (`home_score`, `away_score`, `time_str`, `complete`, `live_updated_at`); stopped at the deadline
+  with one run row (`requests: 1`). No database was touched, so nothing needs undoing.
+- `fake-supabase.ts` gained `update` and `rpc` (recorded as a call on the function's name).
