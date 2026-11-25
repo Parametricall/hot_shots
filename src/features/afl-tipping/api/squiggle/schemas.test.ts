@@ -62,7 +62,13 @@ describe("squiggleGamesDtoToDomain", () => {
       complete: 100,
       isFinals: false,
       isGrandFinal: false,
+      updatedAt: Date.parse("2026-04-18T18:05:00+10:00"),
     });
+  });
+
+  it("leaves updatedAt out when the tz is not an offset", () => {
+    const { games } = squiggleGamesDtoToDomain.parse({ games: [{ ...gameDto, tz: "AEST" }] });
+    expect(games[0]!.updatedAt).toBeUndefined();
   });
 
   it("converts unixtime seconds to a millisecond timestamp and Date instance", () => {

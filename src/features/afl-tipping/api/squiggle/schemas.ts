@@ -120,6 +120,16 @@ const squiggleVenueDomainMap: Record<string, Venue> = {
   "York Park": VENUES.utasStadium,
 };
 
+/**
+ * Squiggle's `updated` is a local time like "2026-04-18 18:05:00", in the Game's own `tz` offset
+ * ("+10:00"). Epoch milliseconds, or undefined if either is in a shape we don't know.
+ */
+function squiggleUpdatedAt(updated: string, tz: string): number | undefined {
+  if (!/^[+-]\d{2}:\d{2}$/.test(tz)) return undefined;
+  const at = Date.parse(`${updated.replace(" ", "T")}${tz}`);
+  return Number.isNaN(at) ? undefined : at;
+}
+
 const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>((dto) => ({
   id: dto.id,
   season: dto.year,
@@ -137,6 +147,7 @@ const squiggleGameDtoToDomain = squiggleGameSchema.transform<AflGame>((dto) => (
   complete: dto.complete,
   isFinals: dto.is_final !== 0,
   isGrandFinal: dto.is_grand_final !== 0,
+  updatedAt: squiggleUpdatedAt(dto.updated, dto.tz),
 }));
 
 export const squiggleGamesDtoToDomain = z.object({

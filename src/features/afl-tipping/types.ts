@@ -47,6 +47,8 @@ export type AflGame = {
   complete: number;
   isFinals: boolean;
   isGrandFinal: boolean;
+  /** When Squiggle last changed the Game (its `updated`), in epoch milliseconds. Not always known. */
+  updatedAt?: number;
 };
 
 export interface AflRound {
