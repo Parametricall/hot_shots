@@ -222,8 +222,10 @@ push. The operator does.
 1. ~~Confirm D1–D7.~~ Done 2026-11-25: all confirmed as written.
 2. Pick the contact email for the User-Agent (D6). Squiggle must be able to
    reach it.
-3. Confirm the production URL the scheduler should call (Vercel's
-   production domain, not a preview).
+3. ~~Confirm the production URL the scheduler should call.~~ Done
+   2026-11-25: `https://www.hot-shots.dev`. The bare `hot-shots.dev` answers
+   with a 307 to it, so the Vault secret `app_url` must be the `www` form,
+   with no trailing slash.
 
 Step 2 can start now. Items 2 and 3 are needed by Step 4 (the User-Agent)
 and Step 13 (the Vault secrets).
