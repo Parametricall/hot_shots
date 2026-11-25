@@ -39,9 +39,14 @@ export default defineConfig(({ mode }) => {
         !isStorybook &&
           nitro({
             vercel: {
-              // /api/live-scores holds a stream open for a whole Game. When the cap cuts it, the
-              // browser reconnects and the live scores hook resyncs, by design.
-              functionRules: { "/api/live-scores": { maxDuration: 300 } },
+              // /api/sync/live-scores answers 202 and holds one Squiggle connection open in
+              // `waitUntil` for ~290 s (plan 015, D3). /api/live-scores is the old per-tab relay:
+              // it holds a stream for a whole Game, and when the cap cuts it the browser
+              // reconnects. Plan 015 Step 13 removes it.
+              functionRules: {
+                "/api/sync/live-scores": { maxDuration: 300 },
+                "/api/live-scores": { maxDuration: 300 },
+              },
             },
           }),
         viteReact(),
