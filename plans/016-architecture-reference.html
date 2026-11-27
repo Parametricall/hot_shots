@@ -1,0 +1,1890 @@
+<title>Hot Shots Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+/>
+<style>
+  /* Layout: one system map up top (four lanes: browser, our server, our database, Squiggle),
+   a row of topics, then one topic's detail at a time. Scoreboard-condensed headings,
+   a Sherrin-red accent for whatever is selected, grass-tinted neutrals. */
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --lane: #e9eee9;
+    --fg: #18221d;
+    --muted: #56645c;
+    --line: #c3cdc6;
+    --edge: #5f6d65;
+    --accent: #b5332a;
+    --accent-soft: #f6dcd8;
+    --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111613;
+      --surface: #19211c;
+      --lane: #161d19;
+      --fg: #e4ebe6;
+      --muted: #9aa9a0;
+      --line: #34423a;
+      --edge: #9aa9a0;
+      --accent: #f07563;
+      --accent-soft: #3d201c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111613;
+    --surface: #19211c;
+    --lane: #161d19;
+    --fg: #e4ebe6;
+    --muted: #9aa9a0;
+    --line: #34423a;
+    --edge: #9aa9a0;
+    --accent: #f07563;
+    --accent-soft: #3d201c;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding-block: 40px 64px;
+    display: grid;
+    gap: 40px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.1;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    text-transform: uppercase;
+  }
+  h2 {
+    font-size: 1.9rem;
+    text-transform: uppercase;
+  }
+  h3 {
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  p {
+    margin: 0;
+    max-width: 68ch;
+  }
+  code,
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+  }
+  code {
+    background: var(--lane);
+    padding: 0.05em 0.35em;
+    border-radius: 4px;
+    overflow-wrap: anywhere;
+  }
+  a {
+    color: var(--accent);
+  }
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  header {
+    display: grid;
+    gap: 14px;
+  }
+  .lede {
+    font-size: 1.05rem;
+    color: var(--muted);
+  }
+
+  /* Diagrams */
+  figure {
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--muted);
+    max-width: 80ch;
+  }
+  svg.dia {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--fg);
+    font-family: var(--font-body);
+  }
+  svg.ov {
+    min-width: 780px;
+  }
+  svg.dt {
+    min-width: 640px;
+    max-width: 860px;
+  }
+  .dia text {
+    fill: var(--fg);
+    font-size: 13px;
+  }
+  .dia .t {
+    font-weight: 600;
+  }
+  .dia .s {
+    fill: var(--muted);
+    font-size: 11px;
+  }
+  .dia .m {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .dia .lane {
+    fill: var(--lane);
+    stroke: none;
+  }
+  .dia .lane-ext {
+    fill: none;
+    stroke: var(--line);
+    stroke-dasharray: 6 5;
+    stroke-width: 1.2;
+  }
+  .dia .lane-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    fill: var(--muted);
+  }
+  .dia .box {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 1.2;
+  }
+  .dia .box.ext {
+    stroke-dasharray: 5 4;
+    stroke: var(--edge);
+  }
+  .dia .box.hot {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .dia .box.soft {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+  }
+  .dia .group {
+    fill: none;
+    stroke: var(--line);
+    stroke-dasharray: 4 4;
+  }
+  .dia .edge {
+    fill: none;
+    stroke: var(--edge);
+    stroke-width: 1.4;
+  }
+  .dia .edge.ret {
+    stroke-dasharray: 5 4;
+  }
+  .dia .edge.no {
+    stroke: var(--accent);
+    stroke-dasharray: 4 4;
+  }
+  .dia .ah {
+    fill: var(--edge);
+  }
+  .dia .ah-a {
+    fill: var(--accent);
+  }
+  .dia .lbl {
+    font-size: 11px;
+    fill: var(--muted);
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+  .dia .lbl.in {
+    stroke: var(--lane);
+  }
+  .dia .lbl.on-surface {
+    stroke: var(--surface);
+  }
+  .dia .lifeline {
+    stroke: var(--line);
+    stroke-dasharray: 3 4;
+    stroke-width: 1.2;
+  }
+  .dia .act {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1;
+  }
+  .dia .tick {
+    fill: var(--surface);
+    stroke: var(--edge);
+    stroke-width: 1.3;
+  }
+  .dia .tick.go {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+  .dia .bar {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.2;
+  }
+  .dia .axis {
+    stroke: var(--edge);
+    stroke-width: 1.2;
+  }
+  .dia .cross {
+    stroke: var(--accent);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+
+  /* Overview: nodes are links; the selected topic lights up its nodes and edges. */
+  .ov a.node {
+    cursor: pointer;
+  }
+  .ov a.node .box {
+    transition:
+      stroke 0.15s,
+      fill 0.15s;
+  }
+  .ov a.node:hover .box {
+    stroke: var(--accent);
+  }
+  .ov a.node:focus {
+    outline: none;
+  }
+  .ov a.node:focus-visible .box {
+    stroke: var(--accent);
+    stroke-width: 3;
+  }
+  .ov .node.on .box {
+    stroke: var(--accent);
+    stroke-width: 2.2;
+    fill: var(--accent-soft);
+  }
+  .ov .edge.on {
+    stroke: var(--accent);
+    stroke-width: 2;
+    marker-end: url(#ov-ah-a);
+  }
+  .ov .edge.both.on {
+    marker-start: url(#ov-ah-a);
+  }
+  .ov .hint {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    fill: var(--muted);
+  }
+
+  /* Topics */
+  nav.topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  nav.topics a {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--fg);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 6px 14px;
+  }
+  nav.topics a:hover {
+    border-color: var(--accent);
+  }
+  nav.topics a[aria-current="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  section.topic {
+    display: grid;
+    gap: 22px;
+    padding-top: 6px;
+    scroll-margin-top: 16px;
+  }
+  .topic-head {
+    display: grid;
+    gap: 8px;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .cols > * {
+    min-width: 0;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  ol.steps,
+  ul.plain {
+    margin: 0;
+    padding-left: 1.3em;
+    display: grid;
+    gap: 8px;
+  }
+  ol.steps li::marker {
+    font-family: var(--font-mono);
+    color: var(--accent);
+  }
+  .files {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+  }
+  .files div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .files code {
+    justify-self: start;
+  }
+  .why {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 14px;
+    display: grid;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+
+  table {
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  td.num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .decisions {
+    display: grid;
+    gap: 14px;
+  }
+  .adr {
+    display: grid;
+    grid-template-columns: 4.2em minmax(0, 1fr);
+    gap: 4px 12px;
+    font-size: 0.93rem;
+  }
+  .adr span:nth-child(odd) {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .note {
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Hot Shots · AFL Tipping · as built, November 2026</span>
+    <h1>How Hot Shots fits together</h1>
+    <p class="lede">
+      Your code runs in four places: the Tipster's browser, your TanStack Start server on Vercel,
+      your Supabase database, and Squiggle. Click a box on the map, or a topic under it, to open
+      that part of the system.
+    </p>
+  </header>
+
+  <figure>
+    <div class="scroll">
+      <svg
+        class="dia ov"
+        viewBox="0 0 1000 680"
+        role="img"
+        aria-label="System map: the browser talks only to our Vercel server and, during Games, to Supabase Realtime. Our server reads and writes Supabase with the secret key. Only the sync and live ingest call Squiggle, started by pg_cron in Supabase."
+      >
+        <defs>
+          <marker
+            id="ov-ah"
+            viewBox="0 0 8 8"
+            refX="7"
+            refY="4"
+            markerWidth="8"
+            markerHeight="8"
+            markerUnits="userSpaceOnUse"
+            orient="auto-start-reverse"
+          >
+            <path class="ah" d="M0,0 L8,4 L0,8 z" />
+          </marker>
+          <marker
+            id="ov-ah-a"
+            viewBox="0 0 8 8"
+            refX="7"
+            refY="4"
+            markerWidth="9"
+            markerHeight="9"
+            markerUnits="userSpaceOnUse"
+            orient="auto-start-reverse"
+          >
+            <path class="ah-a" d="M0,0 L8,4 L0,8 z" />
+          </marker>
+        </defs>
+
+        <!-- lanes -->
+        <rect class="lane" x="10" y="110" width="250" height="560" rx="10" />
+        <rect class="lane" x="320" y="110" width="360" height="350" rx="10" />
+        <rect class="lane" x="740" y="110" width="250" height="560" rx="10" />
+        <rect class="lane-ext" x="320" y="470" width="360" height="100" rx="10" />
+        <text class="lane-label" x="24" y="134">BROWSER</text>
+        <text class="lane-label" x="334" y="134">VERCEL · TANSTACK START</text>
+        <text class="lane-label" x="754" y="134">SUPABASE</text>
+        <text class="lane-label" x="334" y="562">SQUIGGLE · NOT OURS</text>
+        <text class="hint" x="10" y="40">Click a box for detail.</text>
+        <text class="hint" x="10" y="58">Red = the topic you're reading.</text>
+
+        <!-- edges -->
+        <line
+          class="edge both"
+          data-topic="reading"
+          x1="135"
+          y1="208"
+          x2="135"
+          y2="258"
+          marker-start="url(#ov-ah)"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl in" x="143" y="238">persist / restore</text>
+
+        <path
+          class="edge"
+          data-topic="sign-in"
+          d="M240 272 H262 V178 H338"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="268" y="226">sign in</text>
+
+        <line
+          class="edge"
+          data-topic="sign-in"
+          x1="660"
+          y1="178"
+          x2="758"
+          y2="178"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="710" y="170" text-anchor="middle">session</text>
+
+        <line
+          class="edge"
+          data-topic="reading tipping scoring"
+          x1="240"
+          y1="300"
+          x2="338"
+          y2="300"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="289" y="293" text-anchor="middle">calls</text>
+        <line
+          class="edge ret"
+          data-topic="reading tipping scoring"
+          x1="340"
+          y1="316"
+          x2="242"
+          y2="316"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="289" y="332" text-anchor="middle">data</text>
+
+        <line
+          class="edge both"
+          data-topic="reading tipping scoring security"
+          x1="662"
+          y1="292"
+          x2="758"
+          y2="292"
+          marker-start="url(#ov-ah)"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="710" y="284" text-anchor="middle">secret key</text>
+
+        <line
+          class="edge"
+          data-topic="squiggle-sync live-scores"
+          x1="760"
+          y1="425"
+          x2="668"
+          y2="425"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="714" y="417" text-anchor="middle">POST + secret</text>
+
+        <path
+          class="edge"
+          data-topic="squiggle-sync live-scores"
+          d="M668 398 H712 V322 H758"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="706" y="364" text-anchor="end">upserts</text>
+
+        <line
+          class="edge"
+          data-topic="squiggle-sync"
+          x1="419"
+          y1="446"
+          x2="419"
+          y2="492"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="427" y="482">≤100 req/day</text>
+        <line
+          class="edge"
+          data-topic="live-scores"
+          x1="582"
+          y1="446"
+          x2="582"
+          y2="492"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="589" y="482">1 stream</text>
+
+        <line
+          class="edge"
+          data-topic="live-scores"
+          x1="945"
+          y1="340"
+          x2="945"
+          y2="588"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl in" x="937" y="475" text-anchor="end">trigger</text>
+
+        <line
+          class="edge"
+          data-topic="live-scores"
+          x1="758"
+          y1="618"
+          x2="242"
+          y2="618"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl" x="500" y="610" text-anchor="middle">pushes live-game · WebSocket</text>
+
+        <line
+          class="edge"
+          data-topic="live-scores"
+          x1="135"
+          y1="590"
+          x2="135"
+          y2="326"
+          marker-end="url(#ov-ah)"
+        />
+        <text class="lbl in" x="143" y="462">updates Games</text>
+
+        <!-- nodes: browser -->
+        <a class="node" href="#reading" data-topic="reading">
+          <rect class="box" x="30" y="150" width="210" height="56" rx="8" />
+          <text class="t" x="42" y="172">Query cache</text>
+          <text class="s" x="42" y="191">localStorage · kept 24 h</text>
+        </a>
+        <a class="node" href="#reading" data-topic="reading tipping scoring demo">
+          <rect class="box" x="30" y="260" width="210" height="64" rx="8" />
+          <text class="t" x="42" y="285">Pages</text>
+          <text class="s" x="42" y="304">React + TanStack Query</text>
+        </a>
+        <a class="node" href="#live-scores" data-topic="live-scores">
+          <rect class="box" x="30" y="590" width="210" height="56" rx="8" />
+          <text class="t" x="42" y="612">Live scores client</text>
+          <text class="s" x="42" y="631">joins Realtime, signed in</text>
+        </a>
+
+        <!-- nodes: vercel -->
+        <a class="node" href="#sign-in" data-topic="sign-in">
+          <rect class="box" x="340" y="150" width="320" height="56" rx="8" />
+          <text class="t" x="352" y="172">Auth routes</text>
+          <text class="s" x="352" y="191">/sign-in · /auth/oauth · /auth/callback</text>
+        </a>
+        <a class="node" href="#tipping" data-topic="tipping scoring reading">
+          <rect class="box" x="340" y="260" width="320" height="64" rx="8" />
+          <text class="t" x="352" y="285">Server functions</text>
+          <text class="s" x="352" y="304">Tips · Leaderboard · Games · Seasons</text>
+        </a>
+        <rect class="group" x="334" y="382" width="332" height="72" rx="10" />
+        <a class="node" href="#squiggle-sync" data-topic="squiggle-sync">
+          <rect class="box" x="344" y="390" width="150" height="56" rx="8" />
+          <text class="t" x="356" y="412">Squiggle sync</text>
+          <text class="s m" x="356" y="431" font-size="10.5">api/sync/squiggle</text>
+        </a>
+        <a class="node" href="#live-scores" data-topic="live-scores">
+          <rect class="box" x="504" y="390" width="156" height="56" rx="8" />
+          <text class="t" x="516" y="412">Live ingest</text>
+          <text class="s m" x="516" y="431" font-size="10.5">api/sync/live-scores</text>
+        </a>
+
+        <!-- nodes: squiggle -->
+        <a class="node" href="#squiggle-sync" data-topic="squiggle-sync">
+          <rect class="box ext" x="344" y="494" width="150" height="50" rx="8" />
+          <text class="t" x="356" y="515">Standard API</text>
+          <text class="s" x="356" y="533">games · tips · ladder</text>
+        </a>
+        <a class="node" href="#live-scores" data-topic="live-scores">
+          <rect class="box ext" x="504" y="494" width="156" height="50" rx="8" />
+          <text class="t" x="516" y="515">Event API (SSE)</text>
+          <text class="s" x="516" y="533">sse.squiggle.com.au</text>
+        </a>
+
+        <!-- nodes: supabase -->
+        <a class="node" href="#sign-in" data-topic="sign-in security">
+          <rect class="box" x="760" y="150" width="210" height="56" rx="8" />
+          <text class="t" x="772" y="172">Supabase Auth</text>
+          <text class="s" x="772" y="191">invite-only · Google or code</text>
+        </a>
+        <a
+          class="node"
+          href="#security"
+          data-topic="security reading tipping scoring squiggle-sync"
+        >
+          <rect class="box" x="760" y="260" width="210" height="80" rx="8" />
+          <text class="t" x="772" y="284">Tables</text>
+          <text class="s" x="772" y="303">afl_tipping, afl_games, …</text>
+          <text class="s" x="772" y="321">RLS on, no policies</text>
+        </a>
+        <a class="node" href="#squiggle-sync" data-topic="squiggle-sync live-scores">
+          <rect class="box" x="760" y="398" width="160" height="56" rx="8" />
+          <text class="t" x="772" y="420">pg_cron + pg_net</text>
+          <text class="s" x="772" y="439">calls our endpoints</text>
+        </a>
+        <a class="node" href="#live-scores" data-topic="live-scores security">
+          <rect class="box" x="760" y="590" width="210" height="56" rx="8" />
+          <text class="t" x="772" y="612">Realtime</text>
+          <text class="s m" x="772" y="631">channel afl:live-games</text>
+        </a>
+      </svg>
+    </div>
+    <figcaption>
+      The browser only ever talks to your own server, plus a Realtime WebSocket during Games. Only
+      the two sync endpoints call Squiggle, and Supabase's own scheduler starts them. Every other
+      read comes from your tables.
+    </figcaption>
+  </figure>
+
+  <nav class="topics" aria-label="Topics">
+    <a href="#reading">Opening a page</a>
+    <a href="#sign-in">Signing in</a>
+    <a href="#tipping">Submitting a Tip</a>
+    <a href="#scoring">Auto-tips &amp; the Leaderboard</a>
+    <a href="#squiggle-sync">The Squiggle sync</a>
+    <a href="#live-scores">Live scores</a>
+    <a href="#security">Who can read what</a>
+    <a href="#demo">The Demo</a>
+  </nav>
+
+  <!-- ============================ READING ============================ -->
+  <section class="topic" id="reading">
+    <div class="topic-head">
+      <span class="eyebrow">Topic 1 of 8</span>
+      <h2>Opening a page</h2>
+      <p>
+        Pages draw from a cache in the browser first, then refresh it from your server. The server
+        reads your tables, never Squiggle.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 780 342"
+          role="img"
+          aria-label="Sequence: the browser shows cached Games, refetches them through a server function if they're over a minute old, the server checks the session and reads afl_games, and the browser saves the result to localStorage."
+        >
+          <defs>
+            <marker
+              id="rd-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="40" y="8" width="140" height="36" rx="6" />
+          <text class="t" x="110" y="31" text-anchor="middle">Browser</text>
+          <rect class="box" x="310" y="8" width="160" height="36" rx="6" />
+          <text class="t" x="390" y="31" text-anchor="middle">Server function</text>
+          <rect class="box" x="600" y="8" width="140" height="36" rx="6" />
+          <text class="t" x="670" y="31" text-anchor="middle">Supabase</text>
+          <line class="lifeline" x1="110" y1="44" x2="110" y2="334" />
+          <line class="lifeline" x1="390" y1="44" x2="390" y2="334" />
+          <line class="lifeline" x1="670" y1="44" x2="670" y2="334" />
+
+          <rect class="act" x="104" y="62" width="12" height="28" rx="2" />
+          <text x="124" y="81">1. Shows the cached Games at once</text>
+          <line class="edge" x1="116" y1="122" x2="382" y2="122" marker-end="url(#rd-ah)" />
+          <text class="lbl" x="250" y="114" text-anchor="middle">
+            2. Refetch if over a minute old
+          </text>
+          <line class="edge" x1="396" y1="162" x2="662" y2="162" marker-end="url(#rd-ah)" />
+          <text class="lbl" x="530" y="154" text-anchor="middle">
+            3. getClaims(): is the session valid?
+          </text>
+          <line class="edge" x1="396" y1="202" x2="662" y2="202" marker-end="url(#rd-ah)" />
+          <text class="lbl" x="530" y="194" text-anchor="middle">
+            4. Read afl_games with the secret key
+          </text>
+          <line class="edge ret" x1="664" y1="242" x2="398" y2="242" marker-end="url(#rd-ah)" />
+          <text class="lbl" x="530" y="234" text-anchor="middle">rows</text>
+          <line class="edge ret" x1="384" y1="282" x2="118" y2="282" marker-end="url(#rd-ah)" />
+          <text class="lbl" x="250" y="274" text-anchor="middle">5. Games, mapped to AflGame</text>
+          <rect class="act" x="104" y="302" width="12" height="28" rx="2" />
+          <text x="124" y="321">6. Saves it to localStorage (24 h)</text>
+        </svg>
+      </div>
+      <figcaption>
+        One page load. The page is on screen at step 1. Steps 2–6 only run when the cached Games are
+        over a minute old, and they never reach Squiggle.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>How it works</h3>
+        <ol class="steps">
+          <li>
+            Each page asks for data with a TanStack Query key that starts with the Season, like
+            <code>["afl", "season", 2027, "games"]</code>. Switching Seasons switches every query at
+            once.
+          </li>
+          <li>
+            Queries don't call the server directly. They ask the
+            <strong>service registry</strong> for a service, such as
+            <code>squiggleService.getGames</code>. The live site registers services that call server
+            functions. The Demo registers its own (topic 8).
+          </li>
+          <li>
+            A server function runs on Vercel. It checks the session cookie, then reads through
+            <code>squiggleDataRepository</code> or a tips repository using the server-only secret
+            key.
+          </li>
+          <li>
+            The whole query cache is saved to <code>localStorage</code> for 24 hours, and cleared by
+            each deploy. An installed app opens straight onto its last screen.
+          </li>
+          <li>
+            Games count as stale after one minute. Live updates keep them current while the app is
+            open. Reopening or refocusing the app refetches them from your database.
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>src/features/afl-tipping/api/queries.ts</code></div>
+          <div><code>src/app/service-registry.ts</code></div>
+          <div><code>src/app/router.tsx</code></div>
+          <div><code>src/features/afl-tipping/api/squiggle.serverfns.ts</code></div>
+          <div><code>src/features/afl-tipping/api/squiggle-data.repository.ts</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why the registry:</strong> the pages don't know whether data comes from your
+            server or the Demo's snapshot, so the same code runs both (ADR 0004).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SIGN-IN ============================ -->
+  <section class="topic" id="sign-in" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 2 of 8</span>
+      <h2>Signing in</h2>
+      <p>
+        Supabase Auth with Google or an emailed one-time code, and no passwords. Every step runs on
+        your server, which sets the session cookie itself. JavaScript in the page can't read that
+        cookie.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 760 396"
+          role="img"
+          aria-label="Sequence: the browser starts Google sign-in through our server, Supabase Auth checks the email is invited, then our server exchanges the code for a session and sets HttpOnly cookies."
+        >
+          <defs>
+            <marker
+              id="si-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="15" y="8" width="130" height="36" rx="6" />
+          <text class="t" x="80" y="31" text-anchor="middle">Browser</text>
+          <rect class="box" x="215" y="8" width="130" height="36" rx="6" />
+          <text class="t" x="280" y="31" text-anchor="middle">Our server</text>
+          <rect class="box" x="415" y="8" width="130" height="36" rx="6" />
+          <text class="t" x="480" y="31" text-anchor="middle">Supabase Auth</text>
+          <rect class="box ext" x="615" y="8" width="130" height="36" rx="6" />
+          <text class="t" x="680" y="31" text-anchor="middle">Google</text>
+          <line class="lifeline" x1="80" y1="44" x2="80" y2="388" />
+          <line class="lifeline" x1="280" y1="44" x2="280" y2="388" />
+          <line class="lifeline" x1="480" y1="44" x2="480" y2="388" />
+          <line class="lifeline" x1="680" y1="44" x2="680" y2="388" />
+
+          <line class="edge" x1="84" y1="76" x2="274" y2="76" marker-end="url(#si-ah)" />
+          <text class="lbl" x="180" y="68" text-anchor="middle">1. Continue with Google</text>
+          <line class="edge" x1="284" y1="110" x2="474" y2="110" marker-end="url(#si-ah)" />
+          <text class="lbl" x="380" y="102" text-anchor="middle">2. Start OAuth (PKCE)</text>
+          <line class="edge" x1="84" y1="144" x2="674" y2="144" marker-end="url(#si-ah)" />
+          <text class="lbl" x="380" y="136" text-anchor="middle">3. Google consent screen</text>
+          <line class="edge" x1="676" y1="178" x2="486" y2="178" marker-end="url(#si-ah)" />
+          <text class="lbl" x="580" y="170" text-anchor="middle">4. Who this is</text>
+          <rect class="act" x="474" y="194" width="12" height="36" rx="2" />
+          <text x="494" y="208" font-size="11">5. Before User Created hook:</text>
+          <text x="494" y="224" font-size="11">is this email invited?</text>
+          <line class="edge ret" x1="474" y1="254" x2="86" y2="254" marker-end="url(#si-ah)" />
+          <text class="lbl" x="280" y="246" text-anchor="middle">
+            6. Redirect to /auth/callback?code
+          </text>
+          <line class="edge" x1="84" y1="288" x2="274" y2="288" marker-end="url(#si-ah)" />
+          <text class="lbl" x="180" y="280" text-anchor="middle">7. GET /auth/callback</text>
+          <line class="edge" x1="284" y1="322" x2="474" y2="322" marker-end="url(#si-ah)" />
+          <text class="lbl" x="380" y="314" text-anchor="middle">
+            8. Exchange code for a session
+          </text>
+          <line class="edge ret" x1="276" y1="356" x2="86" y2="356" marker-end="url(#si-ah)" />
+          <text class="lbl" x="180" y="348" text-anchor="middle">
+            9. HttpOnly cookies, redirect
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        A first sign-in with Google. With an emailed code, steps 3–4 become "Supabase emails a code,
+        the person types it in", and the same invite check and cookie step follow.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>How it works</h3>
+        <ol class="steps">
+          <li>
+            <strong>Invite-only.</strong> The hook refuses any email address with no row in
+            <code>invitations</code>, before Supabase creates an account.
+          </li>
+          <li>
+            <strong>Cookies only the server touches.</strong> Your server sets the session as
+            <code>HttpOnly</code> cookies in its responses. Safari caps cookies written by
+            JavaScript at 7 days, but not these, so nobody has to sign in every week.
+          </li>
+          <li>
+            <strong>The guard.</strong> Every route under <code>_authenticated</code> calls
+            <code>getSessionUserId()</code> first, and sends anyone without a session to
+            <code>/sign-in</code>. <code>getClaims()</code> also refreshes a session that's about to
+            expire.
+          </li>
+          <li>
+            <strong>Profile, Tipster, entry.</strong> A new account gets a Profile (name and photo).
+            Opening AFL Tipping for the first time makes them a Tipster. Opening it during a Season
+            enters them in that Season's Competition, and Auto-tips start from that moment.
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>src/routes/auth/oauth.$provider.ts</code></div>
+          <div><code>src/routes/auth/callback.ts</code></div>
+          <div><code>src/routes/_authenticated.tsx</code></div>
+          <div><code>src/features/auth/api/session.ts</code></div>
+          <div><code>src/lib/supabase.ts</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why:</strong> Clerk's free plan ended sessions every 7 days. Supabase Auth with
+            server-set cookies has no session limit, and you already run Supabase (ADR 0006). Season
+            entries are ADR 0007.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ TIPPING ============================ -->
+  <section class="topic" id="tipping" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 3 of 8</span>
+      <h2>Submitting a Tip</h2>
+      <p>
+        One server function decides whether a Tip may be saved and whether it's an Underdog tip,
+        using your copy of the Game and the Model tip as they stand at that moment.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 760 480"
+          role="img"
+          aria-label="Flowchart: submitTip enters the Tipster in the Competition if needed, reads the Game and Model tip, refuses if the Game has started, otherwise marks it an Underdog tip if it goes against the Model and saves it."
+        >
+          <defs>
+            <marker
+              id="tp-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="120" y="12" width="320" height="46" rx="8" />
+          <text class="m" x="280" y="40" text-anchor="middle">
+            submitTip(season, gameId, teamId, margin)
+          </text>
+          <line class="edge" x1="280" y1="58" x2="280" y2="82" marker-end="url(#tp-ah)" />
+          <rect class="box" x="120" y="84" width="320" height="52" rx="8" />
+          <text class="t" x="280" y="106" text-anchor="middle">
+            Enter the Season's Competition if new
+          </text>
+          <text class="s" x="280" y="124" text-anchor="middle">
+            afl_competition_entries · entered_at = now
+          </text>
+          <line class="edge" x1="280" y1="136" x2="280" y2="158" marker-end="url(#tp-ah)" />
+          <rect class="box" x="120" y="160" width="320" height="52" rx="8" />
+          <text class="t" x="280" y="182" text-anchor="middle">
+            Read the Game and its Model tip
+          </text>
+          <text class="s" x="280" y="200" text-anchor="middle">
+            afl_games · afl_model_tips (your copy)
+          </text>
+          <line class="edge" x1="280" y1="212" x2="280" y2="234" marker-end="url(#tp-ah)" />
+          <polygon class="box hot" points="280,236 400,276 280,316 160,276" />
+          <text class="t" x="280" y="281" text-anchor="middle">Game started?</text>
+          <line class="edge" x1="400" y1="276" x2="518" y2="276" marker-end="url(#tp-ah)" />
+          <text class="lbl" x="459" y="268" text-anchor="middle">yes</text>
+          <rect class="box soft" x="520" y="250" width="220" height="52" rx="8" />
+          <text class="t" x="630" y="272" text-anchor="middle">Refuse: game-started</text>
+          <text class="s" x="630" y="290" text-anchor="middle">Lockout is the first bounce</text>
+          <line class="edge" x1="280" y1="316" x2="280" y2="338" marker-end="url(#tp-ah)" />
+          <text class="lbl" x="290" y="332">no</text>
+          <rect class="box" x="120" y="340" width="320" height="52" rx="8" />
+          <text class="t" x="280" y="362" text-anchor="middle">
+            Underdog tip = team ≠ Model's pick
+          </text>
+          <text class="s" x="280" y="380" text-anchor="middle">
+            neither, if the Model hasn't tipped yet
+          </text>
+          <line class="edge" x1="280" y1="392" x2="280" y2="414" marker-end="url(#tp-ah)" />
+          <rect class="box" x="120" y="416" width="320" height="52" rx="8" />
+          <text class="t" x="280" y="438" text-anchor="middle">Upsert the Tip in afl_tipping</text>
+          <text class="s" x="280" y="456" text-anchor="middle">
+            season, game, user, team, margin, is_underdog
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        The rules in <code>judgeTip</code>. A Game that isn't in your tables, or belongs to a
+        different Season, is refused as <code>game-not-found</code> before the diamond.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>Rules it enforces</h3>
+        <ul class="plain">
+          <li>
+            <strong>Lockout</strong> is the moment the Game starts. Until then a Tip can be changed
+            and nobody else can see it. Group tips hides other people's teams until the start.
+          </li>
+          <li>
+            An <strong>Underdog tip</strong> is judged against the Model tip as it stood when the
+            Tip was made. It stays an Underdog tip even if the Model changes its mind later.
+          </li>
+          <li>
+            The <strong>Margin</strong> is only kept for the Margin game, the first Game of the
+            Round by start time.
+          </li>
+          <li>Saving the same Game again replaces the earlier Tip, keyed on Game and Tipster.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>src/features/afl-tipping/api/tips.ts</code> (<code>submitTip</code>)</div>
+          <div>
+            <code>src/features/afl-tipping/api/competition.ts</code> (<code>judgeTip</code>)
+          </div>
+          <div><code>src/features/afl-tipping/api/game-rules.ts</code></div>
+          <div><code>src/features/afl-tipping/hooks/use-tip-mutation.ts</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why one Game:</strong> <code>submitTip</code> used to fetch the whole Season
+            from Squiggle to check one Game. It now reads one row of your copy.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SCORING ============================ -->
+  <section class="topic" id="scoring" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 4 of 8</span>
+      <h2>Auto-tips &amp; the Leaderboard</h2>
+      <p>
+        The Leaderboard is worked out fresh on each request from four inputs. Missed Games are
+        filled with Auto-tips first, so everyone is scored on the same set of Games.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 760 290"
+          role="img"
+          aria-label="Data flow: stored Tips, competition entries and Games produce Auto-tips; Tips plus Auto-tips and Games are scored; the scores and Tipster profiles are ranked into the Leaderboard."
+        >
+          <defs>
+            <marker
+              id="sc-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="20" y="20" width="180" height="44" rx="8" />
+          <text class="t" x="32" y="38">Stored Tips</text>
+          <text class="s m" x="32" y="55">afl_tipping</text>
+          <rect class="box" x="20" y="84" width="180" height="44" rx="8" />
+          <text class="t" x="32" y="102">Competition entries</text>
+          <text class="s" x="32" y="119">when each Tipster entered</text>
+          <rect class="box" x="20" y="148" width="180" height="44" rx="8" />
+          <text class="t" x="32" y="166">Games</text>
+          <text class="s" x="32" y="183">start times, winners</text>
+          <rect class="box" x="20" y="236" width="180" height="44" rx="8" />
+          <text class="t" x="32" y="254">Profiles</text>
+          <text class="s" x="32" y="271">names and photos</text>
+
+          <rect class="box hot" x="270" y="52" width="200" height="60" rx="8" />
+          <text class="t" x="282" y="74">withAutoTips</text>
+          <text class="s" x="282" y="92">Home team for each missed</text>
+          <text class="s" x="282" y="106">Game after Lockout</text>
+          <rect class="box" x="270" y="160" width="200" height="60" rx="8" />
+          <text class="t" x="282" y="182">scoreTips</text>
+          <text class="s" x="282" y="200">Correct tips · Margin</text>
+          <text class="s" x="282" y="214">difference on Margin game</text>
+          <rect class="box" x="540" y="110" width="200" height="70" rx="8" />
+          <text class="t" x="552" y="134">assembleLeaderboard</text>
+          <text class="s" x="552" y="152">by Score, then lowest</text>
+          <text class="s" x="552" y="166">Margin difference; ties share</text>
+
+          <line class="edge" x1="200" y1="42" x2="268" y2="68" marker-end="url(#sc-ah)" />
+          <line class="edge" x1="200" y1="106" x2="268" y2="90" marker-end="url(#sc-ah)" />
+          <line class="edge" x1="200" y1="164" x2="268" y2="104" marker-end="url(#sc-ah)" />
+          <line class="edge" x1="200" y1="178" x2="268" y2="186" marker-end="url(#sc-ah)" />
+          <line class="edge" x1="370" y1="112" x2="370" y2="158" marker-end="url(#sc-ah)" />
+          <text class="lbl" x="378" y="140">Tips + Auto-tips</text>
+          <line class="edge" x1="470" y1="190" x2="538" y2="160" marker-end="url(#sc-ah)" />
+          <path class="edge" d="M200 258 H640 V182" marker-end="url(#sc-ah)" />
+        </svg>
+      </div>
+      <figcaption>
+        What <code>buildLeaderboard</code> does on each request. Group tips and player stats run the
+        same Auto-tip step first, so every page agrees.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>The rules</h3>
+        <ul class="plain">
+          <li>
+            <strong>Auto-tip:</strong> a Tipster who hadn't tipped a Game by Lockout gets the Home
+            team. It only applies to Games whose Lockout came after they entered the Competition,
+            and it's never an Underdog tip.
+          </li>
+          <li>
+            <strong>Score</strong> is the number of Correct tips. In a <strong>Draw</strong>, every
+            Tip on that Game is wrong.
+          </li>
+          <li>
+            <strong>Margin difference</strong> is how far a Margin was from the result. Tipping the
+            wrong team adds the real margin to the tipped one. The lowest season total breaks ties.
+          </li>
+          <li>
+            Tipsters still level share the rank. A finished Season's last place is the
+            <strong>Wooden spoon</strong>, unless the Competition has three or fewer.
+          </li>
+          <li>
+            The <strong>Underdog quota</strong> is two per Round outside Finals. Missing it is
+            called out but doesn't cost points.
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>src/features/afl-tipping/api/competition.ts</code></div>
+          <div><code>src/features/afl-tipping/api/auto-tips.ts</code></div>
+          <div><code>src/features/afl-tipping/api/player-stats.ts</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why it's computed, not stored:</strong> Auto-tips and scores depend on Game
+            results that change during a Round. Working them out per request from Tips and Games
+            means there's nothing to get out of step (ADR 0001).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SQUIGGLE SYNC ============================ -->
+  <section class="topic" id="squiggle-sync" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 5 of 8</span>
+      <h2>The Squiggle sync</h2>
+      <p>
+        A schedule, not visitors, decides when Squiggle is asked for data. Every 10 minutes Supabase
+        calls your endpoint, and a planner works out whether anything is due.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 780 300"
+          role="img"
+          aria-label="Loop: pg_cron posts to the sync endpoint, which loads the sync state and plans due requests; the budgeted Squiggle client fetches them, results are upserted, the run is recorded, and the next run reads that record for backoff and budget."
+        >
+          <defs>
+            <marker
+              id="sy-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto-start-reverse"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="10" y="20" width="140" height="60" rx="8" />
+          <text class="t" x="22" y="44">pg_cron</text>
+          <text class="s" x="22" y="63">every 10 minutes</text>
+          <rect class="box" x="230" y="20" width="150" height="60" rx="8" />
+          <text class="t" x="242" y="44">Sync endpoint</text>
+          <text class="s" x="242" y="63">checks secret → 202</text>
+          <rect class="box hot" x="460" y="20" width="150" height="60" rx="8" />
+          <text class="t" x="472" y="44">Planner</text>
+          <text class="s m" x="472" y="63">planSquiggleSync</text>
+          <rect class="box" x="460" y="140" width="150" height="60" rx="8" />
+          <text class="t" x="472" y="164">Squiggle client</text>
+          <text class="s" x="472" y="183">≤10/run · ≤300/day</text>
+          <rect class="box ext" x="670" y="140" width="100" height="60" rx="8" />
+          <text class="t" x="682" y="164">Squiggle</text>
+          <text class="s" x="682" y="183">Standard API</text>
+          <rect class="box" x="460" y="240" width="150" height="50" rx="8" />
+          <text class="t" x="472" y="262">Upsert tables</text>
+          <text class="s" x="472" y="279">keeps live scores</text>
+          <rect class="box" x="230" y="240" width="150" height="50" rx="8" />
+          <text class="t" x="242" y="262">Record the run</text>
+          <text class="s m" x="242" y="279">squiggle_sync_runs</text>
+
+          <line class="edge" x1="150" y1="50" x2="228" y2="50" marker-end="url(#sy-ah)" />
+          <text class="lbl" x="189" y="42" text-anchor="middle">POST + secret</text>
+          <line class="edge" x1="380" y1="50" x2="458" y2="50" marker-end="url(#sy-ah)" />
+          <text class="lbl" x="419" y="42" text-anchor="middle">load state</text>
+          <line class="edge" x1="535" y1="80" x2="535" y2="138" marker-end="url(#sy-ah)" />
+          <text class="lbl" x="543" y="114">due requests</text>
+          <line
+            class="edge"
+            x1="612"
+            y1="170"
+            x2="668"
+            y2="170"
+            marker-start="url(#sy-ah)"
+            marker-end="url(#sy-ah)"
+          />
+          <text class="lbl" x="640" y="162" text-anchor="middle">GET</text>
+          <line class="edge" x1="535" y1="200" x2="535" y2="238" marker-end="url(#sy-ah)" />
+          <text class="lbl" x="543" y="224">results</text>
+          <line class="edge" x1="460" y1="265" x2="382" y2="265" marker-end="url(#sy-ah)" />
+          <path class="edge ret" d="M305 240 V110 H490 V82" marker-end="url(#sy-ah)" />
+          <text class="lbl" x="297" y="175" text-anchor="end">next run reads it:</text>
+          <text class="lbl" x="297" y="190" text-anchor="end">backoff, today's budget</text>
+        </svg>
+      </div>
+      <figcaption>
+        Most ticks plan nothing and make no Squiggle request. Off-season that's about two requests a
+        day: the 2027 Fixture and the Model tips.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>What gets fetched, and when</h3>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>When</th>
+                <th>Per day</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Fixture</td>
+                <td>
+                  Hourly in-Season (Games not yet complete). A full reconcile daily. Daily
+                  off-Season. A finished Season: never again.
+                </td>
+                <td class="num">≤ 25</td>
+              </tr>
+              <tr>
+                <td>Next year's Fixture</td>
+                <td>Daily, until Squiggle has Games for it</td>
+                <td class="num">1</td>
+              </tr>
+              <tr>
+                <td>Model tips</td>
+                <td>Hourly for Rounds with a Game in the next 7 days, otherwise daily</td>
+                <td class="num">≤ 48</td>
+              </tr>
+              <tr>
+                <td>Ladder</td>
+                <td>10 minutes after a Game completes, plus a daily reconcile in-Season</td>
+                <td class="num">≤ 10</td>
+              </tr>
+              <tr>
+                <td>Teams</td>
+                <td>Weekly, or when a Game names a team you don't have (at most hourly)</td>
+                <td class="num">&lt; 1</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3>Guardrails</h3>
+        <ul class="plain">
+          <li>At most 10 requests a run and 300 a day. Past that, the planner plans nothing.</li>
+          <li>After a failure, that job waits 1, 2, 4 … up to 60 minutes.</li>
+          <li>
+            A response that doesn't match its Zod schema writes nothing, so the last good data
+            stays.
+          </li>
+          <li>
+            <strong>Live data rule:</strong> for a Game the live ingest updated in the last 10
+            minutes, the sync doesn't overwrite its scores. Squiggle's Standard API runs up to 60
+            seconds behind its Event API.
+          </li>
+          <li>
+            Every request carries a User-Agent with your contact email, from
+            <code>SQUIGGLE_CONTACT_EMAIL</code>.
+          </li>
+        </ul>
+        <div class="files">
+          <div><code>src/features/afl-tipping/sync/plan-squiggle-sync.ts</code></div>
+          <div><code>src/features/afl-tipping/sync/run-squiggle-sync.ts</code></div>
+          <div><code>src/features/afl-tipping/api/squiggle/api.ts</code></div>
+          <div><code>docs/squiggle-sync.md</code> (the runbook)</div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why:</strong> Squiggle's terms say it isn't a backend for user-facing sites.
+            Your traffic to it now depends on the calendar, not on how many Tipsters you have (ADR
+            0009).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LIVE SCORES ============================ -->
+  <section class="topic" id="live-scores" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 6 of 8</span>
+      <h2>Live scores</h2>
+      <p>
+        One connection to Squiggle for the whole site, held in runs of about five minutes. A
+        database trigger fans every change out to signed-in tabs over Supabase Realtime.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 800 210"
+          role="img"
+          aria-label="Flow: Squiggle's Event API streams events to the live ingest, which updates afl_games; a trigger sends each change to Realtime, which pushes it to every open tab."
+        >
+          <defs>
+            <marker
+              id="lv-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="160" y="10" width="200" height="46" rx="8" />
+          <text class="t" x="172" y="30">pg_cron</text>
+          <text class="s" x="172" y="47">each minute, if a Game is on</text>
+          <line class="edge" x1="265" y1="56" x2="265" y2="104" marker-end="url(#lv-ah)" />
+          <text class="lbl" x="273" y="86">POST, if lease free</text>
+          <rect class="box ext" x="10" y="106" width="140" height="56" rx="8" />
+          <text class="t" x="22" y="128">Event API</text>
+          <text class="s" x="22" y="147">goals, clock, result</text>
+          <rect class="box hot" x="180" y="106" width="170" height="56" rx="8" />
+          <text class="t" x="192" y="128">Live ingest</text>
+          <text class="s" x="192" y="147">≤ 290 s a run · lease</text>
+          <rect class="box" x="400" y="106" width="120" height="56" rx="8" />
+          <text class="t m" x="412" y="128">afl_games</text>
+          <text class="s" x="412" y="147">5 live fields</text>
+          <rect class="box" x="570" y="106" width="110" height="56" rx="8" />
+          <text class="t" x="582" y="128">Realtime</text>
+          <text class="s m" x="582" y="147">afl:live-games</text>
+          <rect class="box" x="720" y="80" width="70" height="30" rx="6" />
+          <text x="755" y="100" text-anchor="middle">Tab</text>
+          <rect class="box" x="720" y="119" width="70" height="30" rx="6" />
+          <text x="755" y="139" text-anchor="middle">Tab</text>
+          <rect class="box" x="720" y="158" width="70" height="30" rx="6" />
+          <text x="755" y="178" text-anchor="middle">Tab</text>
+          <line class="edge" x1="150" y1="134" x2="178" y2="134" marker-end="url(#lv-ah)" />
+          <text class="lbl" x="164" y="126" text-anchor="middle">SSE</text>
+          <line class="edge" x1="350" y1="134" x2="398" y2="134" marker-end="url(#lv-ah)" />
+          <text class="lbl" x="374" y="126" text-anchor="middle">update</text>
+          <line class="edge" x1="520" y1="134" x2="568" y2="134" marker-end="url(#lv-ah)" />
+          <text class="lbl" x="544" y="126" text-anchor="middle">trigger</text>
+          <line class="edge" x1="680" y1="128" x2="718" y2="97" marker-end="url(#lv-ah)" />
+          <line class="edge" x1="680" y1="134" x2="718" y2="134" marker-end="url(#lv-ah)" />
+          <line class="edge" x1="680" y1="140" x2="718" y2="171" marker-end="url(#lv-ah)" />
+        </svg>
+      </div>
+      <figcaption>
+        One goal, end to end. The trigger only fires when one of the five live fields changes: home
+        score, away score, game clock, completion or winner.
+      </figcaption>
+    </figure>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 800 190"
+          role="img"
+          aria-label="Timeline over 15 minutes: pg_cron ticks every minute, and the ticks at 0, 5 and 10 minutes start runs that last 290 seconds each, leaving a gap of about 10 seconds between runs."
+        >
+          <text class="lbl" x="52" y="44" text-anchor="end">pg_cron</text>
+          <text class="lbl" x="52" y="98" text-anchor="end">ingest</text>
+          <line class="axis" x1="60" y1="150" x2="740" y2="150" />
+          <!-- ticks every minute: x = 60 + 45.33 * i -->
+          <circle class="tick go" cx="60" cy="40" r="5" />
+          <circle class="tick" cx="105.3" cy="40" r="5" />
+          <circle class="tick" cx="150.7" cy="40" r="5" />
+          <circle class="tick" cx="196" cy="40" r="5" />
+          <circle class="tick" cx="241.3" cy="40" r="5" />
+          <circle class="tick go" cx="286.7" cy="40" r="5" />
+          <circle class="tick" cx="332" cy="40" r="5" />
+          <circle class="tick" cx="377.3" cy="40" r="5" />
+          <circle class="tick" cx="422.7" cy="40" r="5" />
+          <circle class="tick" cx="468" cy="40" r="5" />
+          <circle class="tick go" cx="513.3" cy="40" r="5" />
+          <circle class="tick" cx="558.7" cy="40" r="5" />
+          <circle class="tick" cx="604" cy="40" r="5" />
+          <circle class="tick" cx="649.3" cy="40" r="5" />
+          <circle class="tick" cx="694.7" cy="40" r="5" />
+          <circle class="tick go" cx="740" cy="40" r="5" />
+          <line class="lifeline" x1="60" y1="46" x2="60" y2="82" />
+          <line class="lifeline" x1="286.7" y1="46" x2="286.7" y2="82" />
+          <line class="lifeline" x1="513.3" y1="46" x2="513.3" y2="82" />
+          <rect class="bar" x="60" y="82" width="219" height="28" rx="4" />
+          <text x="72" y="101">run 1 · one connection</text>
+          <rect class="bar" x="286.7" y="82" width="219" height="28" rx="4" />
+          <text x="298.7" y="101">run 2 · reconnect</text>
+          <rect class="bar" x="513.3" y="82" width="219" height="28" rx="4" />
+          <text x="525.3" y="101">run 3</text>
+          <text class="lbl" x="283" y="130" text-anchor="middle">~10 s gap</text>
+          <text class="lbl" x="509.5" y="130" text-anchor="middle">~10 s gap</text>
+          <text class="s" x="60" y="170" text-anchor="middle">0</text>
+          <text class="s" x="286.7" y="170" text-anchor="middle">5 min</text>
+          <text class="s" x="513.3" y="170" text-anchor="middle">10 min</text>
+          <text class="s" x="740" y="170" text-anchor="middle">15 min</text>
+        </svg>
+      </div>
+      <figcaption>
+        Fifteen minutes of a live Game. Filled ticks start a run. Hollow ticks find the lease held
+        and do nothing. Each run stops at 290 seconds, because Vercel Hobby allows 300, and the next
+        tick starts the next one. On connect, Squiggle sends each live Game's current state, which
+        covers the gap. That part will be confirmed at Opening Round.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>One run, step by step</h3>
+        <ol class="steps">
+          <li>
+            Takes the lease, a single database row that only one run can hold. If another run has
+            it, this one stops straight away.
+          </li>
+          <li>
+            Checks <code>afl_games</code> for a Game that's live or starts within 30 minutes. If
+            there's none, it stops.
+          </li>
+          <li>
+            Opens <code>sse.squiggle.com.au/events</code>, which covers every Game, with your
+            User-Agent.
+          </li>
+          <li>
+            Writes each event's live fields to <code>afl_games</code>. A Game that finishes without
+            a winner gets one from the scores, and a Draw gets none.
+          </li>
+          <li>
+            If the connection drops, it reconnects after 2, 4, 8, 16, then 30 seconds. A refusal
+            such as a 403 stops the run.
+          </li>
+          <li>
+            At about 290 seconds it closes, releases the lease, and records a <code>live</code> run.
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h3>In the browser</h3>
+        <ul class="plain">
+          <li>
+            A tab joins the channel only while a Game is live or about to start, and leaves when the
+            last one finishes.
+          </li>
+          <li>
+            It gets a short-lived access token from <code>getRealtimeToken</code>, never the refresh
+            token, and refreshes it 5 minutes before it expires.
+          </li>
+          <li>
+            If the channel drops, it rejoins (2 s, doubling to 60 s), then refetches Games once in
+            case it missed an update.
+          </li>
+          <li>
+            Fallback: setting <code>VITE_LIVE_SCORES=relay</code> brings back the old per-tab relay
+            until Opening Round proves the new path.
+          </li>
+        </ul>
+        <div class="files">
+          <div><code>src/features/afl-tipping/sync/live-ingest.ts</code></div>
+          <div><code>src/features/afl-tipping/api/live-scores.realtime.ts</code></div>
+          <div><code>src/features/afl-tipping/hooks/use-live-scores.ts</code></div>
+          <div><code>supabase/migrations/20261125110000_squiggle_live_and_schedule.sql</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why:</strong> the old relay opened one Squiggle connection per open tab. Now
+            it's one for the site, and Supabase holds the tabs' connections for free (ADR 0010).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECURITY ============================ -->
+  <section class="topic" id="security" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 7 of 8</span>
+      <h2>Who can read what</h2>
+      <p>
+        The browser has the publishable key, which is public by design, and a session cookie.
+        Neither can read a table. Everything goes through your server, except one Realtime channel.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 780 350"
+          role="img"
+          aria-label="Boundaries: the browser reaches our server with its cookie and Realtime with a signed-in token, but the publishable key reads no table rows. Our server uses the secret key. pg_cron calls our sync endpoints with a Bearer secret from Vault."
+        >
+          <defs>
+            <marker
+              id="se-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+            <marker
+              id="se-ah-a"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah-a" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="lane" x="10" y="44" width="200" height="268" rx="10" />
+          <text class="lane-label" x="22" y="66">BROWSER · ANYONE</text>
+          <rect class="lane" x="290" y="44" width="200" height="268" rx="10" />
+          <text class="lane-label" x="302" y="66">YOUR SERVER</text>
+          <rect class="lane" x="570" y="44" width="200" height="268" rx="10" />
+          <text class="lane-label" x="582" y="66">SUPABASE</text>
+
+          <rect class="box" x="24" y="80" width="172" height="52" rx="8" />
+          <text class="t" x="36" y="102">Publishable key</text>
+          <text class="s" x="36" y="120">+ session cookie</text>
+          <rect class="box" x="304" y="80" width="172" height="52" rx="8" />
+          <text class="t" x="316" y="102">Server functions</text>
+          <text class="s" x="316" y="120">secret key, server-only</text>
+          <rect class="box" x="304" y="246" width="172" height="52" rx="8" />
+          <text class="t" x="316" y="268">Sync endpoints</text>
+          <text class="s" x="316" y="286">need the Bearer secret</text>
+          <rect class="box" x="584" y="80" width="172" height="52" rx="8" />
+          <text class="t" x="596" y="102">Tables</text>
+          <text class="s" x="596" y="120">RLS on, no policies</text>
+          <rect class="box" x="584" y="146" width="172" height="40" rx="8" />
+          <text class="t" x="596" y="171" font-size="12">Lease/cron functions</text>
+          <rect class="box" x="584" y="198" width="172" height="40" rx="8" />
+          <text class="t" x="596" y="223">Realtime channel</text>
+          <rect class="box" x="584" y="250" width="172" height="48" rx="8" />
+          <text class="t" x="596" y="270">pg_cron + Vault</text>
+          <text class="s" x="596" y="287">app_url, sync secret</text>
+
+          <line class="edge" x1="196" y1="106" x2="302" y2="106" marker-end="url(#se-ah)" />
+          <text class="lbl in" x="249" y="98" text-anchor="middle">cookie</text>
+          <line class="edge" x1="476" y1="106" x2="582" y2="106" marker-end="url(#se-ah)" />
+          <text class="lbl in" x="529" y="98" text-anchor="middle">bypasses RLS</text>
+          <line class="edge" x1="584" y1="274" x2="478" y2="274" marker-end="url(#se-ah)" />
+          <text class="lbl in" x="531" y="266" text-anchor="middle">POST + secret</text>
+
+          <path class="edge no" d="M180 80 V24 H670 V78" marker-end="url(#se-ah-a)" />
+          <line class="cross" x1="384" y1="18" x2="396" y2="30" />
+          <line class="cross" x1="396" y1="18" x2="384" y2="30" />
+          <text class="lbl" x="410" y="18">publishable key: 0 rows</text>
+
+          <path class="edge" d="M110 132 V330 H763 V218 H758" marker-end="url(#se-ah)" />
+          <text class="lbl" x="400" y="324" text-anchor="middle">
+            signed-in token · receive only, one topic
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        The publishable key ships in the page, so anyone can take it. With RLS on and no policies,
+        it reads and writes nothing. The only exception is receiving on <code>afl:live-games</code>,
+        and only with a signed-in token.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>The rules</h3>
+        <ul class="plain">
+          <li>
+            Every table has row-level security on and <strong>no policies</strong>. A new table's
+            migration must turn RLS on too.
+          </li>
+          <li>
+            The secret key is only ever on the server. No secret may have a
+            <code>VITE_</code> prefix, because Vite builds every <code>VITE_*</code> variable into
+            the browser bundle.
+          </li>
+          <li>
+            The lease, cron and trigger functions have execute revoked from <code>anon</code> and
+            <code>authenticated</code>. Without that, the public API could call them.
+          </li>
+          <li>
+            Realtime's "Allow public access" is off, so only private channels work. The one
+            <code>realtime.messages</code> policy lets signed-in users receive on one topic. Nobody
+            can send.
+          </li>
+          <li>
+            The sync endpoints compare the Bearer secret in constant time. A missing secret answers
+            503, a wrong one 401.
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>supabase/migrations/20261015120000_enable_rls_lockdown.sql</code></div>
+          <div><code>src/lib/supabase.ts</code></div>
+          <div><code>src/features/afl-tipping/sync/authorize-sync-request.ts</code></div>
+          <div><code>src/features/auth/api/realtime-token.ts</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why:</strong> before the lockdown, anyone could take the publishable key from
+            the page and read every Tip before Lockout. One gate, your server functions, is easier
+            to get right than many policies (ADR 0002).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ DEMO ============================ -->
+  <section class="topic" id="demo" hidden>
+    <div class="topic-head">
+      <span class="eyebrow">Topic 8 of 8</span>
+      <h2>The Demo</h2>
+      <p>
+        The public Demo is the same site, built with <code>VITE_DEMO=true</code>. It runs entirely
+        in the visitor's browser over a 2026 snapshot, with no Supabase, no Squiggle and no sign-in.
+      </p>
+    </div>
+    <figure>
+      <div class="scroll">
+        <svg
+          class="dia dt"
+          viewBox="0 0 780 270"
+          role="img"
+          aria-label="Comparison: the same pages and queries ask the service registry for services; the live site registers services backed by server functions, Supabase and Realtime, while the Demo registers services backed by a bundled snapshot, a Demo clock and a no-op live score service."
+        >
+          <defs>
+            <marker
+              id="dm-ah"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path class="ah" d="M0,0 L8,4 L0,8 z" />
+            </marker>
+          </defs>
+          <rect class="box" x="240" y="10" width="300" height="46" rx="8" />
+          <text class="t" x="390" y="30" text-anchor="middle">Same pages, hooks and queries</text>
+          <text class="s" x="390" y="47" text-anchor="middle">
+            nothing here knows which site it is
+          </text>
+          <line class="edge" x1="390" y1="56" x2="390" y2="84" marker-end="url(#dm-ah)" />
+          <rect class="box hot" x="290" y="86" width="200" height="44" rx="8" />
+          <text class="t" x="390" y="113" text-anchor="middle">Service registry</text>
+          <path class="edge" d="M330 130 V150 H170 V168" marker-end="url(#dm-ah)" />
+          <text class="lbl" x="250" y="144" text-anchor="middle">router.tsx registers</text>
+          <path class="edge" d="M450 130 V150 H610 V168" marker-end="url(#dm-ah)" />
+          <text class="lbl" x="530" y="144" text-anchor="middle">start-demo.ts registers</text>
+
+          <text class="lane-label" x="20" y="186">LIVE SITE</text>
+          <rect class="box" x="20" y="194" width="300" height="32" rx="6" />
+          <text x="32" y="215">Games → server functions → tables</text>
+          <rect class="box" x="20" y="232" width="300" height="32" rx="6" />
+          <text x="32" y="253">Live scores → Supabase Realtime</text>
+
+          <text class="lane-label" x="460" y="186">DEMO · VITE_DEMO=true</text>
+          <rect class="box" x="460" y="194" width="300" height="32" rx="6" />
+          <text x="472" y="215">Games → 2026 snapshot in the bundle</text>
+          <rect class="box" x="460" y="232" width="300" height="32" rx="6" />
+          <text x="472" y="253">Live scores → no-op; the Demo clock</text>
+        </svg>
+      </div>
+      <figcaption>
+        The swap happens in one place. The Demo's Games finish as the Demo clock passes them, so the
+        visitor plays through a whole Season against made-up Tipsters.
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <div>
+        <h3>What that means for new code</h3>
+        <ul class="plain">
+          <li>
+            New data has to reach components through the service registry, or the Demo won't have
+            it.
+          </li>
+          <li>
+            A Demo-only import is gated with the condition written out (<code
+              >import.meta.env.VITE_DEMO === "true"</code
+            >), so the live build drops it.
+          </li>
+          <li>The Demo keeps no query cache in the browser. Each visit starts fresh.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Where it lives</h3>
+        <div class="files">
+          <div><code>src/features/afl-tipping/demo/start-demo.ts</code></div>
+          <div><code>src/features/afl-tipping/demo/squiggle.service.demo.ts</code></div>
+          <div><code>src/features/afl-tipping/demo/snapshot.ts</code></div>
+          <div><code>docs/releasing-the-demo.md</code></div>
+        </div>
+        <div class="why">
+          <p>
+            <strong>Why in the browser:</strong> a Demo with no server, database or sign-in can't
+            leak real Tips, costs nothing to run, and can't break the live site (ADR 0004).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="decisions" aria-labelledby="adr-h">
+    <h2 id="adr-h">The decisions behind it</h2>
+    <p class="note">Each one is written up in <code>docs/adr/</code>, with the options it beat.</p>
+    <div class="adr">
+      <span>0001</span><span>A missed Tip becomes a Home-team Auto-tip.</span> <span>0002</span
+      ><span>Supabase is reached only from the server, and RLS denies everyone else.</span>
+      <span>0003</span
+      ><span
+        >Every App lives on one origin, so the Hub and each App can be installed as a PWA.</span
+      >
+      <span>0004</span><span>The Demo runs in the browser over a snapshot.</span> <span>0005</span
+      ><span>Live scores came through your own relay. Replaced by 0010.</span> <span>0006</span
+      ><span>Supabase Auth replaces Clerk: invite-only, with cookies only the server touches.</span>
+      <span>0007</span
+      ><span>Tipsters enter each Season's Competition by opening the App during it.</span>
+      <span>0008</span><span>Times show in the viewer's time zone.</span> <span>0009</span
+      ><span>Squiggle is read on a schedule, never because a visitor opened a page.</span>
+      <span>0010</span
+      ><span>Live scores come from one ingest connection, through Supabase Realtime.</span>
+    </div>
+  </section>
+</div>
+
+<script>
+  (function () {
+    var TOPICS = [
+      "reading",
+      "sign-in",
+      "tipping",
+      "scoring",
+      "squiggle-sync",
+      "live-scores",
+      "security",
+      "demo",
+    ];
+    var sections = {};
+    TOPICS.forEach(function (t) {
+      sections[t] = document.getElementById(t);
+    });
+    var chips = document.querySelectorAll("nav.topics a");
+    var marked = document.querySelectorAll(".ov [data-topic]");
+
+    function current() {
+      var h = (location.hash || "").replace("#", "");
+      return TOPICS.indexOf(h) >= 0 ? h : "reading";
+    }
+    function show(topic, scroll) {
+      TOPICS.forEach(function (t) {
+        sections[t].hidden = t !== topic;
+      });
+      chips.forEach(function (a) {
+        a.setAttribute("aria-current", a.getAttribute("href") === "#" + topic ? "true" : "false");
+      });
+      marked.forEach(function (el) {
+        var on = (" " + el.getAttribute("data-topic") + " ").indexOf(" " + topic + " ") >= 0;
+        el.classList.toggle("on", on);
+      });
+      if (scroll) sections[topic].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    show(current(), false);
+    window.addEventListener("hashchange", function () {
+      show(current(), true);
+    });
+  })();
+</script>

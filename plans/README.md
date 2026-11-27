@@ -8,7 +8,8 @@ numbers match the audit's finding numbers. 004 was added by the operator on 2026
 and 011 on 2026-10-17 (010 after a design review with the operator); 011 (make the repo public)
 was done on 2026-10-18. 013 was added on 2026-10-21 after a conversation with the operator
 (`docs/adr/0006`). 015 was added on 2026-11-25 after the operator read Squiggle's updated
-API requirements. Each executor: read the plan fully before starting, honor its STOP
+API requirements, and 016 on 2026-11-27 after the operator explored an architecture page as a
+private artifact. Each executor: read the plan fully before starting, honor its STOP
 conditions, and update your row in the table when done.
 
 ## Status
@@ -21,6 +22,7 @@ conditions, and update your row in the table when done.
 | 013  | Replace Clerk with Supabase Auth                                              | P1       | L      | HIGH | —          | IN PROGRESS (Steps 3-7 done on `advisor/013-supabase-auth`, 7.4 sign-in test passed; decisions: Google + emailed code, no passwords (Facebook dropped: Meta needs a verified business), cutover as soon as ready; waits on operator Step 2 dashboards, then Step 8) |
 | 014  | Seasons: a Season switcher, Season summary, and opening on My Tips            | P1       | L      | MED  | 013 Step 8 | IN PROGRESS (Steps 1-9 done on `advisor/014-seasons`; Step 10 is the operator's: save the 2026 Leaderboard first, apply the migration, deploy, compare, check an installed PWA)                                                                                     |
 | 015  | Read Squiggle on a schedule; serve visitors and live scores from our own copy | P1       | L      | MED  | 013, 014   | IN PROGRESS (Steps 1-12 done on `advisor/015-squiggle-sync`; released 2026-11-27 and backfilled; 2026 Leaderboard checked; operator: watch a day of runs, then Opening Round (13.5) and deleting the relay (13.6); 13.5 waits for Opening Round 2027)               |
+| 016  | A public architecture page, for recruiters and engineers                      | P2       | M      | LOW  | 015        | TODO (Step 1 decisions D1-D6 wait on the operator)                                                                                                                                                                                                                  |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
