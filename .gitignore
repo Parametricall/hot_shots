@@ -33,9 +33,6 @@ storybook-static
 # `npx skills` symlinks into here unless run with --copy (docs/agents/skills.md)
 .agents/
 
-# clerk configuration (can include secrets)
-/.clerk/
-
 # Database dumps and user exports (contain production user data)
 backups/
 *.dump

@@ -140,7 +140,7 @@ Tipsters if you haven't. See `docs/adr/0001-missed-tips-become-home-team-auto-ti
 - [ ] A Game with no Home team gets no Auto-tips
 - [ ] A Tipster whose account was created after a Game started gets no Auto-tip for it
 - [ ] Tipping a Game before Lockout still behaves as before (change it, margin, underdog warning)
-- [ ] My Tips loads at a normal speed (it now also fetches games and the Clerk join date)
+- [ ] My Tips loads at a normal speed (it now also fetches games and the Tipster's join date)
 
 ### Known follow-ups
 
@@ -159,7 +159,38 @@ Status: deployed and migration applied 2026-10-15. See `docs/adr/0002-supabase-i
       returns `true`
 - [ ] SQL Editor: `select policyname from pg_policies where tablename = 'afl_tipping'` returns no
       rows. A policy made in the dashboard would still let signed-in Tipsters reach the table
-      from the browser with their Clerk token
+      from the browser with the access token `getRealtimeToken` gives them
+
+## Supabase Auth
+
+Status: deployed 2026-10-22, Clerk removed 2026-11-27. See
+`docs/adr/0006-supabase-auth-replaces-clerk.md` and `docs/inviting.md`.
+
+### Signing in
+
+- [ ] An invited Google account signs in, lands on My Tips, and has an `afl_tipsters` row
+- [ ] An invited address with no Google account signs in with the emailed code
+- [ ] An uninvited account is turned away, with Google and with the emailed code: the page says
+      the address isn't on the invite list, and no `auth.users` or `profiles` row is created
+- [ ] Opening `/afl-tipping/tips` signed out goes to `/sign-in` with `redirect_url`, and signing in
+      lands back on it
+- [ ] `/auth/callback?next=//evil.com` lands on `/afl-tipping/tips`
+- [ ] Sign out, from the avatar's menu, lands on `/sign-in`
+
+### iPhone
+
+- [ ] In Safari and in the app installed to the home screen: sign in with Google, close it, and
+      open it again the next day. It is still signed in, in both
+- [ ] In Safari's Web Inspector the `sb-…-auth-token` cookies are `HttpOnly` and expire about 400
+      days out
+- [ ] If Google sign-in started from the installed app comes back in Safari instead, record it in
+      ADR 0006's last Consequence. The emailed code is the workaround there
+
+### Clerk gone
+
+- [ ] `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_SIGN_IN_URL` and `CLERK_SIGN_UP_URL`
+      removed from `.env` and every Vercel environment, the Demo project's included
+- [ ] The Clerk production and development applications deleted
 
 ## Mobile navigation overhaul
 

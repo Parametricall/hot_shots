@@ -14,15 +14,15 @@ conditions, and update your row in the table when done.
 
 ## Status
 
-| Plan | Title                                                                         | Priority | Effort | Risk | Depends on | Status                                                                                                                                                                                                                                                              |
-| ---- | ----------------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 003  | Remediate `npm audit` dependency vulnerabilities                              | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                                                                                                                                                                                                  |
-| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)         | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day)                                                                                                                                                                        |
-| 010  | A public, browser-only Demo with a Demo clock                                 | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                                                                                                                                                                                       |
-| 013  | Replace Clerk with Supabase Auth                                              | P1       | L      | HIGH | —          | IN PROGRESS (Steps 3-7 done on `advisor/013-supabase-auth`, 7.4 sign-in test passed; decisions: Google + emailed code, no passwords (Facebook dropped: Meta needs a verified business), cutover as soon as ready; waits on operator Step 2 dashboards, then Step 8) |
-| 014  | Seasons: a Season switcher, Season summary, and opening on My Tips            | P1       | L      | MED  | 013 Step 8 | IN PROGRESS (Steps 1-9 done on `advisor/014-seasons`; Step 10 is the operator's: save the 2026 Leaderboard first, apply the migration, deploy, compare, check an installed PWA)                                                                                     |
-| 015  | Read Squiggle on a schedule; serve visitors and live scores from our own copy | P1       | L      | MED  | 013, 014   | IN PROGRESS (Steps 1-12 done on `advisor/015-squiggle-sync`; released 2026-11-27 and backfilled; 2026 Leaderboard checked; operator: watch a day of runs, then Opening Round (13.5) and deleting the relay (13.6); 13.5 waits for Opening Round 2027)               |
-| 016  | A public architecture page, for recruiters and engineers                      | P2       | M      | LOW  | 015        | IN PROGRESS (Steps 2-8 done on `advisor/016-architecture-page`, with D1-D6 as recommended and D4 = `--primary`; operator: confirm Step 1, then Step 9 release)                                                                                                      |
+| Plan | Title                                                                         | Priority | Effort | Risk | Depends on | Status                                                                                                                                                                                                                                                                                                                                  |
+| ---- | ----------------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 003  | Remediate `npm audit` dependency vulnerabilities                              | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                                                                                                                                                                                                                                                                      |
+| 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)         | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day)                                                                                                                                                                                                                                            |
+| 010  | A public, browser-only Demo with a Demo clock                                 | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                                                                                                                                                                                                                                                           |
+| 013  | Replace Clerk with Supabase Auth                                              | P1       | L      | HIGH | —          | IN PROGRESS (cutover merged 2026-10-22; 9.2 and 9.4 done 2026-11-27: Clerk package, migration script and doc references gone; decisions: Google + emailed code, no passwords (Facebook dropped: Meta needs a verified business); left: 9.1 stragglers, 9.3 drop `profiles.clerk_user_id`, operator 9.5 Clerk keys and 9.6 iPhone check) |
+| 014  | Seasons: a Season switcher, Season summary, and opening on My Tips            | P1       | L      | MED  | 013 Step 8 | IN PROGRESS (Steps 1-9 done on `advisor/014-seasons`; Step 10 is the operator's: save the 2026 Leaderboard first, apply the migration, deploy, compare, check an installed PWA)                                                                                                                                                         |
+| 015  | Read Squiggle on a schedule; serve visitors and live scores from our own copy | P1       | L      | MED  | 013, 014   | IN PROGRESS (Steps 1-12 done on `advisor/015-squiggle-sync`; released 2026-11-27 and backfilled; 2026 Leaderboard checked; operator: watch a day of runs, then Opening Round (13.5) and deleting the relay (13.6); 13.5 waits for Opening Round 2027)                                                                                   |
+| 016  | A public architecture page, for recruiters and engineers                      | P2       | M      | LOW  | 015        | IN PROGRESS (Steps 2-8 done on `advisor/016-architecture-page`, with D1-D6 as recommended and D4 = `--primary`; operator: confirm Step 1, then Step 9 release)                                                                                                                                                                          |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
@@ -56,16 +56,19 @@ Run each plan's drift check first:
 
 Recorded so they aren't re-audited from scratch:
 
-- **#4 Re-fetching every Clerk user and every Tip per request** (perf, S/M) in the leaderboard,
-  group-tips and player-stats server functions. The fix is HTTP response caching
+- **#4 Re-reading every Tipster row and every Tip per request** (perf, S/M) in the leaderboard,
+  group-tips and player-stats server functions. Each AFL Tipping server function also upserts the
+  caller's `afl_tipsters` row. The fix is HTTP response caching
   (`Cache-Control: s-maxage`) or fewer upstream queries, not an in-memory cache: on Vercel
   serverless that isn't shared across instances. Depends on 010 Step 1.
 - **#5 Verbose logging** (security hygiene, S): `tips.repository.ts` and other `console.*` sites
   log user IDs and tip contents on every write. The Supabase config fields are gone (2026-10-15).
 - **Every `VITE_*` variable is inlined into the client bundle** (security, found 2026-10-15):
-  Clerk's `getEnvVariable` reads `import.meta.env[name]` dynamically, so Vite inlines the whole
-  set, not just the ones the app reads. No secret may be a `VITE_*` variable; `.env.example` says
-  so. A build check that fails on secret-looking `VITE_*` names would enforce it.
+  Clerk's `getEnvVariable` read `import.meta.env[name]` dynamically, so Vite inlined the whole
+  set, not just the ones the app reads. Since Clerk went (2026-11-27) a production build inlines
+  only the variables the code names: the dev-user lookup's dynamic read runs in dev only. No
+  secret may be a `VITE_*` variable; `.env.example` says so. A build check that fails on
+  secret-looking `VITE_*` names would enforce it.
 
 ## Considered and rejected as findings
 

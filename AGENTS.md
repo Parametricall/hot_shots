@@ -20,6 +20,7 @@ PWA-installable hub (see `docs/adr/0003-every-app-on-one-origin.md` for why). Ea
 - one route subtree (e.g. `src/routes/_authenticated/<app>/`)
 - one `public/<app>.webmanifest`, linked only from that app's route `head()`, so it can be
   installed on its own as a separate PWA
+- one `<app>_tipsters` table, which a Profile joins on first open (`docs/adr/0006`)
 
 The hub itself (`src/features/hub/`) is also its own installable PWA
 (`public/hub.webmanifest`) and lists every app via `features/hub/apps.ts`.

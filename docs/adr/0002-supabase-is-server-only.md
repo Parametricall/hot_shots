@@ -1,9 +1,10 @@
 # Supabase is reached only from the server, with RLS denying everyone else
 
-The browser never talks to Supabase. Server functions check the Clerk session, then read and
-write through a client built from the secret key (`src/lib/supabase.ts`), which bypasses
-Row-Level Security. Every table has RLS on and **no policies**, so the publishable (anon) key,
-which is public by design and inlined into the client bundle, can read and write nothing.
+The browser never reads or writes a Supabase table. Server functions check the session
+(`docs/adr/0006`), then read and write through a client built from the secret key
+(`src/lib/supabase.ts`), which bypasses Row-Level Security. Every table has RLS on and **no
+policies**, so the publishable (anon) key, which is public by design and inlined into the client
+bundle, can read and write nothing.
 
 Before this, RLS was off and the anon key was the only gate: anyone could take it from the bundle
 and read every Tip before Lockout, or overwrite other Tipsters' Tips, straight through the
@@ -22,8 +23,12 @@ Supabase REST API, skipping every check in the server functions.
   migration must `alter table … enable row level security` too.
 - Anything that needs the browser to reach Supabase directly (Realtime, say) must add explicit
   policies for exactly that table and operation, not move the secret key to the client.
-- The Clerk third-party auth block in `supabase/config.toml` is unused for now; per-user policies
-  would revive it.
+- `invitations` has one policy, a `select` for `supabase_auth_admin`, the role Supabase Auth runs
+  the Before User Created hook as, so the hook can check an address (`docs/adr/0006`). `anon` and
+  `authenticated` still get nothing.
+- The browser holds the session's access token only to join Realtime (`getRealtimeToken`). A
+  browser Supabase client for anything more would mean revisiting `docs/adr/0006` too, which keeps
+  the session in cookies only the server touches.
 - `realtime.messages` has one policy, a `select` for `authenticated` on the topic
   `afl:live-games`, so signed-in browsers can receive live scores and nothing else
   (`docs/adr/0010`). There is no insert policy, so no browser can send.
