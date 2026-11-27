@@ -984,5 +984,5 @@ unchanged.
   plan 015 migrations applied to production; the branch merged and deployed. `pg_cron`'s
   `squiggle-sync` did the backfill on its own: the first tick filled 436 Games and 18 teams, the
   next the 2026 Ladder and the Opening Round 2027 Model tips. `net._http_response` shows 202s.
-  Still to do: 13.3's Leaderboard comparison, 13.4 (a day of `squiggle_sync_runs`), 13.5
+  13.3 done the same day: the operator found the 2026 Leaderboard intact. Still to do: 13.4 (a day of `squiggle_sync_runs`), 13.5
   (Opening Round), 13.6 (delete the relay).
