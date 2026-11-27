@@ -3,7 +3,12 @@ import {
   SeasonSummaryView,
   type SeasonSummaryViewProps,
 } from "~/features/afl-tipping/components/season-summary/season-summary-view";
-import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
+import type { AflPlayerSeasonStats } from "~/features/afl-tipping/types";
+import {
+  createAflLeaderboardEntry,
+  createAflPlayerRoundStats,
+  createAflPlayerStatsEntry,
+} from "~/features/afl-tipping/mocks/factories";
 
 function entry(userId: string, displayName: string, score: number, totalMarginDiff = 0) {
   return createAflLeaderboardEntry({
@@ -24,6 +29,47 @@ const LEADERBOARD = [
   entry("u6", "Evan Wright", 118, 380),
 ];
 
+const PERFECT = { correctTips: 9, gamesTipped: 9, gamesCompleted: 9, totalGames: 9 };
+
+function stats(
+  userId: string,
+  displayName: string,
+  season: Partial<AflPlayerSeasonStats>,
+  rounds = [createAflPlayerRoundStats({ round: 4, correctTips: 6, marginDiff: 20 })],
+) {
+  return createAflPlayerStatsEntry({ userId, displayName, season, rounds });
+}
+
+const PLAYER_STATS = [
+  stats(
+    "u1",
+    "Alice Johnson",
+    { accuracy: 71, longestStreak: 11, totalUnderdogs: 14, totalMarginDiff: 210 },
+    [
+      createAflPlayerRoundStats({ round: 2, ...PERFECT, marginDiff: 12 }),
+      createAflPlayerRoundStats({ round: 9, ...PERFECT, marginDiff: 30 }),
+    ],
+  ),
+  stats("u2", "Ryan Suspicious", {
+    accuracy: 69,
+    longestStreak: 8,
+    totalUnderdogs: 14,
+    totalMarginDiff: 232,
+  }),
+  stats("user-storybook", "You (Current User)", {
+    accuracy: 68,
+    longestStreak: 13,
+    totalUnderdogs: 9,
+    totalMarginDiff: 180,
+  }),
+  stats("u4", "Charlie Brown", {
+    accuracy: 65,
+    longestStreak: 6,
+    totalUnderdogs: 5,
+    totalMarginDiff: 260,
+  }),
+];
+
 const BASE: SeasonSummaryViewProps = {
   season: 2026,
   status: "over",
@@ -31,6 +77,8 @@ const BASE: SeasonSummaryViewProps = {
   activeRoundName: "Round 12",
   leaderboard: LEADERBOARD,
   userId: "user-storybook",
+  playerStats: PLAYER_STATS,
+  roundNames: { 2: "Round 2", 4: "Round 4", 9: "Round 9" },
 };
 
 const meta = preview.meta({
@@ -40,6 +88,8 @@ const meta = preview.meta({
 });
 
 export const Over = meta.story({ args: BASE });
+
+export const OverNoAwards = meta.story({ args: { ...BASE, playerStats: [] } });
 
 export const OverTiedPodium = meta.story({
   args: {

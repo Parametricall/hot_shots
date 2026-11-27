@@ -26,8 +26,12 @@ export function SeasonSummary() {
   const user = useCurrentUser();
   const leaderboard = useQuery(aflQueries.leaderboard(season));
   const games = useQuery(aflQueries.allGames(season));
+  // Only a finished Season shows the Champion's Accuracy and the awards, so only it waits on this.
+  const stats = useQuery(aflQueries.playerStats(season));
 
-  if (leaderboard.isError || games.isError) {
+  const isOver = games.data !== undefined && seasonStatus(games.data, now()) === "over";
+
+  if (leaderboard.isError || games.isError || (isOver && stats.isError)) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -40,6 +44,7 @@ export function SeasonSummary() {
             onClick={() => {
               void leaderboard.refetch();
               void games.refetch();
+              void stats.refetch();
             }}
           >
             Try again
@@ -49,7 +54,9 @@ export function SeasonSummary() {
     );
   }
 
-  if (!leaderboard.data || !games.data) return <SeasonSummarySkeleton />;
+  if (!leaderboard.data || !games.data || (isOver && !stats.data)) {
+    return <SeasonSummarySkeleton />;
+  }
 
   // Worked out from the Season's own Games, so past Seasons get a status too.
   const status = seasonStatus(games.data, now());
@@ -57,6 +64,7 @@ export function SeasonSummary() {
     games.data.length > 0 ? Math.min(...games.data.map((game) => game.unixTime)) : null;
   const activeRound = AflGame.getActiveRound(games.data);
   const activeRoundName = games.data.find(AflGame.byRound(activeRound))?.roundName ?? null;
+  const roundNames = Object.fromEntries(games.data.map((game) => [game.round, game.roundName]));
 
   return (
     <SeasonSummaryView
@@ -66,6 +74,8 @@ export function SeasonSummary() {
       activeRoundName={activeRoundName}
       leaderboard={leaderboard.data}
       userId={user?.id}
+      playerStats={stats.data}
+      roundNames={roundNames}
     />
   );
 }

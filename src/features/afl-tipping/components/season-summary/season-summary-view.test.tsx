@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vite-plus/test";
 import { screen } from "@testing-library/react";
 import { SeasonSummaryView, type SeasonSummaryViewProps } from "./season-summary-view";
-import { createAflLeaderboardEntry } from "~/features/afl-tipping/mocks/factories";
+import {
+  createAflLeaderboardEntry,
+  createAflPlayerRoundStats,
+  createAflPlayerStatsEntry,
+} from "~/features/afl-tipping/mocks/factories";
 import { renderInSeasonRouter } from "~/test/render";
 
 function entry(userId: string, score: number, totalMarginDiff = 0) {
@@ -10,6 +14,15 @@ function entry(userId: string, score: number, totalMarginDiff = 0) {
     displayName: `Tipster ${userId}`,
     score,
     totalMarginDiff,
+  });
+}
+
+function stats(userId: string, longestStreak: number, accuracy: number | null = 70) {
+  return createAflPlayerStatsEntry({
+    userId,
+    displayName: `Tipster ${userId}`,
+    season: { longestStreak, accuracy, totalUnderdogs: 0, totalMarginDiff: 0 },
+    rounds: [createAflPlayerRoundStats({ round: 3, correctTips: 0, marginDiff: null })],
   });
 }
 
@@ -32,6 +45,7 @@ describe("SeasonSummaryView", () => {
   describe("over", () => {
     it("shows the final heading, the podium and the Wooden spoon", async () => {
       await renderSummary({ userId: "c" });
+      await screen.findByText("Champion");
       expect(await screen.findByText("2026 Season, final")).toBeInTheDocument();
       expect(screen.getByText("Tipster a")).toBeInTheDocument();
       expect(screen.getByText("Tipster c")).toBeInTheDocument();
@@ -44,6 +58,38 @@ describe("SeasonSummaryView", () => {
         "/afl-tipping/2026/leaderboard",
       );
       expect(screen.queryByRole("link", { name: /^Tip / })).not.toBeInTheDocument();
+    });
+
+    it("shows the Champion with their Score and Accuracy", async () => {
+      await renderSummary({ playerStats: [stats("a", 4, 82.4)] });
+      expect(await screen.findByRole("heading", { name: "Champion" })).toBeInTheDocument();
+      expect(screen.getByText("82%")).toBeInTheDocument();
+      expect(screen.getByText("9")).toBeInTheDocument();
+      expect(screen.getByText("TA")).toBeInTheDocument();
+    });
+
+    it("shares the Champion when the top rank is tied", async () => {
+      await renderSummary({
+        leaderboard: [entry("a", 9), entry("b", 9), entry("c", 7)],
+      });
+      expect(await screen.findByRole("heading", { name: "Champions" })).toBeInTheDocument();
+    });
+
+    it("lists the Season awards, and calls out the ones the viewer won", async () => {
+      await renderSummary({
+        userId: "c",
+        playerStats: [stats("a", 4), stats("b", 3), stats("c", 12)],
+        roundNames: { 3: "Round 3" },
+      });
+      expect(await screen.findByRole("heading", { name: "Season awards" })).toBeInTheDocument();
+      expect(screen.getByText("12 Correct tips in a row")).toBeInTheDocument();
+      expect(screen.getByText("You won Longest streak")).toBeInTheDocument();
+    });
+
+    it("leaves out Season awards that nobody earned", async () => {
+      await renderSummary({ playerStats: [stats("a", 0)] });
+      await screen.findByRole("heading", { name: "Champion" });
+      expect(screen.queryByRole("heading", { name: "Season awards" })).not.toBeInTheDocument();
     });
 
     it("shows everyone tied on a podium rank with an equals sign", async () => {
@@ -70,7 +116,7 @@ describe("SeasonSummaryView", () => {
 
     it("has no Wooden spoon when everyone is on the podium", async () => {
       await renderSummary({ leaderboard: [entry("a", 9), entry("b", 8), entry("c", 7)] });
-      await screen.findByText("Podium");
+      await screen.findByRole("heading", { name: "Champion" });
       expect(screen.queryByText("Wooden spoon")).not.toBeInTheDocument();
     });
   });

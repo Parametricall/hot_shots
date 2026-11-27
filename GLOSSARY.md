@@ -80,7 +80,7 @@ _Avoid_: off-season, preseason
 
 **Season summary**:
 The page for one Season of an App: the Leaderboard's top three and, once the Season is over, the
-Wooden spoon.
+Champion, the Wooden spoon and the Season awards.
 _Avoid_: home page, season home, overview, dashboard
 
 **Finals**:
@@ -191,3 +191,13 @@ _Avoid_: standings, ladder, rankings
 Last place on the Leaderboard of a Season that is over. Tipsters level on last place share it. A
 Competition of three or fewer has none, since everyone is on the podium.
 _Avoid_: booby prize, last place
+
+**Champion**:
+The Tipster ranked 1st on the Leaderboard of a Season that is over. Tipsters level on 1st share it.
+_Avoid_: winner, premier, number one
+
+**Season award**:
+A title for the Tipster who was best at one measure over a Season that is over: Longest streak, Most
+Perfect rounds, Most Underdog tips, Best round or Closest Margins. Tipsters level on the best value
+share it, and an award nobody earned (a best value of 0) isn't given.
+_Avoid_: badge, trophy, prize
