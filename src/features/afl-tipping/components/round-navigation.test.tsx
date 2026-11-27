@@ -120,6 +120,38 @@ describe("RoundNavigation", () => {
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   });
 
+  describe("in a Season with no Opening Round", () => {
+    // 2027 starts at Round 1: the first Round in the list is Round 1, not Round 0.
+    const rounds = makeRounds(5).slice(1);
+
+    it("names the first chip R1, with no Opening chip", () => {
+      render(<RoundNavigation rounds={rounds} currentRound={1} onRoundChange={vi.fn()} />);
+      expect(screen.queryByText("Opening")).toBeNull();
+      expect(chip("Round 1").querySelector("[aria-hidden]")).toHaveTextContent("R1");
+    });
+
+    it("selects the Round whose number is currentRound", () => {
+      render(<RoundNavigation rounds={rounds} currentRound={1} onRoundChange={vi.fn()} />);
+      expect(screen.getByRole("heading", { name: "Round 1" })).toBeInTheDocument();
+      expect(chip("Round 1")).toHaveAttribute("aria-current", "true");
+    });
+
+    it("calls onRoundChange with the Round number of the chip tapped", async () => {
+      const onRoundChange = vi.fn();
+      render(<RoundNavigation rounds={rounds} currentRound={1} onRoundChange={onRoundChange} />);
+      await userEvent.setup().click(chip("Round 3"));
+      expect(onRoundChange).toHaveBeenCalledWith(3);
+    });
+
+    it("disables Prev on Round 1 and steps Next to Round 2", async () => {
+      const onRoundChange = vi.fn();
+      render(<RoundNavigation rounds={rounds} currentRound={1} onRoundChange={onRoundChange} />);
+      expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
+      await userEvent.setup().click(screen.getByRole("button", { name: "Next" }));
+      expect(onRoundChange).toHaveBeenCalledWith(2);
+    });
+  });
+
   it("shows 'no round' when the current round index has no matching round", () => {
     render(<RoundNavigation rounds={makeRounds(2)} currentRound={99} onRoundChange={vi.fn()} />);
     expect(screen.getByText("no round")).toBeInTheDocument();
