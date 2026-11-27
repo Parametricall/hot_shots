@@ -973,3 +973,10 @@ unchanged.
   deletes one, ~45,000 a month from `squiggle-live` alone. Migration
   `20261127090000_prune_squiggle_job_history.sql` adds a weekly job that keeps 7 days of it and 90
   days of `squiggle_sync_runs`. Applied and tested locally with `npx supabase migration up`.
+- Step 2b result (2026-11-27, operator, Vercel Hobby preview of `spike/wait-until`): **passed**.
+  `net.http_post` from production Supabase with `timeout_milliseconds := 5000` got
+  `status_code = 202`, `timed_out = false`. The route's `waitUntil` task then logged every 30 s
+  from `alive at 0s` (19:21:56) to `finished at 270s` (19:26:26), with no timeout line. So a
+  `waitUntil` task outlives `pg_net`'s timeout and runs to the route's 300 s `maxDuration`, as
+  D3 assumes. `pg_net` was turned on in production for the test
+  (`create extension if not exists pg_net with schema extensions`, as Step 10's migration does).
