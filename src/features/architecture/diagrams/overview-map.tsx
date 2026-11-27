@@ -13,10 +13,10 @@ type OverviewMapProps = {
 };
 
 export const OVERVIEW_LABEL =
-  "System map: the browser talks only to our Vercel server and, during Games, to Supabase Realtime. Our server reads and writes Supabase with the secret key. Only the sync and live ingest call Squiggle, started by pg_cron in Supabase.";
+  "System map: the browser talks only to the site's Vercel server and, during Games, to Supabase Realtime. The server reads and writes Supabase with the secret key. Only the sync and live ingest call Squiggle, started by pg_cron in Supabase.";
 
 export const OVERVIEW_CAPTION =
-  "The browser only ever talks to our own server, plus a Realtime WebSocket during Games. Only the two sync endpoints call Squiggle, and Supabase's own scheduler starts them. Every other read comes from our tables.";
+  "The browser only ever talks to the site's own server, plus a Realtime WebSocket during Games. Only the two sync endpoints call Squiggle, and Supabase's own scheduler starts them. Every other read comes from the site's own tables.";
 
 type NodeProps = {
   /** Where the link goes: the first Topic the node belongs to. */
@@ -55,7 +55,7 @@ export const OverviewMap = ({ current }: OverviewMapProps) => {
   const node = { current } as const;
 
   return (
-    <Diagram viewBox="0 0 1000 680" label={OVERVIEW_LABEL} minWidth={780}>
+    <Diagram viewBox="0 0 1000 680" label={OVERVIEW_LABEL} minWidth={780} role="group">
       <Lane x={10} y={110} width={250} height={560} label="BROWSER" />
       <Lane x={320} y={110} width={360} height={350} label="VERCEL · TANSTACK START" />
       <Lane x={740} y={110} width={250} height={560} label="SUPABASE" />
@@ -64,7 +64,7 @@ export const OverviewMap = ({ current }: OverviewMapProps) => {
         y={470}
         width={360}
         height={100}
-        label="SQUIGGLE · NOT OURS"
+        label="SQUIGGLE · EXTERNAL"
         external
         labelAtBottom
       />
@@ -299,7 +299,7 @@ export const OverviewMap = ({ current }: OverviewMapProps) => {
         width={160}
         height={56}
         title="pg_cron + pg_net"
-        lines={["calls our endpoints"]}
+        lines={["calls the endpoints"]}
       />
       <Node
         {...node}

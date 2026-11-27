@@ -48,7 +48,7 @@ describe("TOPIC_DIAGRAMS", () => {
 
   it("keeps operator-only details out of the captions", () => {
     const captions = TOPIC_IDS.flatMap((t) => TOPIC_DIAGRAMS[t].map((d) => d.caption)).join(" ");
-    expect(captions).not.toMatch(/your |Hobby|Opening Round|VITE_LIVE_SCORES/);
+    expect(captions).not.toMatch(/your |\bour\b|Hobby|Opening Round|VITE_LIVE_SCORES/);
   });
 });
 
@@ -72,7 +72,7 @@ describe("OverviewMap", () => {
   it("links every node to a Topic with a real href", async () => {
     await renderMap("reading");
 
-    expect(screen.getByRole("img", { name: OVERVIEW_LABEL })).toBeTruthy();
+    expect(screen.getByRole("group", { name: OVERVIEW_LABEL })).toBeTruthy();
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(13);
     const hrefs = new Set(links.map((a) => a.getAttribute("href")));

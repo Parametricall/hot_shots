@@ -11,7 +11,7 @@ export const READING_LABEL =
 export const READING_CAPTION =
   "One page load. The page is on screen at step 1. Steps 2–6 only run when the cached Games are over a minute old, and they never reach Squiggle.";
 
-/** One page load: the cache answers first, then a server function refreshes it from our tables. */
+/** One page load: the cache answers first, then a server function refreshes it from the site's tables. */
 export const ReadingSequence = () => (
   <Diagram viewBox="0 0 780 342" label={READING_LABEL} maxWidth={860}>
     <Box x={40} y={8} width={140} height={36} title="Browser" centered />

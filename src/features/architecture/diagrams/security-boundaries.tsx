@@ -5,7 +5,7 @@ import { EdgeLabel } from "~/features/architecture/diagram/edge-label";
 import { Lane } from "~/features/architecture/diagram/lane";
 
 export const SECURITY_LABEL =
-  "Boundaries: the browser reaches our server with its cookie and Realtime with a signed-in token, but the publishable key reads no table rows. Our server uses the secret key. pg_cron calls our sync endpoints with a Bearer secret from Vault.";
+  "Boundaries: the browser reaches the server with its cookie and Realtime with a signed-in token, but the publishable key reads no table rows. The server uses the secret key. pg_cron calls the sync endpoints with a Bearer secret from Vault.";
 
 export const SECURITY_CAPTION =
   "The publishable key ships in the page, so anyone can take it. With RLS on and no policies, it reads and writes nothing. The only exception is receiving on afl:live-games, and only with a signed-in token.";

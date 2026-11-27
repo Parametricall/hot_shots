@@ -8,7 +8,7 @@ export const TIPPING_LABEL =
   "Flowchart: submitTip enters the Tipster in the Competition if needed, reads the Game and Model tip, refuses if the Game has started, otherwise marks it an Underdog tip if it goes against the Model and saves it.";
 
 export const TIPPING_CAPTION =
-  "The rules in judgeTip. A Game that isn't in our tables, or belongs to a different Season, is refused as game-not-found before the diamond.";
+  "The rules in judgeTip. A Game that isn't in the site's tables, or belongs to a different Season, is refused as game-not-found before the diamond.";
 
 /** The decisions `submitTip` makes, from the Competition entry to the saved Tip. */
 export const TippingFlow = () => (
@@ -42,7 +42,7 @@ export const TippingFlow = () => (
       width={320}
       height={52}
       title="Read the Game and its Model tip"
-      lines={["afl_games · afl_model_tips (our copy)"]}
+      lines={["afl_games · afl_model_tips (the site's copy)"]}
       centered
     />
     <Edge x1={280} y1={212} x2={280} y2={234} />

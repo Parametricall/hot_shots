@@ -11,6 +11,8 @@ type DiagramProps = {
   minWidth?: number;
   /** Wider than this and the diagram stops growing. */
   maxWidth?: number;
+  /** `"group"` for a diagram whose nodes are links, so assistive tech can reach them. */
+  role?: "img" | "group";
   children: ReactNode;
 };
 
@@ -20,7 +22,14 @@ type DiagramProps = {
  * It also owns the arrowhead markers. Their ids come from `useId()`, so two diagrams on one page
  * can't clash, and reach each Edge through context.
  */
-export const Diagram = ({ viewBox, label, minWidth = 640, maxWidth, children }: DiagramProps) => {
+export const Diagram = ({
+  viewBox,
+  label,
+  minWidth = 640,
+  maxWidth,
+  role = "img",
+  children,
+}: DiagramProps) => {
   const id = useId().replace(/:/g, "");
   const ids = useMemo<MarkerIds>(
     () => ({ normal: `${id}-ah`, highlighted: `${id}-ah-hot`, refused: `${id}-ah-no` }),
@@ -31,7 +40,7 @@ export const Diagram = ({ viewBox, label, minWidth = 640, maxWidth, children }: 
     <div className="overflow-x-auto">
       <svg
         viewBox={viewBox}
-        role="img"
+        role={role}
         aria-label={label}
         className="block h-auto w-full fill-foreground font-sans text-[13px]"
         style={{ minWidth, maxWidth }}

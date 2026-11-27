@@ -6,7 +6,7 @@ import { Activation, Lifeline } from "~/features/architecture/diagram/lifeline";
 import { DiagramText } from "~/features/architecture/diagrams/diagram-text";
 
 export const SIGN_IN_LABEL =
-  "Sequence: the browser starts Google sign-in through our server, Supabase Auth checks the email is invited, then our server exchanges the code for a session and sets HttpOnly cookies.";
+  "Sequence: the browser starts Google sign-in through the site's server, Supabase Auth checks the email is invited, then the server exchanges the code for a session and sets HttpOnly cookies.";
 
 export const SIGN_IN_CAPTION =
   'A first sign-in with Google. With an emailed code, steps 3–4 become "Supabase emails a code, the person types it in", and the same invite check and cookie step follow.';
@@ -15,7 +15,7 @@ export const SIGN_IN_CAPTION =
 export const SignInSequence = () => (
   <Diagram viewBox="0 0 760 396" label={SIGN_IN_LABEL} maxWidth={860}>
     <Box x={15} y={8} width={130} height={36} title="Browser" centered />
-    <Box x={215} y={8} width={130} height={36} title="Our server" centered />
+    <Box x={215} y={8} width={130} height={36} title="The server" centered />
     <Box x={415} y={8} width={130} height={36} title="Supabase Auth" centered />
     <Box x={615} y={8} width={130} height={36} title="Google" centered external />
     <Lifeline x={80} y1={44} y2={388} />
