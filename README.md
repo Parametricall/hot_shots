@@ -6,6 +6,9 @@ Season, get ranked on the Leaderboard, and play against Squiggle's Model.
 **[Live demo](https://hot-shots-demo.vercel.app/)**: the whole site over a snapshot of a past
 Season, with no sign-up. Move the Demo clock forward to see your Tips scored.
 
+**[How it's built](https://hot-shots-demo.vercel.app/architecture)**: a map of how the site
+works, one diagram per topic.
+
 <!-- screenshots -->
 
 ## Stack
