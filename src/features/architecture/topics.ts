@@ -265,4 +265,9 @@ export const ADRS: readonly Adr[] = [
     title: "Live scores come from one ingest connection, through Supabase Realtime.",
     file: "0010-live-scores-come-from-one-ingest-through-realtime.md",
   },
+  {
+    number: 11,
+    title: "The Pre-season opens on the Season summary, not My Tips.",
+    file: "0011-the-pre-season-opens-on-the-season-summary.md",
+  },
 ];

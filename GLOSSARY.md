@@ -73,6 +73,11 @@ The Season tipping is open for, or the newest Season if none is. It is the earli
 Game still to finish. If no Season has one, it is the newest Season Squiggle has Games for.
 _Avoid_: this season, active season
 
+**Pre-season**:
+The part of an upcoming Season more than 14 days before its first Game. Tipping is open, but
+opening the App lands on the Season summary, not My Tips.
+_Avoid_: off-season, preseason
+
 **Season summary**:
 The page for one Season of an App: the Leaderboard's top three and, once the Season is over, the
 Wooden spoon.

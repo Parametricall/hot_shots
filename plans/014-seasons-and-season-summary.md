@@ -122,6 +122,8 @@ with the operator only if a step proves it wrong.
   opening the app shows last Season's summary.
   _Rejected_: from N days before the first Game, showing last Season's
   summary until then. It adds a constant and a branch for little gain.
+  _Reversed_ on 2026-11-27 by `docs/adr/0011`: an upcoming Season lands on
+  its summary until 14 days before its first Game.
 - **D3. The URL carries the Season as a path segment**:
   `/afl-tipping/2027/tips`. It isn't a `?season=` search param: a Season
   scopes every page under it, the summary needs a URL of its own

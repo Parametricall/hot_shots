@@ -9,7 +9,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vite-plus/test";
 import { ArchitecturePage } from "~/features/architecture/pages/architecture";
 import { architectureSearchSchema } from "~/features/architecture/search";
-import { TOPIC_IDS, TOPICS, type TopicId } from "~/features/architecture/topics";
+import { ADRS, TOPIC_IDS, TOPICS, type TopicId } from "~/features/architecture/topics";
 
 const renderPage = async (url: string) => {
   const rootRoute = createRootRoute();
@@ -104,6 +104,6 @@ describe("ArchitecturePage", () => {
     expect(screen.getByRole("heading", { name: "Stack and testing" })).toBeTruthy();
     expect(screen.getByText("React 19")).toBeTruthy();
     const decisions = screen.getByRole("heading", { name: "Decisions" }).parentElement!;
-    expect(within(decisions).getAllByRole("link")).toHaveLength(10);
+    expect(within(decisions).getAllByRole("link")).toHaveLength(ADRS.length);
   });
 });
