@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import { landingFor } from "~/features/afl-tipping/utils/afl-season";
+import { now } from "~/lib/clock";
 
 /**
  * Under the tabs of any Season that isn't the Current Season, so a Tipster can't get stuck in last
@@ -15,7 +16,7 @@ export function PastSeasonBanner() {
 
   if (!data || season === data.current.season) return null;
 
-  const landing = landingFor(data.current);
+  const landing = landingFor(data.current, now());
   const label = `Back to ${landing.season}`;
 
   return (

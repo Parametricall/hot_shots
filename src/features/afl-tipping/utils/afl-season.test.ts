@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import {
   landingFor,
+  landingForSeason,
   listSeasons,
   podium,
   rankEntries,
@@ -76,17 +77,54 @@ describe("listSeasons", () => {
 });
 
 describe("landingFor", () => {
-  it("lands on tips while the Season is upcoming or in progress", () => {
-    const base = { season: 2027, firstGameAt: null };
-    expect(landingFor({ ...base, status: "upcoming" })).toEqual({ to: "tips", season: 2027 });
-    expect(landingFor({ ...base, status: "in-progress" })).toEqual({ to: "tips", season: 2027 });
+  const DAY = 1000 * 60 * 60 * 24;
+  const FIRST_GAME = Date.UTC(2027, 2, 4, 8, 30);
+
+  it("lands on tips while the Season is in progress", () => {
+    expect(
+      landingFor({ season: 2027, status: "in-progress", firstGameAt: FIRST_GAME }, FIRST_GAME),
+    ).toEqual({ to: "tips", season: 2027 });
+  });
+
+  it("lands on tips from 14 days before an upcoming Season's first Game", () => {
+    const current = { season: 2027, status: "upcoming" as const, firstGameAt: FIRST_GAME };
+    expect(landingFor(current, FIRST_GAME - 14 * DAY)).toEqual({ to: "tips", season: 2027 });
+    expect(landingFor(current, FIRST_GAME - DAY)).toEqual({ to: "tips", season: 2027 });
+  });
+
+  it("lands on the summary in the Pre-season", () => {
+    const current = { season: 2027, status: "upcoming" as const, firstGameAt: FIRST_GAME };
+    expect(landingFor(current, FIRST_GAME - 14 * DAY - 1)).toEqual({
+      to: "summary",
+      season: 2027,
+    });
+    expect(landingFor(current, FIRST_GAME - 90 * DAY)).toEqual({ to: "summary", season: 2027 });
+  });
+
+  it("lands on the summary of an upcoming Season with no Games", () => {
+    expect(landingFor({ season: 2027, status: "upcoming", firstGameAt: null }, 0)).toEqual({
+      to: "summary",
+      season: 2027,
+    });
   });
 
   it("lands on the summary once the Season is over", () => {
-    expect(landingFor({ season: 2026, status: "over", firstGameAt: null })).toEqual({
+    expect(landingFor({ season: 2026, status: "over", firstGameAt: null }, 0)).toEqual({
       to: "summary",
       season: 2026,
     });
+  });
+});
+
+describe("landingForSeason", () => {
+  const current = { season: 2027, status: "in-progress" as const, firstGameAt: 0 };
+
+  it("lands on the Current Season as opening the App would", () => {
+    expect(landingForSeason(2027, current, 1)).toEqual({ to: "tips", season: 2027 });
+  });
+
+  it("lands on any other Season's summary", () => {
+    expect(landingForSeason(2026, current, 1)).toEqual({ to: "summary", season: 2026 });
   });
 });
 

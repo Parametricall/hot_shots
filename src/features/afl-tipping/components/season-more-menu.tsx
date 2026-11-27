@@ -17,7 +17,7 @@ import { cn } from "~/lib/utils";
 type SeasonMoreMenuProps = {
   /** The Season open, which How tipping works stays in. */
   season: number;
-  /** The tab open, which a Season pick stays on. */
+  /** The tab open, to mark How tipping works when it is the page open. */
   activeTab: SeasonTab;
   /** `bar`: the last item of the phone's bottom bar, opening a sheet from the bottom. `button`: a
    * button beside the desktop tab row, opening a panel from the right. */
@@ -65,7 +65,7 @@ export function SeasonMoreMenu({ season, activeTab, variant }: SeasonMoreMenuPro
           </SheetDescription>
         </SheetHeader>
         <div className="overflow-y-auto">
-          <SeasonSwitcher tab={activeTab} />
+          <SeasonSwitcher />
           <div className="mt-2 border-t pt-2">
             <SheetClose asChild>
               <Link

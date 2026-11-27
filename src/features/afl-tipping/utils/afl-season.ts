@@ -1,4 +1,4 @@
-import { FIRST_SEASON } from "~/features/afl-tipping/constants";
+import { FIRST_SEASON, TIPS_LANDING_LEAD_MS } from "~/features/afl-tipping/constants";
 import type { AflGame, AflLeaderboardEntry } from "~/features/afl-tipping/types";
 
 /**
@@ -44,13 +44,37 @@ export function listSeasons(current: number): number[] {
   return seasons;
 }
 
-/** Where `/afl-tipping` sends the user: tipping while a Season is open, its summary once over. */
+/**
+ * Where `/afl-tipping` sends the user: My Tips while a Season is in progress or about to start, its
+ * summary otherwise. An upcoming Season more than `TIPS_LANDING_LEAD_MS` from its first Game is in
+ * the Pre-season, and lands on the summary: tipping is open, but nobody needs to be pushed to it
+ * months out (docs/adr/0011).
+ */
 export function landingFor(
   current: Seasons["current"],
+  now: number,
 ): { to: "tips"; season: number } | { to: "summary"; season: number } {
-  return current.status === "over"
-    ? { to: "summary", season: current.season }
-    : { to: "tips", season: current.season };
+  return isTippingTime(current, now)
+    ? { to: "tips", season: current.season }
+    : { to: "summary", season: current.season };
+}
+
+function isTippingTime(current: Seasons["current"], now: number): boolean {
+  if (current.status === "in-progress") return true;
+  if (current.status === "over") return false;
+  return current.firstGameAt !== null && current.firstGameAt - now <= TIPS_LANDING_LEAD_MS;
+}
+
+/**
+ * Where picking `season` in the Season switcher goes: the Current Season lands as opening the App
+ * would, and any other Season on its summary, since a past Season's result is what's worth seeing.
+ */
+export function landingForSeason(
+  season: number,
+  current: Seasons["current"],
+  now: number,
+): { to: "tips"; season: number } | { to: "summary"; season: number } {
+  return season === current.season ? landingFor(current, now) : { to: "summary", season };
 }
 
 /** Each entry's rank in a Leaderboard already in order. Tipsters level on both measures share one. */

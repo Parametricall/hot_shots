@@ -3,26 +3,24 @@ import { Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { SheetClose } from "~/components/ui/sheet";
 import { aflQueries } from "~/features/afl-tipping/api/queries";
-import { seasonTabPath, type SeasonTab } from "~/features/afl-tipping/components/season-tab-path";
+import { seasonTabPath } from "~/features/afl-tipping/components/season-tab-path";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
+import { landingForSeason } from "~/features/afl-tipping/utils/afl-season";
+import { now } from "~/lib/clock";
 import { cn } from "~/lib/utils";
-
-type SeasonSwitcherProps = {
-  /** The tab open, which a pick stays on. */
-  tab: SeasonTab;
-};
 
 /**
  * The Seasons, newest first, as a list to pick from inside the More sheet: the one open is ticked
- * and the Current Season is marked. A pick stays on the tab already open (`round` is dropped:
- * another Season has other Rounds) and closes the sheet.
+ * and the Current Season is marked. A pick lands where opening the App would for the Current
+ * Season, and on the Season summary for any other (`landingForSeason`): someone switching to last
+ * Season wants its result, not the tips of its final Round. A pick closes the sheet.
  *
  * It lives in the More sheet, not the header or the Leaderboard's title: a Tipster looking for
  * "other stuff" opens More, and Tipsters rarely change Season, so it shouldn't spend room on every
  * screen. From other tabs of a past Season, `PastSeasonBanner` is the way back to the Current
  * Season.
  */
-export function SeasonSwitcher({ tab }: SeasonSwitcherProps) {
+export function SeasonSwitcher() {
   const season = useSeason();
   const { data } = useQuery(aflQueries.seasons());
 
@@ -37,11 +35,14 @@ export function SeasonSwitcher({ tab }: SeasonSwitcherProps) {
       <ul>
         {(data?.seasons ?? [season]).map((option) => {
           const isOpen = option === season;
+          const landing = data
+            ? landingForSeason(option, data.current, now())
+            : { to: "summary" as const, season: option };
           return (
             <li key={option}>
               <SheetClose asChild>
                 <Link
-                  to={seasonTabPath(tab)}
+                  to={seasonTabPath(landing.to)}
                   params={{ season: option }}
                   search={{}}
                   aria-current={isOpen ? "page" : undefined}

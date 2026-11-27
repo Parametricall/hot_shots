@@ -49,10 +49,10 @@ describe("SeasonSwitcher, under More", () => {
     expect(links[0]).toHaveAttribute("aria-current", "page");
   });
 
-  it("lists Seasons newest first, marks the open and current ones, and keeps the tab on a pick", async () => {
+  it("lists Seasons newest first and marks the open and current ones", async () => {
     mockSeason.value = 2026;
     const user = userEvent.setup();
-    const { router } = await renderInSeasonRouter(
+    await renderInSeasonRouter(
       <SeasonMoreMenu season={mockSeason.value} activeTab="leaderboard" variant="bar" />,
       { queryClient: clientWith(TWO), path: "/afl-tipping/2026/leaderboard?round=4" },
     );
@@ -66,13 +66,36 @@ describe("SeasonSwitcher, under More", () => {
     expect(links.map((link) => link.textContent)).toEqual(["2027Current", "2026"]);
     expect(links[1]).toHaveAttribute("aria-current", "page");
     expect(links[0]).not.toHaveAttribute("aria-current");
+  });
 
-    await user.click(links[0]!);
-    await waitFor(() =>
-      expect(router.state.location.pathname).toBe("/afl-tipping/2027/leaderboard"),
+  it("takes a pick of the Current Season to where opening the App lands", async () => {
+    mockSeason.value = 2026;
+    const user = userEvent.setup();
+    const { router } = await renderInSeasonRouter(
+      <SeasonMoreMenu season={mockSeason.value} activeTab="leaderboard" variant="bar" />,
+      { queryClient: clientWith(TWO), path: "/afl-tipping/2026/leaderboard?round=4" },
     );
+
+    await user.click(await screen.findByRole("button", { name: "More" }));
+    const sheet = await screen.findByRole("dialog");
+    await user.click(within(sheet).getByRole("link", { name: "2027Current" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/afl-tipping/2027/tips"));
     expect(router.state.location.search).not.toHaveProperty("round");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("takes a pick of a past Season to its summary, not the tab open", async () => {
+    mockSeason.value = 2027;
+    const user = userEvent.setup();
+    const { router } = await renderInSeasonRouter(
+      <SeasonMoreMenu season={mockSeason.value} activeTab="tips" variant="bar" />,
+      { queryClient: clientWith(TWO), path: "/afl-tipping/2027/tips?round=4" },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "More" }));
+    const sheet = await screen.findByRole("dialog");
+    await user.click(within(sheet).getByRole("link", { name: "2026" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/afl-tipping/2026"));
   });
 });
 
@@ -109,6 +132,24 @@ describe("PastSeasonBanner", () => {
     expect(screen.getByRole("link", { name: "Back to 2027" })).toHaveAttribute(
       "href",
       "/afl-tipping/2027/tips",
+    );
+  });
+
+  it("links to the Current Season's summary in the Pre-season", async () => {
+    mockSeason.value = 2026;
+    await renderInSeasonRouter(<PastSeasonBanner />, {
+      queryClient: clientWith({
+        seasons: [2027, 2026],
+        current: {
+          season: 2027,
+          status: "upcoming",
+          firstGameAt: Date.now() + 1000 * 60 * 60 * 24 * 90,
+        },
+      }),
+    });
+    expect(await screen.findByRole("link", { name: "Back to 2027" })).toHaveAttribute(
+      "href",
+      "/afl-tipping/2027",
     );
   });
 

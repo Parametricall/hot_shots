@@ -15,6 +15,10 @@ export function finalsSpots(season: number): number {
 // The first Season with Tips. Squiggle has older ones, but nobody tipped them.
 export const FIRST_SEASON = 2026;
 
+// How long before an upcoming Season's first Game opening the App lands on My Tips. Before then it
+// is the Pre-season, and the App opens on the Season summary (docs/adr/0011).
+export const TIPS_LANDING_LEAD_MS = 1000 * 60 * 60 * 24 * 14; // 14 days
+
 // Polling intervals
 export const GAME_STATUS_CHECK_INTERVAL_MS = 60000; // 1 minute
 
