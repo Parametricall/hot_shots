@@ -40,6 +40,9 @@ const GetTipsSchema = z.object({
  * (docs/adr/0006), and opening it while `season` is the Current Season, and not over, enters them
  * in that Season's Competition (docs/adr/0007). Viewing a past Season enters nothing. Every
  * handler goes through here.
+ *
+ * Joining and working out the Seasons don't depend on each other, so they run together. Entering
+ * waits for both: it needs the Current Season, and an entry belongs to a Tipster who has joined.
  */
 async function ensureTipster(
   season: number,
@@ -48,12 +51,13 @@ async function ensureTipster(
   if (!userId) {
     throw new Error("User not authenticated");
   }
-  const joined = await serviceRegistry.getService("tipstersRepository").joinAflTipping(userId);
+  const [joined, { current, seasons }] = await Promise.all([
+    serviceRegistry.getService("tipstersRepository").joinAflTipping(userId),
+    serviceRegistry.getService("squiggleService").getSeasons(),
+  ]);
   if (!joined.ok) {
     throw new Error(`Failed to join AFL Tipping: ${joined.reason}`, { cause: joined.detail });
   }
-
-  const { current, seasons } = await serviceRegistry.getService("squiggleService").getSeasons();
   if (!seasons.includes(season)) {
     throw new Error(`Unknown Season: ${season}`);
   }
@@ -86,6 +90,15 @@ async function fetchEntrants(season: number): Promise<Tipsters> {
     });
   }
   return result.tipsters;
+}
+
+/** Everything the Leaderboard and the stats are worked out from. The three reads run together. */
+function fetchSeasonResults(season: number): Promise<[AllTipsRow[], AflGame.Type[], Tipsters]> {
+  return Promise.all([
+    serviceRegistry.getService("tipsRepository").getAllTips(season),
+    serviceRegistry.getService("squiggleService").getGames(season),
+    fetchEntrants(season),
+  ]);
 }
 
 export const submitTip = createServerFn({ method: "POST" })
@@ -171,12 +184,7 @@ export const getLeaderboard = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     await ensureTipster(data.season);
 
-    const repo = serviceRegistry.getService("tipsRepository");
-    const tips: AllTipsRow[] = await repo.getAllTips(data.season);
-
-    const { getGames } = serviceRegistry.getService("squiggleService");
-    const games: AflGame.Type[] = await getGames(data.season);
-    const tipsters = await fetchEntrants(data.season);
+    const [tips, games, tipsters] = await fetchSeasonResults(data.season);
 
     return buildLeaderboard({ tips, games, tipsters, now: Date.now() });
   });
@@ -193,11 +201,15 @@ export const getGroupTips = createServerFn({ method: "GET" })
 
     const { season, round } = data;
     const { getGames } = serviceRegistry.getService("squiggleService");
-    const roundGames: AflGame.Type[] = await getGames(season, round);
-
     const repo = serviceRegistry.getService("tipsRepository");
-    const tips = await repo.getTipsByGameIds(roundGames.map((g) => g.id));
-    const tipsters = await fetchEntrants(data.season);
+    // The tips need the Round's Game ids, but the Tipsters don't, so they load alongside.
+    const [{ roundGames, tips }, tipsters] = await Promise.all([
+      getGames(season, round).then(async (roundGames: AflGame.Type[]) => ({
+        roundGames,
+        tips: await repo.getTipsByGameIds(roundGames.map((g) => g.id)),
+      })),
+      fetchEntrants(season),
+    ]);
 
     return buildGroupTips({ tips, roundGames, tipsters, now: Date.now() });
   });
@@ -207,12 +219,7 @@ export const getPlayerStats = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<AflPlayerStatsEntry[]> => {
     await ensureTipster(data.season);
 
-    const repo = serviceRegistry.getService("tipsRepository");
-    const tips: AllTipsRow[] = await repo.getAllTips(data.season);
-
-    const { getGames } = serviceRegistry.getService("squiggleService");
-    const games: AflGame.Type[] = await getGames(data.season);
-    const tipsters = await fetchEntrants(data.season);
+    const [tips, games, tipsters] = await fetchSeasonResults(data.season);
 
     return buildPlayerStats({ tips, games, tipsters, now: Date.now() });
   });
