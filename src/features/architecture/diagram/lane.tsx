@@ -7,10 +7,20 @@ type LaneProps = {
   label: string;
   /** Not ours: a dashed outline instead of a fill. */
   external?: boolean;
+  /** Put the label along the bottom edge, when Boxes and Edges enter from the top. */
+  labelAtBottom?: boolean;
 };
 
 /** A tinted band behind a group of Boxes, as the overview map's four lanes. */
-export const Lane = ({ x, y, width, height, label, external = false }: LaneProps) => (
+export const Lane = ({
+  x,
+  y,
+  width,
+  height,
+  label,
+  external = false,
+  labelAtBottom = false,
+}: LaneProps) => (
   <g>
     <rect
       x={x}
@@ -25,7 +35,7 @@ export const Lane = ({ x, y, width, height, label, external = false }: LaneProps
     />
     <text
       x={x + 14}
-      y={y + 24}
+      y={labelAtBottom ? y + height - 8 : y + 24}
       className="fill-muted-foreground font-mono text-[10.5px] tracking-widest"
     >
       {label}

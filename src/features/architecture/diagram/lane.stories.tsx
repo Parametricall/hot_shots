@@ -19,4 +19,8 @@ export const Default = meta.story();
 
 export const External = meta.story({ args: { external: true, label: "SQUIGGLE · NOT OURS" } });
 
+export const LabelAtBottom = meta.story({
+  args: { external: true, labelAtBottom: true, label: "SQUIGGLE · NOT OURS" },
+});
+
 export const DefaultDark = meta.story({ decorators: [darkDecorator] });
