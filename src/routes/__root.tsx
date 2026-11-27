@@ -5,6 +5,7 @@ import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import appCss from "~/styles/app.css?url";
 import { AppLoadingScreen } from "~/components/AppLoadingScreen";
+import { NavigationProgress } from "~/components/navigation-progress";
 import { seo } from "~/utils/seo";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "~/components/ui/sonner";
@@ -90,6 +91,7 @@ function RootComponent() {
 
   return (
     <TimeZoneProvider serverTimeZone={timeZone}>
+      <NavigationProgress />
       <Outlet />
     </TimeZoneProvider>
   );

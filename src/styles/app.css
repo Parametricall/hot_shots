@@ -49,6 +49,38 @@
   }
 }
 
+/*
+ * The navigation progress bar. It stays hidden for the first 150 ms, so a quick navigation shows
+ * nothing, then creeps towards the end without reaching it: the bar can't know how long is left.
+ * With reduced motion it appears whole, after the same wait, and doesn't move.
+ */
+@utility animate-navigation-progress {
+  transform-origin: left;
+  animation: navigation-progress 8s cubic-bezier(0.1, 0.6, 0.2, 1) 150ms both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: navigation-progress-appear 1ms linear 150ms both;
+  }
+}
+
+@keyframes navigation-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.9);
+  }
+}
+
+@keyframes navigation-progress-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
