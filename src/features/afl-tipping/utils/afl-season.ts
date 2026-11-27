@@ -62,7 +62,12 @@ export function landingFor(
 function isTippingTime(current: Seasons["current"], now: number): boolean {
   if (current.status === "in-progress") return true;
   if (current.status === "over") return false;
-  return current.firstGameAt !== null && current.firstGameAt - now <= TIPS_LANDING_LEAD_MS;
+  return isWithinTippingLead(current.firstGameAt, now);
+}
+
+/** Whether the first Game is within `TIPS_LANDING_LEAD_MS`, i.e. the Pre-season is over. */
+export function isWithinTippingLead(firstGameAt: number | null, now: number): boolean {
+  return firstGameAt !== null && firstGameAt - now <= TIPS_LANDING_LEAD_MS;
 }
 
 /**
