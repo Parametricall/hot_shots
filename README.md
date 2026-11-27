@@ -13,8 +13,8 @@ works, one diagram per topic.
 
 ## Stack
 
-React 19, TanStack Start / Router / Query, Clerk, Supabase, Tailwind CSS v4 with shadcn/ui, Zod,
-Vite+ (Oxlint, Oxfmt, Vitest), Storybook with Chromatic, deployed on Vercel.
+React 19, TanStack Start / Router / Query, Supabase (Postgres and Auth), Tailwind CSS v4 with
+shadcn/ui, Zod, Vite+ (Oxlint, Oxfmt, Vitest), Storybook with Chromatic, deployed on Vercel.
 
 ## How it's built
 
@@ -32,8 +32,8 @@ All decisions are recorded in [`docs/adr/`](docs/adr/), and the project's vocabu
 
 ## Running it locally
 
-You need Node 24 and two accounts: a [Clerk](https://clerk.com) application and a
-[Supabase](https://supabase.com) project (or run Supabase locally with `npx supabase start`).
+You need Node 24 and a [Supabase](https://supabase.com) project (or run Supabase locally with
+`npx supabase start`).
 
 ```sh
 npm ci

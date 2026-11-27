@@ -25,7 +25,7 @@ The hub itself (`src/features/hub/`) is also its own installable PWA
 (`public/hub.webmanifest`) and lists every app via `features/hub/apps.ts`.
 
 `VITE_DEMO=true` builds the Demo (`npm run dev:demo`): the same site run in the browser over a
-snapshot, with no Clerk or Supabase. New data must reach components through the service registry,
+snapshot, with no Supabase. New data must reach components through the service registry,
 or the Demo won't have it. Gate a Demo-only import with the condition written out, not `IS_DEMO`
 (`docs/adr/0004` says why).
 
@@ -55,8 +55,9 @@ pinned (with `vitest`) via `overrides` in `package.json`; bump them together wit
 
 - **Framework**: React 19 + TanStack Router (file-based routing)
 - **State**: TanStack Query for server state
-- **Server Functions**: TanStack React Start (server-side functions with Clerk auth)
-- **Auth**: Clerk
+- **Server Functions**: TanStack React Start (server-side functions that check the session)
+- **Auth**: Supabase Auth, invite-only, with the session in cookies only the server touches
+  (`docs/adr/0006`)
 - **Database**: Supabase (PostgreSQL)
 - **External API**: Squiggle API (AFL data)
 - **Styling**: Tailwind CSS v4 + shadcn/ui components
@@ -96,7 +97,8 @@ through `squiggleDataRepository` or `squiggleService`. Never add a visitor-trigg
 Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start server functions that:
 
 - Run server-side only
-- Use Clerk for auth
+- Check the session first, through `ensureTipster` (it calls `getSessionUserId()` from
+  `src/features/auth/api/session.ts`)
 - Interact with Supabase for user tips, through `getSupabaseServerClient()` in `src/lib/supabase.ts`
   only. It uses the server-only `SUPABASE_SECRET_KEY`; RLS denies the publishable key every row
   (`docs/adr/0002`), so a new table's migration must enable RLS, and no secret may take a `VITE_`
@@ -104,7 +106,7 @@ Located in `src/features/afl-tipping/api/tips.ts`. These are TanStack Start serv
 
 ### Routing
 
-- `src/routes/__root.tsx` - Root layout with providers (Clerk, Query, Router)
+- `src/routes/__root.tsx` - Root layout: the document shell, time zone and error boundaries
 - `src/routes/_authenticated.tsx` - Auth guard layout for protected routes
 - Protected pages under `src/routes/_authenticated/`
 
@@ -190,14 +192,14 @@ Run `npm run format` before committing if you've created new files.
 - Use `containerDecorator` for width constraints, `centeredYDecorator` for centering
 - Use mock factories from `src/features/afl-tipping/mocks/factories` for test data
 - Configure services via `parameters.services` (the `withServices` decorator handles registration)
-- Use `withMockUser` decorator when the component needs Clerk user context
+- Use `withMockUser` decorator when the component needs the signed-in Tipster
 - Use `withRouter` decorator when the component uses TanStack Router hooks
 
 ### Writing Tests
 
 - Use Vitest + React Testing Library; import test APIs from `vite-plus/test` (not `vitest`)
 - Mock `~/app/service-registry` with `vi.mock()` to control API responses
-- Mock `@clerk/tanstack-react-start` when components use auth hooks
+- Mock `~/features/auth/use-current-user` when components read the signed-in Tipster
 - Use `createTestQueryClient()` and `renderWithClient()` from `~/test/render`
 - Use factories from `~/features/afl-tipping/mocks/factories` for test data
 
