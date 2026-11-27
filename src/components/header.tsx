@@ -14,20 +14,9 @@ import { ComponentProps } from "react";
 import { signOut } from "~/features/auth/api/session";
 import { useCurrentUser } from "~/features/auth/use-current-user";
 import { IS_DEMO } from "~/lib/demo";
-import { cn } from "~/lib/utils";
+import { cn, getInitials } from "~/lib/utils";
 
 const logo = "/dummy-footy-logo.png";
-
-function getInitials(fullName: string | null | undefined): string {
-  if (!fullName) return "?";
-  return fullName
-    .split(" ")
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
 
 /**
  * The App's top bar: 48px tall, so a phone keeps its screen for the page. The logo takes a Tipster
