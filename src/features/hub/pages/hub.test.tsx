@@ -30,6 +30,7 @@ function renderHub(launchAppId: string | null = null) {
     routeTree: rootRoute.addChildren([
       indexRoute,
       createRoute({ getParentRoute: () => rootRoute, path: "/afl-tipping" }),
+      createRoute({ getParentRoute: () => rootRoute, path: "/architecture" }),
     ]),
   });
   return render(<RouterProvider router={router} />);
@@ -42,6 +43,12 @@ describe("HubPage", () => {
       const link = await screen.findByRole("link", { name: new RegExp(app.name) });
       expect(link).toHaveAttribute("href", app.href);
     }
+  });
+
+  it("links to the architecture page from the footer", async () => {
+    renderHub();
+    const link = await screen.findByRole("link", { name: "How it’s built" });
+    expect(link).toHaveAttribute("href", "/architecture");
   });
 
   it("saves the launch preference when the toggle is switched on", async () => {
