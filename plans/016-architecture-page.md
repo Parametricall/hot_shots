@@ -311,3 +311,19 @@ Set this plan's row in `plans/README.md` to DONE.
   server", "your tables"). D6 rewrites it. It also says, correctly, that the
   gap between live runs is about 10 seconds, not up to a minute as an earlier
   conversation estimated.
+- Steps 2-8 ran on 2026-11-27 without the operator, who asked for questions
+  to wait until the end. Step 1 took D1-D6 as recommended, D4's highlight as
+  `--primary` (`--destructive` already marks refused paths in the security
+  diagram) and D3's URL as written. The operator confirms or changes them.
+- Drift check at 9204887: nothing listed.
+- TanStack Router `Link` inside the SVG renders a working `<a>`; no
+  `buildLocation` fallback. The overview map's `<svg>` takes `role="group"`
+  rather than `role="img"`, so its links stay reachable by assistive tech.
+- The overview map has no node for `scoring` or `demo` (as in the
+  reference). Those two Topics open from the chips only.
+- `/architecture` with no `topic` redirects (307) to `?topic=reading`: the
+  router writes the default into the URL.
+- D6 went further than "your": "our" is gone too (the guard in
+  `diagrams.test.tsx` rejects it), "SQUIGGLE · NOT OURS" reads
+  "SQUIGGLE · EXTERNAL", and hard-coded Season years in captions read "next
+  year's Fixture" and "bundled Season snapshot".
