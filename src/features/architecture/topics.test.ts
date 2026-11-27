@@ -60,4 +60,11 @@ describe("ADRS", () => {
     );
     expect(ADRS.map((adr) => adr.number)).toEqual(onDisk);
   });
+
+  it("names the file each decision lives in", () => {
+    for (const adr of ADRS) {
+      expect(ADR_FILES).toContain(adr.file);
+      expect(adr.file.startsWith(`${String(adr.number).padStart(4, "0")}-`)).toBe(true);
+    }
+  });
 });

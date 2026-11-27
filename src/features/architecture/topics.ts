@@ -37,14 +37,15 @@ export type Topic = {
   why: string;
 };
 
-export type Adr = { number: number; title: string };
+/** `file` is the name under docs/adr/, which the page links to on GitHub. */
+export type Adr = { number: number; title: string; file: string };
 
 export const TOPICS: readonly Topic[] = [
   {
     id: "reading",
     title: "Opening a page",
     intro:
-      "Pages draw from a cache in the browser first, then refresh it from the server. The server reads our own tables, never Squiggle.",
+      "Pages draw from a cache in the browser first, then refresh it from the server. The server reads the site's own tables, never Squiggle.",
     steps: [
       'Each page asks for data with a TanStack Query key that starts with the Season, like ["afl", "season", 2027, "games"]. Switching Seasons switches every query at once.',
       "Queries don't call the server directly. They ask the service registry for a service, such as squiggleService.getGames. The live site registers services that call server functions. The Demo registers its own.",
@@ -214,20 +215,54 @@ export const TOPICS: readonly Topic[] = [
 ];
 
 export const ADRS: readonly Adr[] = [
-  { number: 1, title: "A missed Tip becomes a Home-team Auto-tip." },
-  { number: 2, title: "Supabase is reached only from the server, and RLS denies everyone else." },
+  {
+    number: 1,
+    title: "A missed Tip becomes a Home-team Auto-tip.",
+    file: "0001-missed-tips-become-home-team-auto-tips.md",
+  },
+  {
+    number: 2,
+    title: "Supabase is reached only from the server, and RLS denies everyone else.",
+    file: "0002-supabase-is-server-only.md",
+  },
   {
     number: 3,
     title: "Every App lives on one origin, so the Hub and each App can be installed as a PWA.",
+    file: "0003-every-app-on-one-origin.md",
   },
-  { number: 4, title: "The Demo runs in the browser over a snapshot." },
-  { number: 5, title: "Live scores came through the site's own relay. Replaced by 0010." },
+  {
+    number: 4,
+    title: "The Demo runs in the browser over a snapshot.",
+    file: "0004-the-demo-runs-in-the-browser.md",
+  },
+  {
+    number: 5,
+    title: "Live scores came through the site's own relay. Replaced by 0010.",
+    file: "0005-live-scores-come-through-our-own-proxy.md",
+  },
   {
     number: 6,
     title: "Supabase Auth replaces Clerk: invite-only, with cookies only the server touches.",
+    file: "0006-supabase-auth-replaces-clerk.md",
   },
-  { number: 7, title: "Tipsters enter each Season's Competition by opening the App during it." },
-  { number: 8, title: "Times show in the viewer's time zone." },
-  { number: 9, title: "Squiggle is read on a schedule, never because a visitor opened a page." },
-  { number: 10, title: "Live scores come from one ingest connection, through Supabase Realtime." },
+  {
+    number: 7,
+    title: "Tipsters enter each Season's Competition by opening the App during it.",
+    file: "0007-tipsters-enter-each-season.md",
+  },
+  {
+    number: 8,
+    title: "Times show in the viewer's time zone.",
+    file: "0008-times-show-in-the-viewers-time-zone.md",
+  },
+  {
+    number: 9,
+    title: "Squiggle is read on a schedule, never because a visitor opened a page.",
+    file: "0009-squiggle-is-read-on-a-schedule.md",
+  },
+  {
+    number: 10,
+    title: "Live scores come from one ingest connection, through Supabase Realtime.",
+    file: "0010-live-scores-come-from-one-ingest-through-realtime.md",
+  },
 ];
