@@ -3,8 +3,8 @@
 Open plans only. A plan is deleted once it's done and verified; what it decided lives on in
 `docs/adr/`, and the plan itself in git history (`git log --diff-filter=D -- plans/`).
 
-Plans 002–003 came from an improve-skill audit on 2026-07-03, against commit `612bab8`; their
-numbers match the audit's finding numbers. 004 was added by the operator on 2026-07-04, and 010
+Plan 003 (done, deleted) came from an improve-skill audit on 2026-07-03, against commit `612bab8`;
+the finding numbers below are that audit's. 004 was added by the operator on 2026-07-04, and 010
 and 011 on 2026-10-17 (010 after a design review with the operator); 011 (make the repo public)
 was done on 2026-10-18. 013 was added on 2026-10-21 after a conversation with the operator
 (`docs/adr/0006`). 015 was added on 2026-11-25 after the operator read Squiggle's updated
@@ -16,7 +16,6 @@ conditions, and update your row in the table when done.
 
 | Plan | Title                                                                         | Priority | Effort | Risk | Depends on | Status                                                                                                                                                                                                                                                                                                                                  |
 | ---- | ----------------------------------------------------------------------------- | -------- | ------ | ---- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 003  | Remediate `npm audit` dependency vulnerabilities                              | P2       | S      | LOW  | —          | DONE (0 vulnerabilities; fixed by the lockfile refresh in 82ba560)                                                                                                                                                                                                                                                                      |
 | 004  | Live game-score updates via Squiggle SSE (proxied `/api/live-scores`)         | P2       | L      | MED  | —          | IN PROGRESS (code done; live-game end-to-end and a Vercel preview check wait for a game day)                                                                                                                                                                                                                                            |
 | 010  | A public, browser-only Demo with a Demo clock                                 | P1       | L      | MED  | —          | IN PROGRESS (deployed, README link added; operator: phone check, screenshots)                                                                                                                                                                                                                                                           |
 | 013  | Replace Clerk with Supabase Auth                                              | P1       | L      | HIGH | —          | IN PROGRESS (cutover merged 2026-10-22; 9.2 and 9.4 done 2026-11-27: Clerk package, migration script and doc references gone; decisions: Google + emailed code, no passwords (Facebook dropped: Meta needs a verified business); left: 9.1 stragglers, 9.3 drop `profiles.clerk_user_id`, operator 9.5 Clerk keys and 9.6 iPhone check) |
@@ -28,7 +27,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 
 ## Order and dependencies
 
-Suggested: **003** (mechanical, confirms the toolchain still builds), then **010**, then **004**.
+Suggested: **010**, then **004**.
 Schedule 004's final verification for a game day (Thu–Sun in-season) so its live end-to-end step can run.
 
 Run each plan's drift check first:
