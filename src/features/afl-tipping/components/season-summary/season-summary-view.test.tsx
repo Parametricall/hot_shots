@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { SeasonSummaryView, type SeasonSummaryViewProps } from "./season-summary-view";
 import {
   createAflLeaderboardEntry,
@@ -141,14 +141,107 @@ describe("SeasonSummaryView", () => {
   });
 
   describe("upcoming", () => {
-    it("says when Opening Round starts, offers to tip it and shows no scores", async () => {
-      await renderSummary({ status: "upcoming", season: 2027, activeRoundName: "Opening Round" });
+    // 7:30pm Wednesday 17 March 2027, Melbourne.
+    const OPENING = Date.UTC(2027, 2, 17, 8, 30);
+    const DAY = 86_400_000;
+    const LAST_SEASON = [entry("a", 9), entry("b", 8), entry("c", 7), entry("d", 6), entry("e", 2)];
+    const tipping = (...ids: string[]) => ids.map((id) => entry(id, 0));
+
+    function renderUpcoming(overrides: Partial<SeasonSummaryViewProps> = {}) {
+      return renderSummary({
+        status: "upcoming",
+        season: 2027,
+        firstGameAt: OPENING,
+        now: OPENING - 98 * DAY,
+        leaderboard: tipping("a", "b", "c", "d", "e"),
+        previousLeaderboard: LAST_SEASON,
+        ...overrides,
+      });
+    }
+
+    it("counts down to Opening Round with an outline button in the Pre-season", async () => {
+      await renderUpcoming();
+      expect(await screen.findByRole("heading", { name: "2027 Season" })).toBeInTheDocument();
       expect(
-        await screen.findByText(/Opening Round starts Wednesday,? 17 March/),
+        screen.getByText(/Opening Round starts Wednesday,? 17 March · in 98 days/),
+      ).toBeVisible();
+      const tip = screen.getByRole("link", { name: "Tip Opening Round" });
+      expect(tip).toHaveAttribute("href", "/afl-tipping/2027/tips");
+      expect(tip).not.toHaveClass("bg-primary");
+    });
+
+    it("makes the button primary within 14 days of the first Game", async () => {
+      await renderUpcoming({ now: OPENING - 14 * DAY });
+      expect(await screen.findByRole("link", { name: "Tip Opening Round" })).toHaveClass(
+        "bg-primary",
+      );
+    });
+
+    it("says tomorrow and today for the last two days", async () => {
+      await renderUpcoming({ now: OPENING - DAY });
+      expect(await screen.findByText(/· tomorrow/)).toBeInTheDocument();
+    });
+
+    it("says the Fixture isn't out when there is no first Game", async () => {
+      await renderUpcoming({ firstGameAt: null });
+      expect(await screen.findByText("The Fixture isn't out yet")).toBeInTheDocument();
+    });
+
+    it("shows last Season's Champion back, with their Score", async () => {
+      await renderUpcoming();
+      expect(
+        await screen.findByRole("heading", { name: "Last Season's Champion" }),
       ).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Tip Opening Round" })).toBeInTheDocument();
-      expect(screen.getByText("No scores yet")).toBeInTheDocument();
-      expect(screen.queryByText("Wooden spoon")).not.toBeInTheDocument();
+      expect(screen.getByText("Score in 2026", { exact: false })).toBeInTheDocument();
+      const card = screen
+        .getByRole("heading", { name: "Last Season's Champion" })
+        .closest("[data-slot=card]")!;
+      expect(within(card as HTMLElement).getByText("Back for 2027")).toBeVisible();
+    });
+
+    it("marks the Champion and the Wooden spoon holder as not back yet", async () => {
+      await renderUpcoming({ leaderboard: tipping("b", "c", "d") });
+      await screen.findByRole("heading", { name: "Last Season's Champion" });
+      expect(screen.getByText("Wooden spoon, 2026")).toBeInTheDocument();
+      expect(screen.getAllByText("Not back yet", { selector: "[data-slot=badge]" })).toHaveLength(
+        2,
+      );
+    });
+
+    it("lists entrants with their finish last Season, You marked, new Tipsters last", async () => {
+      await renderUpcoming({ leaderboard: tipping("d", "z", "a"), userId: "d" });
+      const section = (await screen.findByRole("heading", { name: "Who's tipping in 2027" }))
+        .parentElement!;
+      const rows = within(section).getAllByRole("listitem");
+      expect(rows.map((row) => row.textContent)).toEqual([
+        expect.stringContaining("Tipster a1st in 2026"),
+        expect.stringContaining("Tipster d"),
+        expect.stringContaining("Tipster z"),
+      ]);
+      expect(rows[1]).toHaveTextContent("You");
+      expect(rows[1]).toHaveTextContent("4th in 2026");
+      expect(rows[2]).toHaveTextContent("New");
+    });
+
+    it("lists who hasn't entered, and hides the list when everyone is back", async () => {
+      const { unmount } = await renderUpcoming({ leaderboard: tipping("a", "c") });
+      const heading = await screen.findByRole("heading", { name: "Not back yet" });
+      expect(within(heading.parentElement!).getAllByRole("listitem")).toHaveLength(3);
+      unmount();
+      await renderUpcoming();
+      await screen.findByRole("heading", { name: "Who's tipping in 2027" });
+      expect(screen.queryByRole("heading", { name: "Not back yet" })).not.toBeInTheDocument();
+    });
+
+    it("shows only the entrants in the first Season", async () => {
+      await renderUpcoming({ previousLeaderboard: null });
+      await screen.findByRole("heading", { name: "Who's tipping in 2027" });
+      expect(screen.getAllByRole("listitem")).toHaveLength(5);
+      expect(screen.queryByText(/Champion/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Wooden spoon/)).not.toBeInTheDocument();
+      expect(screen.queryByText("New")).not.toBeInTheDocument();
+      expect(screen.queryByText(/in 2026/)).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Not back yet" })).not.toBeInTheDocument();
     });
   });
 });

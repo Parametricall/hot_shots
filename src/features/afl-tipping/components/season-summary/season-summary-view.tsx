@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Award, Medal, Trophy } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -17,7 +16,11 @@ import {
   seasonAwards,
   type SeasonAward,
 } from "~/features/afl-tipping/utils/season-awards";
-import { getInitials } from "~/lib/utils";
+import {
+  ChampionCard,
+  ordinal,
+} from "~/features/afl-tipping/components/season-summary/season-summary-parts";
+import { UpcomingSummary } from "~/features/afl-tipping/components/season-summary/upcoming-summary";
 
 export type SeasonSummaryViewProps = {
   season: number;
@@ -34,23 +37,14 @@ export type SeasonSummaryViewProps = {
   playerStats?: AflPlayerStatsEntry[];
   /** The AFL's name for each Round number ("Qualifying Final"), where it isn't "Round N". */
   roundNames?: Record<number, string>;
+  /**
+   * Last Season's final Leaderboard, for an upcoming Season. Null or absent when there was no last
+   * Season.
+   */
+  previousLeaderboard?: AflLeaderboardEntry[] | null;
+  /** The time to count down from, epoch ms. Defaults to `now()`. */
+  now?: number;
 };
-
-const ORDINAL_RULES = new Intl.PluralRules("en-AU", { type: "ordinal" });
-const ORDINAL_SUFFIXES: Record<string, string> = { one: "st", two: "nd", few: "rd", other: "th" };
-
-function ordinal(n: number): string {
-  return `${n}${ORDINAL_SUFFIXES[ORDINAL_RULES.select(n)]}`;
-}
-
-function formatStart(at: number): string {
-  return new Intl.DateTimeFormat("en-AU", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    timeZone: "Australia/Melbourne",
-  }).format(at);
-}
 
 function RankIcon({ rank }: { rank: number }) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" aria-hidden />;
@@ -153,21 +147,6 @@ export function WoodenSpoonCard({ entries }: { entries: AflLeaderboardEntry[] })
   );
 }
 
-function TipsterAvatar({
-  entry,
-  className,
-}: {
-  entry: Pick<AflLeaderboardEntry, "displayName" | "avatarUrl">;
-  className?: string;
-}) {
-  return (
-    <Avatar className={className}>
-      <AvatarImage src={entry.avatarUrl ?? undefined} alt="" />
-      <AvatarFallback>{getInitials(entry.displayName)}</AvatarFallback>
-    </Avatar>
-  );
-}
-
 function formatAccuracy(accuracy: number | null | undefined): string | null {
   return accuracy === null || accuracy === undefined ? null : `${Math.round(accuracy)}%`;
 }
@@ -192,44 +171,24 @@ function ChampionSection({
 
   return (
     <section aria-labelledby="champion-heading" className="flex flex-col gap-3">
-      <Card className="border-yellow-500/50 bg-yellow-500/10">
-        <CardHeader className="items-center pb-2 text-center">
-          <Trophy className="h-10 w-10 text-yellow-500" aria-hidden />
-          <CardTitle id="champion-heading" role="heading" aria-level={2} className="text-lg">
-            {champions.length > 1 ? "Champions" : "Champion"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {champions.map((entry) => {
-            const accuracy = accuracyOf(entry.userId);
-            return (
-              <div key={entry.userId} className="flex flex-col items-center gap-2 text-center">
-                <TipsterAvatar
-                  entry={entry}
-                  className="size-20 border-4 border-yellow-500 text-xl"
-                />
-                <p className="text-xl font-semibold">
-                  {entry.displayName}
-                  {entry.userId === userId && (
-                    <Badge variant="secondary" className="ml-2 align-middle text-xs">
-                      You
-                    </Badge>
-                  )}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">{entry.score}</span> Score
-                  {accuracy && (
-                    <>
-                      {" · "}
-                      <span className="font-semibold text-foreground">{accuracy}</span> Accuracy
-                    </>
-                  )}
-                </p>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <ChampionCard
+        champions={champions}
+        userId={userId}
+        details={(entry) => {
+          const accuracy = accuracyOf(entry.userId);
+          return (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{entry.score}</span> Score
+              {accuracy && (
+                <>
+                  {" · "}
+                  <span className="font-semibold text-foreground">{accuracy}</span> Accuracy
+                </>
+              )}
+            </p>
+          );
+        }}
+      />
       {chasers.length > 0 && (
         <Card>
           <CardContent className="p-0">
@@ -383,11 +342,10 @@ function OverSummary({
   );
 }
 
-/** A Season that hasn't started or is under way: tip the active Round, and the top three so far. */
+/** A Season under way: tip the active Round, and the top three so far. */
 function LiveSummary({
   season,
   status,
-  firstGameAt,
   activeRoundName,
   leaderboard,
   userId,
@@ -398,11 +356,6 @@ function LiveSummary({
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-xl font-semibold">{season} Season</h1>
-        {status === "upcoming" && firstGameAt !== null && (
-          <p className="text-sm text-muted-foreground">
-            Opening Round starts {formatStart(firstGameAt)}
-          </p>
-        )}
         {finish && <p className="text-sm text-muted-foreground">{finish}</p>}
       </div>
 
@@ -412,16 +365,14 @@ function LiveSummary({
         </Link>
       </Button>
 
-      {status === "upcoming" ? (
-        <NoScores />
-      ) : (
-        <PodiumCard leaderboard={leaderboard} userId={userId} title="Top three so far" />
-      )}
+      <PodiumCard leaderboard={leaderboard} userId={userId} title="Top three so far" />
     </div>
   );
 }
 
 /** The Season summary, from data. `SeasonSummary` fetches it. */
 export function SeasonSummaryView(props: SeasonSummaryViewProps) {
-  return props.status === "over" ? <OverSummary {...props} /> : <LiveSummary {...props} />;
+  if (props.status === "over") return <OverSummary {...props} />;
+  if (props.status === "upcoming") return <UpcomingSummary {...props} />;
+  return <LiveSummary {...props} />;
 }

@@ -131,13 +131,64 @@ export const InProgressNoScoresYet = meta.story({
   },
 });
 
-export const Upcoming = meta.story({
+const OPENING = Date.UTC(2027, 2, 17, 8, 30);
+const DAY = 86_400_000;
+
+const LAST_SEASON = [
+  entry("u1", "Alice Johnson", 164, 210),
+  entry("u2", "Ryan Suspicious", 160, 232),
+  entry("user-storybook", "You (Current User)", 158, 240),
+  entry("u4", "Charlie Brown", 150, 260),
+  entry("u5", "Diana Prince", 141, 301),
+  entry("u6", "Evan Wright", 118, 380),
+];
+
+const entered = (...names: [string, string][]) =>
+  names.map(([userId, displayName]) => entry(userId, displayName, 0));
+
+const UPCOMING: SeasonSummaryViewProps = {
+  ...BASE,
+  season: 2027,
+  status: "upcoming",
+  firstGameAt: OPENING,
+  now: OPENING - 98 * DAY,
+  activeRoundName: "Opening Round",
+  previousLeaderboard: LAST_SEASON,
+  playerStats: undefined,
+  leaderboard: entered(
+    ["u1", "Alice Johnson"],
+    ["u2", "Ryan Suspicious"],
+    ["user-storybook", "You (Current User)"],
+    ["u4", "Charlie Brown"],
+    ["u5", "Diana Prince"],
+    ["u6", "Evan Wright"],
+    ["u9", "Grace Hopper"],
+  ),
+};
+
+/** Opening Round is months away: tipping is open but not pushed (outline button). */
+export const UpcomingPreSeason = meta.story({
+  args: { ...UPCOMING, leaderboard: UPCOMING.leaderboard.slice(0, 4) },
+});
+
+/** Within 14 days of the first Game: the button is primary. */
+export const UpcomingTippingTime = meta.story({
+  args: { ...UPCOMING, now: OPENING - 10 * DAY },
+});
+
+export const UpcomingEveryoneBack = meta.story({ args: UPCOMING });
+
+export const UpcomingChampionNotBack = meta.story({
   args: {
-    ...BASE,
-    season: 2027,
-    status: "upcoming",
-    firstGameAt: Date.UTC(2027, 2, 17, 8, 30),
-    activeRoundName: "Opening Round",
-    leaderboard: [],
+    ...UPCOMING,
+    leaderboard: UPCOMING.leaderboard.filter((e) => e.userId !== "u1" && e.userId !== "u6"),
   },
+});
+
+export const UpcomingFirstSeason = meta.story({
+  args: { ...UPCOMING, season: 2026, previousLeaderboard: null },
+});
+
+export const UpcomingNoFixtureYet = meta.story({
+  args: { ...UPCOMING, firstGameAt: null },
 });

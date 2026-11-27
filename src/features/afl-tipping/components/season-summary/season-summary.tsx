@@ -7,6 +7,7 @@ import { aflQueries } from "~/features/afl-tipping/api/queries";
 import { SeasonSummaryView } from "~/features/afl-tipping/components/season-summary/season-summary-view";
 import { useSeason } from "~/features/afl-tipping/hooks/use-season";
 import * as AflGame from "~/features/afl-tipping/utils/afl-game";
+import { FIRST_SEASON } from "~/features/afl-tipping/constants";
 import { seasonStatus } from "~/features/afl-tipping/utils/afl-season";
 import { useCurrentUser } from "~/features/auth/use-current-user";
 import { now } from "~/lib/clock";
@@ -29,9 +30,19 @@ export function SeasonSummary() {
   // Only a finished Season shows the Champion's Accuracy and the awards, so only it waits on this.
   const stats = useQuery(aflQueries.playerStats(season));
 
+  const isUpcoming = games.data !== undefined && seasonStatus(games.data, now()) === "upcoming";
+  // An upcoming Season sets its entrants against last Season's final Leaderboard.
+  const needsPrevious = isUpcoming && season - 1 >= FIRST_SEASON;
+  const previous = useQuery({ ...aflQueries.leaderboard(season - 1), enabled: needsPrevious });
+
   const isOver = games.data !== undefined && seasonStatus(games.data, now()) === "over";
 
-  if (leaderboard.isError || games.isError || (isOver && stats.isError)) {
+  if (
+    leaderboard.isError ||
+    games.isError ||
+    (isOver && stats.isError) ||
+    (needsPrevious && previous.isError)
+  ) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -45,6 +56,7 @@ export function SeasonSummary() {
               void leaderboard.refetch();
               void games.refetch();
               void stats.refetch();
+              if (needsPrevious) void previous.refetch();
             }}
           >
             Try again
@@ -54,7 +66,12 @@ export function SeasonSummary() {
     );
   }
 
-  if (!leaderboard.data || !games.data || (isOver && !stats.data)) {
+  if (
+    !leaderboard.data ||
+    !games.data ||
+    (isOver && !stats.data) ||
+    (needsPrevious && !previous.data)
+  ) {
     return <SeasonSummarySkeleton />;
   }
 
@@ -76,6 +93,7 @@ export function SeasonSummary() {
       userId={user?.id}
       playerStats={stats.data}
       roundNames={roundNames}
+      previousLeaderboard={needsPrevious ? previous.data : null}
     />
   );
 }

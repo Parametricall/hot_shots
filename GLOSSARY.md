@@ -79,7 +79,9 @@ opening the App lands on the Season summary, not My Tips.
 _Avoid_: off-season, preseason
 
 **Season summary**:
-The page for one Season of an App: the Leaderboard's top three and, once the Season is over, the
+The page for one Season of an App. For an upcoming Season it shows who has entered, with their
+finish last Season, and whether last Season's Champion and Wooden spoon holder are back. While the
+Season is in progress, it shows the Leaderboard's top three. Once it is over, it shows the
 Champion, the Wooden spoon and the Season awards.
 _Avoid_: home page, season home, overview, dashboard
 
