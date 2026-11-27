@@ -41,7 +41,10 @@ export default defineConfig(({ mode }) => {
             vercel: {
               // /api/live-scores holds a stream open for a whole Game. When the cap cuts it, the
               // browser reconnects and the live scores hook resyncs, by design.
-              functionRules: { "/api/live-scores": { maxDuration: 300 } },
+              functionRules: {
+                "/api/live-scores": { maxDuration: 300 },
+                "/api/spike-wait": { maxDuration: 300 },
+              },
             },
           }),
         viteReact(),

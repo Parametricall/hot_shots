@@ -17,6 +17,7 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AuthenticatedAflTippingRouteImport } from './routes/_authenticated/afl-tipping'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiLiveScoresRouteImport } from './routes/api/live-scores'
+import { Route as ApiSpikeWaitRouteImport } from './routes/api/spike-wait'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedAflTippingIndexRouteImport } from './routes/_authenticated/afl-tipping/index'
 import { Route as AuthenticatedAflTippingSeasonRouteImport } from './routes/_authenticated/afl-tipping/$season'
@@ -70,6 +71,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
 const ApiLiveScoresRoute = ApiLiveScoresRouteImport.update({
   id: '/api/live-scores',
   path: '/api/live-scores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpikeWaitRoute = ApiSpikeWaitRouteImport.update({
+  id: '/api/spike-wait',
+  path: '/api/spike-wait',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
+  '/api/spike-wait': typeof ApiSpikeWaitRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/afl-tipping/$season': typeof AuthenticatedAflTippingSeasonRouteWithChildren
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
+  '/api/spike-wait': typeof ApiSpikeWaitRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
   '/afl-tipping/standings': typeof AuthenticatedAflTippingStandingsRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/afl-tipping': typeof AuthenticatedAflTippingRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/live-scores': typeof ApiLiveScoresRoute
+  '/api/spike-wait': typeof ApiSpikeWaitRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/afl-tipping/$season': typeof AuthenticatedAflTippingSeasonRouteWithChildren
   '/_authenticated/afl-tipping/group-tips': typeof AuthenticatedAflTippingGroupTipsRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/afl-tipping'
     | '/api/health'
     | '/api/live-scores'
+    | '/api/spike-wait'
     | '/auth/callback'
     | '/afl-tipping/$season'
     | '/afl-tipping/group-tips'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/api/health'
     | '/api/live-scores'
+    | '/api/spike-wait'
     | '/auth/callback'
     | '/afl-tipping/group-tips'
     | '/afl-tipping/standings'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated/afl-tipping'
     | '/api/health'
     | '/api/live-scores'
+    | '/api/spike-wait'
     | '/auth/callback'
     | '/_authenticated/afl-tipping/$season'
     | '/_authenticated/afl-tipping/group-tips'
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiLiveScoresRoute: typeof ApiLiveScoresRoute
+  ApiSpikeWaitRoute: typeof ApiSpikeWaitRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthOauthProviderRoute: typeof AuthOauthProviderRoute
 }
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/api/live-scores'
       fullPath: '/api/live-scores'
       preLoaderRoute: typeof ApiLiveScoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spike-wait': {
+      id: '/api/spike-wait'
+      path: '/api/spike-wait'
+      fullPath: '/api/spike-wait'
+      preLoaderRoute: typeof ApiSpikeWaitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -565,6 +585,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiLiveScoresRoute: ApiLiveScoresRoute,
+  ApiSpikeWaitRoute: ApiSpikeWaitRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthOauthProviderRoute: AuthOauthProviderRoute,
 }
