@@ -50,7 +50,7 @@ describe("the active Round over a masked Season", () => {
     const games = [finished(1, 1, 0), finished(2, 1, 5), finished(3, 2, 20), finished(4, 3, 40)];
     expect(AflGame.getActiveRound(gamesAsOf(games, T0 + 10 * HOUR))).toBe(2);
     expect(AflGame.getActiveRound(gamesAsOf(games, T0 + 21 * HOUR))).toBe(3);
-    expect(AflGame.getActiveRound(gamesAsOf(games, T0 + 100 * HOUR))).toBe(0);
+    expect(AflGame.getActiveRound(gamesAsOf(games, T0 + 100 * HOUR))).toBe(3);
   });
 });
 

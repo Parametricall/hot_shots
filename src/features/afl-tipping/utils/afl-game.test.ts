@@ -39,12 +39,16 @@ describe("AflGame.getActiveRound", () => {
     expect(AflGame.getActiveRound(games)).toBe(2);
   });
 
-  it("returns 0 when all games are complete", () => {
+  it("returns the last round when all games are complete", () => {
     const games = [
       createAflGame({ round: 1, complete: 100 }),
       createAflGame({ round: 2, complete: 100 }),
     ];
-    expect(AflGame.getActiveRound(games)).toBe(0);
+    expect(AflGame.getActiveRound(games)).toBe(2);
+  });
+
+  it("returns 0 when there are no games", () => {
+    expect(AflGame.getActiveRound([])).toBe(0);
   });
 });
 

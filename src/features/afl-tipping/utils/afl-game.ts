@@ -35,10 +35,17 @@ export function sortByDate(games: AflGame[]) {
   return games.toSorted((a, b) => a.date.getTime() - b.date.getTime());
 }
 
+/**
+ * The Current Round: the first Round with a Game still to finish. Once every Game is done it is
+ * the Season's last Round, which every Season has (not Round 0, which 2027 doesn't). 0 with no
+ * Games at all.
+ */
 export const getActiveRound = (games: AflGame[]): number => {
+  if (games.length === 0) return 0;
+
   const incompleteGames = games.filter((game) => !isComplete(game));
   if (incompleteGames.length === 0) {
-    return 0;
+    return Math.max(...games.map((g) => g.round));
   }
 
   return Math.min(...incompleteGames.map((g) => g.round));
