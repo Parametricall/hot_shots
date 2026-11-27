@@ -969,3 +969,7 @@ unchanged.
   Game was restored and the user deleted; the file was not committed.
 - Bundle: the built client assets contain realtime-js (`phx_join`, `realtime/v1`) and no auth-js
   (`GoTrueClient`, `AuthSessionMissingError`) or postgrest.
+- Reviewer note (2026-11-27): `pg_cron` keeps a `cron.job_run_details` row for every run and never
+  deletes one, ~45,000 a month from `squiggle-live` alone. Migration
+  `20261127090000_prune_squiggle_job_history.sql` adds a weekly job that keeps 7 days of it and 90
+  days of `squiggle_sync_runs`. Applied and tested locally with `npx supabase migration up`.

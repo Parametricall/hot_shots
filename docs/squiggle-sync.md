@@ -128,6 +128,10 @@ from net._http_response order by created desc limit 10;
 `status_code` 202 is a started job. 401 means the secrets differ, 503 that `SQUIGGLE_SYNC_SECRET`
 isn't set in Vercel, and `timed_out` that the endpoint took over 5 seconds to answer.
 
+A third job, `prune-squiggle-job-history`, runs weekly (Tuesday 17:00 UTC). It deletes
+`cron.job_run_details` rows older than 7 days and `squiggle_sync_runs` rows older than 90 days, so
+neither grows for ever on the free database. Look further back than that and the rows are gone.
+
 ## Pause and resume
 
 Pause both jobs, for example if Squiggle asks us to stop:
