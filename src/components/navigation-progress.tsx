@@ -1,4 +1,4 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useHydrated, useRouterState } from "@tanstack/react-router";
 import { cn } from "~/lib/utils";
 
 type NavigationProgressBarProps = {
@@ -30,8 +30,14 @@ export function NavigationProgressBar({ active, className }: NavigationProgressB
   );
 }
 
-/** The bar, shown while the router is between pages. Preloads don't count. */
+/**
+ * The bar, shown while the router is between pages. Preloads don't count. It waits for hydration:
+ * a page whose routes render in the browser only (the Demo's, `ssr: false`) hydrates while the
+ * router is still pending, but the server rendered it idle, with no bar, so showing the bar on the
+ * first pass would be a hydration mismatch and React would re-render the whole page.
+ */
 export function NavigationProgress() {
+  const hydrated = useHydrated();
   const isNavigating = useRouterState({ select: (state) => state.status === "pending" });
-  return <NavigationProgressBar active={isNavigating} />;
+  return <NavigationProgressBar active={hydrated && isNavigating} />;
 }

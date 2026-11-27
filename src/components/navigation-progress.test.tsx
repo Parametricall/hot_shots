@@ -5,8 +5,11 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  RouterContextProvider,
   RouterProvider,
 } from "@tanstack/react-router";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
 import { NavigationProgress, NavigationProgressBar } from "~/components/navigation-progress";
 
@@ -58,5 +61,54 @@ describe("NavigationProgress", () => {
     act(() => finish());
     expect(await screen.findByText("Slow page")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("hydrates without a mismatch while the page's routes are still loading", async () => {
+    // The Demo's AFL routes render in the browser only: the server renders the shell with the
+    // router idle, and the browser hydrates it while those routes are still loading.
+    const routerOnPage = async (initialLoad: "finished" | "pending") => {
+      const rootRoute = createRootRoute();
+      const routeTree = rootRoute.addChildren([
+        createRoute({
+          getParentRoute: () => rootRoute,
+          path: "/",
+          loader: () => (initialLoad === "pending" ? new Promise<void>(() => {}) : undefined),
+        }),
+      ]);
+      const router = createRouter({
+        routeTree,
+        history: createMemoryHistory({ initialEntries: ["/"] }),
+      });
+      const load = router.load();
+      if (initialLoad === "finished") await load;
+      else await new Promise((resolve) => setTimeout(resolve));
+      return router;
+    };
+    const serverRouter = await routerOnPage("finished");
+    const browserRouter = await routerOnPage("pending");
+    expect(browserRouter.state.status).toBe("pending");
+
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(
+      <RouterContextProvider router={serverRouter}>
+        <NavigationProgress />
+      </RouterContextProvider>,
+    );
+    document.body.append(container);
+    const mismatches: unknown[] = [];
+    await act(async () => {
+      hydrateRoot(
+        container,
+        <RouterContextProvider router={browserRouter}>
+          <NavigationProgress />
+        </RouterContextProvider>,
+        { onRecoverableError: (error) => mismatches.push(error) },
+      );
+    });
+
+    expect(mismatches).toEqual([]);
+    // Once hydrated, the bar shows for the navigation still waiting.
+    expect(container.querySelector('[role="progressbar"]')).not.toBeNull();
+    container.remove();
   });
 });
