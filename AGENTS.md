@@ -71,6 +71,9 @@ pinned (with `vitest`) via `overrides` in `package.json`; bump them together wit
 - `src/features/afl-tipping/sync/` - The Squiggle sync and live ingest: the only code that calls Squiggle
 - `src/features/afl-tipping/pages/` - Page components for afl-tipping routes
 - `src/features/auth/` - Auth feature (sign-in page)
+- `src/features/architecture/` - The public `/architecture` page: diagrams of how the parts connect.
+  An ADR or change that alters how parts connect (a new service, an external call, a boundary)
+  updates it in the same change. `topics.test.ts` fails if a named file disappears.
 - `src/components/ui/` - shadcn/ui components
 - `src/lib/` - Configured third-party libraries (utils, supabase client)
 

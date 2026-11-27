@@ -9,7 +9,7 @@ Branch Tracking**), not in the repo.
 ## Release
 
 1. Check the commit as the Demo: `npm run dev:demo`, then play a few Games forward with the Time
-   control. Check the preview deployment instead, if the Demo project builds previews.
+   control, and open `/architecture`. Check the preview deployment instead, if the Demo project builds previews.
 2. Fast-forward `demo` to it:
 
    ```bash
