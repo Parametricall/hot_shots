@@ -61,7 +61,7 @@ export const TOPICS: readonly Topic[] = [
       "src/features/afl-tipping/api/squiggle-data.repository.ts",
     ],
     adr: [4],
-    why: "Why the registry: the pages don't know whether data comes from the server or the Demo's snapshot, so the same code runs both.",
+    why: "The pages don't know whether data comes from the server or the Demo's snapshot, so the same code runs both.",
   },
   {
     id: "sign-in",
@@ -82,7 +82,7 @@ export const TOPICS: readonly Topic[] = [
       "src/lib/supabase.ts",
     ],
     adr: [6, 7],
-    why: "Why: Clerk's free plan ended sessions every 7 days. Supabase Auth with server-set cookies has no session limit, and the site already runs on Supabase. Entering a Competition by opening the App is its own decision.",
+    why: "Clerk's free plan ended sessions every 7 days. Supabase Auth with server-set cookies has no session limit, and the site already runs on Supabase. Entering a Competition by opening the App is its own decision.",
   },
   {
     id: "tipping",
@@ -102,7 +102,7 @@ export const TOPICS: readonly Topic[] = [
       "src/features/afl-tipping/hooks/use-tip-mutation.ts",
     ],
     adr: [9],
-    why: "Why one Game: submitTip used to fetch the whole Season from Squiggle to check one Game. It now reads one row of the site's own copy.",
+    why: "The submitTip function used to fetch the whole Season from Squiggle to check one Game. It now reads one row of the site's own copy.",
   },
   {
     id: "scoring",
@@ -122,7 +122,7 @@ export const TOPICS: readonly Topic[] = [
       "src/features/afl-tipping/api/player-stats.ts",
     ],
     adr: [1],
-    why: "Why it's computed, not stored: Auto-tips and scores depend on Game results that change during a Round. Working them out per request from Tips and Games means there's nothing to get out of step.",
+    why: "Auto-tips and scores depend on Game results that change during a Round. Working them out per request from Tips and Games means there's nothing to get out of step.",
   },
   {
     id: "squiggle-sync",
@@ -143,7 +143,7 @@ export const TOPICS: readonly Topic[] = [
       "docs/squiggle-sync.md",
     ],
     adr: [9],
-    why: "Why: Squiggle's terms say it isn't a backend for user-facing sites. The site's traffic to it now depends on the calendar, not on how many Tipsters there are.",
+    why: "Squiggle's terms say it isn't a backend for user-facing sites. The site's traffic to it now depends on the calendar, not on how many Tipsters there are.",
   },
   {
     id: "live-scores",
@@ -170,7 +170,7 @@ export const TOPICS: readonly Topic[] = [
       "supabase/migrations/20261125110000_squiggle_live_and_schedule.sql",
     ],
     adr: [10, 5],
-    why: "Why: the earlier relay opened one Squiggle connection per open tab. Now it's one for the site, and Supabase holds the tabs' connections.",
+    why: "The earlier relay opened one Squiggle connection per open tab. Now it's one for the site, and Supabase holds the tabs' connections.",
   },
   {
     id: "security",
@@ -191,7 +191,7 @@ export const TOPICS: readonly Topic[] = [
       "src/features/auth/api/realtime-token.ts",
     ],
     adr: [2],
-    why: "Why: before the lockdown, anyone could take the publishable key from the page and read every Tip before Lockout. One gate, the server functions, is easier to get right than many policies.",
+    why: "Before the lockdown, anyone could take the publishable key from the page and read every Tip before Lockout. One gate, the server functions, is easier to get right than many policies.",
   },
   {
     id: "demo",
@@ -210,7 +210,7 @@ export const TOPICS: readonly Topic[] = [
       "docs/releasing-the-demo.md",
     ],
     adr: [4],
-    why: "Why in the browser: a Demo with no server, database or sign-in can't leak real Tips, costs nothing to run, and can't break the live site.",
+    why: "A Demo with no server, database or sign-in can't leak real Tips, costs nothing to run, and can't break the live site.",
   },
 ];
 
